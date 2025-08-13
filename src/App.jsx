@@ -8,7 +8,7 @@ import {
 
 // Perfil y datos (mismo contenido)
 const profile = {
-  name: "José M Hernández",
+  name: "José M",
   tagline: "Customer Success & Operations Specialist",
   blurb: (
     <>
