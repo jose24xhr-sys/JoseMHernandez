@@ -1,1124 +1,685 @@
-import { useMemo, useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
-const typeMap = {
-  article: { label: "Artículo", cls: "badge-article" },
-  video: { label: "Video", cls: "badge-video" },
-  test: { label: "Testing", cls: "badge-test" },
-  support: { label: "Soporte", cls: "badge-support" },
-  deploy: { label: "Deploy", cls: "badge-deploy" },
+// ─── constants ────────────────────────────────────────────────────────────────
+const TYPE_MAP = {
+  article: { lbl: "Article",  cls: "b-article" },
+  video:   { lbl: "Video",    cls: "b-video"   },
+  test:    { lbl: "Testing",  cls: "b-test"    },
+  support: { lbl: "Support",  cls: "b-support" },
+  deploy:  { lbl: "Deploy",   cls: "b-deploy"  },
 };
+const STATUS_LABELS = { "s-draft": "Draft", "s-review": "In review", "s-done": "Published", "s-planned": "Planned" };
+const STATUS_ORDER  = ["s-planned", "s-draft", "s-review", "s-done"];
+const DAYS          = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+const TYPE_KEYS     = ["article", "video", "test", "support", "deploy"];
+const TYPE_COLORS   = { article: "#1D9E75", video: "#7F77DD", test: "#EF9F27", support: "#378ADD", deploy: "#E24B4A" };
+const CATS          = ["Onboarding", "Scheduling", "Routes", "Billing", "Integrations", "FAQ"];
 
-const statusLabels = {
-  "s-draft": "Borrador",
-  "s-review": "En revisión",
-  "s-done": "Publicado",
-  "s-planned": "Planeado",
-};
-
-const reportTypeLabels = {
-  operations: "Operations",
-  content: "Content",
-  testing: "Testing",
-  support: "Support Feedback",
-};
-
-const dailyBucketsTemplate = {
-  Mon: [],
-  Tue: [],
-  Wed: [],
-  Thu: [],
-  Fri: [],
-};
-
-const initialState = {
-  doneTasks: [
-    { id: 1, text: "Redacté artículo: cómo configurar zonas de servicio", type: "article", done: true, day: "Mon" },
-    { id: 2, text: "Grabé video introductorio: tour del dashboard", type: "video", done: true, day: "Tue" },
-    { id: 3, text: "Respondí 12 consultas de usuarios beta", type: "support", done: true, day: "Wed" },
-    { id: 4, text: "Ejecuté prueba de flujo de agendamiento end-to-end", type: "test", done: true, day: "Thu" },
-    { id: 5, text: "Deploy de actualización en entorno de staging", type: "deploy", done: true, day: "Fri" },
-  ],
-  plannedTasks: [
-    { id: 10, text: "Artículo: optimización de rutas por tipo de trabajo", type: "article", done: false, day: "Mon" },
-    { id: 11, text: "Video: cómo agregar técnicos al equipo", type: "video", done: false, day: "Tue" },
-    { id: 12, text: "Testing: respuestas del agente a preguntas de facturación", type: "test", done: false, day: "Wed" },
-    { id: 13, text: "Sesión de onboarding con 2 nuevos clientes", type: "support", done: false, day: "Thu" },
-    { id: 14, text: "Revisión de FAQs con feedback de usuarios beta", type: "article", done: false, day: "Fri" },
-  ],
-  articles: [
-    { title: "Configurar zonas de servicio", cat: "Onboarding", status: "s-done" },
-    { title: "Agregar y gestionar técnicos", cat: "Onboarding", status: "s-review" },
-    { title: "Optimización de rutas automática", cat: "Rutas", status: "s-draft" },
-    { title: "Cómo usar el calendario de agendamiento", cat: "Scheduling", status: "s-draft" },
-    { title: "Conectar con QuickBooks", cat: "Integraciones", status: "s-planned" },
-    { title: "Preguntas frecuentes del agente de chat", cat: "FAQ", status: "s-planned" },
-  ],
-  videos: [
-    { id: 20, text: "Tour del dashboard — introducción general (grabado)", type: "video", done: true, day: "Tue" },
-    { id: 21, text: "Cómo crear tu primer job en Routemize", type: "video", done: false, day: "Wed" },
-    { id: 22, text: "Configurar notificaciones automáticas al cliente", type: "video", done: false, day: "Thu" },
-    { id: 23, text: "Walkthrough: agendamiento con múltiples técnicos", type: "video", done: false, day: "Fri" },
-  ],
-  tests: [
-    { id: 30, text: "Prueba: flujo completo de agendamiento (inicio → confirmación)", type: "test", done: true, day: "Mon" },
-    { id: 31, text: "Prueba: respuestas del agente a preguntas fuera de contexto", type: "test", done: false, day: "Tue" },
-    { id: 32, text: "Prueba: escalamiento correcto a soporte humano", type: "test", done: false, day: "Wed" },
-    { id: 33, text: "Prueba: artículos vinculados correctamente en respuestas", type: "test", done: false, day: "Thu" },
-    { id: 34, text: "Prueba de regresión tras último deploy", type: "test", done: false, day: "Fri" },
-  ],
-  supports: [
-    { id: 40, text: "Atendí consultas de usuarios beta vía live chat (semana pasada)", type: "support", done: true, day: "Mon" },
-    { id: 41, text: "Documenté 5 preguntas recurrentes para convertir en artículos", type: "support", done: true, day: "Tue" },
-    { id: 42, text: "Sesión de onboarding programada para nuevos contratistas", type: "support", done: false, day: "Thu" },
-    { id: 43, text: "Recolectar feedback estructurado de usuarios beta activos", type: "support", done: false, day: "Fri" },
-  ],
-  blockers: [
-    { id: 60, text: "Esperando feedback consolidado de usuarios beta para priorizar nuevos artículos." },
-  ],
-};
-
-function getMonday(date = new Date()) {
-  const d = new Date(date);
-  const day = d.getDay();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
-  return d;
+// ─── date helpers ─────────────────────────────────────────────────────────────
+function getMonday(d = new Date()) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  const day = x.getDay();
+  x.setDate(x.getDate() + (day === 0 ? -6 : 1 - day));
+  return x;
 }
-
 function fmt(d) {
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
-
-function parseLocalDate(value) {
-  const [y, m, d] = value.split("-").map(Number);
+function parseDate(s) {
+  const [y, m, d] = s.split("-").map(Number);
   return new Date(y, m - 1, d);
 }
-
-function shiftDateString(dateStr, days) {
-  const d = parseLocalDate(dateStr);
-  d.setDate(d.getDate() + days);
+function shiftDate(s, n) {
+  const d = parseDate(s);
+  d.setDate(d.getDate() + n);
   return fmt(d);
 }
-
-function formatHeaderRange(startStr, endStr) {
-  const start = parseLocalDate(startStr);
-  const end = parseLocalDate(endStr);
-
-  const sameMonth = start.getMonth() === end.getMonth();
-  const sameYear = start.getFullYear() === end.getFullYear();
-
-  const startLabel = start.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: sameYear ? undefined : "numeric",
-  });
-
-  const endLabel = end.toLocaleDateString("en-US", {
-    month: sameMonth ? undefined : "short",
-    day: "numeric",
-    year: "numeric",
-  });
-
-  return `${startLabel} – ${endLabel}`;
+function fmtRange(s, e) {
+  const a = parseDate(s), b = parseDate(e);
+  const same = a.getMonth() === b.getMonth();
+  return `${a.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${b.toLocaleDateString("en-US", { month: same ? undefined : "short", day: "numeric", year: "numeric" })}`;
 }
 
-function Badge({ type }) {
-  const t = typeMap[type] || { label: type, cls: "badge-support" };
-  return <span className={`task-badge ${t.cls}`}>{t.label}</span>;
-}
+// ─── initial state ────────────────────────────────────────────────────────────
+const mon0 = getMonday();
+const fri0 = new Date(mon0);
+fri0.setDate(mon0.getDate() + 4);
 
-function Checkbox({ checked }) {
+const INITIAL = {
+  weekStart: fmt(mon0),
+  weekEnd: fmt(fri0),
+  view: "weekly",
+  selectedDay: "Mon",
+  notes: "",
+  copied: false,
+  collapsed: { done: false, planned: false, articles: false, blockers: false, notes: false },
+  nextId: 100,
+  blockers: [
+    { id: 60, text: "Waiting for consolidated beta user feedback to prioritize new articles." },
+  ],
+  articles: [
+    { id: "a1", title: "Configure service zones",            cat: "Onboarding",   status: "s-done"    },
+    { id: "a2", title: "Add and manage technicians",         cat: "Onboarding",   status: "s-review"  },
+    { id: "a3", title: "Automatic route optimization",       cat: "Routes",       status: "s-draft"   },
+    { id: "a4", title: "How to use the scheduling calendar", cat: "Scheduling",   status: "s-draft"   },
+    { id: "a5", title: "Connect with QuickBooks",            cat: "Integrations", status: "s-planned" },
+    { id: "a6", title: "Chat agent FAQ",                     cat: "FAQ",          status: "s-planned" },
+  ],
+  tasks: [
+    { id: 1,  text: "Wrote article: how to configure service zones",  type: "article", done: true,  assignedDays: ["Mon"], description: "", link: "", subtasks: [] },
+    { id: 2,  text: "Recorded intro video: dashboard tour",           type: "video",   done: true,  assignedDays: ["Tue"], description: "", link: "", subtasks: [] },
+    { id: 3,  text: "Answered 12 beta user queries",                  type: "support", done: true,  assignedDays: ["Wed"], description: "", link: "", subtasks: [] },
+    { id: 4,  text: "Ran end-to-end scheduling flow test",            type: "test",    done: true,  assignedDays: ["Thu"], description: "", link: "", subtasks: [] },
+    { id: 5,  text: "Deployed update to staging environment",         type: "deploy",  done: true,  assignedDays: ["Fri"], description: "", link: "", subtasks: [] },
+    { id: 10, text: "Article: route optimization by job type",        type: "article", done: false, assignedDays: [],      description: "", link: "", subtasks: [] },
+    { id: 11, text: "Video: how to add technicians to a team",        type: "video",   done: false, assignedDays: [],      description: "", link: "", subtasks: [] },
+    { id: 12, text: "Testing: agent responses to billing questions",  type: "test",    done: false, assignedDays: [],      description: "", link: "", subtasks: [] },
+    { id: 13, text: "Onboarding session with 2 new clients",          type: "support", done: false, assignedDays: [],      description: "", link: "", subtasks: [] },
+    { id: 14, text: "Review FAQs with beta user feedback",            type: "article", done: false, assignedDays: [],      description: "", link: "", subtasks: [] },
+  ],
+  newTask:    { text: "", type: "article" },
+  newArt:     { title: "", cat: "Onboarding", status: "s-planned" },
+  newBlocker: "",
+  newSubtask: {},
+};
+
+// ─── pure SVG mini chart (no dependencies) ───────────────────────────────────
+function MiniChart({ tasks }) {
+  const W = 700, H = 130, PAD = { top: 10, right: 16, bottom: 28, left: 28 };
+  const innerW = W - PAD.left - PAD.right;
+  const innerH = H - PAD.top - PAD.bottom;
+
+  // count completed tasks per type per day
+  const counts = {};
+  DAYS.forEach(d => { counts[d] = {}; TYPE_KEYS.forEach(k => { counts[d][k] = 0; }); });
+  tasks.filter(t => t.done).forEach(t => {
+    (t.assignedDays || []).forEach(d => {
+      if (counts[d]) counts[d][t.type] = (counts[d][t.type] || 0) + 1;
+    });
+  });
+
+  const maxVal = Math.max(1, ...TYPE_KEYS.flatMap(k => DAYS.map(d => counts[d][k])));
+  const xStep  = innerW / (DAYS.length - 1);
+
+  function xOf(i)   { return PAD.left + i * xStep; }
+  function yOf(val) { return PAD.top + innerH - (val / maxVal) * innerH; }
+
+  // smooth cubic bezier path
+  function smoothPath(points) {
+    if (points.length < 2) return "";
+    let d = `M ${points[0][0]} ${points[0][1]}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const [x0, y0] = points[i];
+      const [x1, y1] = points[i + 1];
+      const cpx = (x0 + x1) / 2;
+      d += ` C ${cpx} ${y0} ${cpx} ${y1} ${x1} ${y1}`;
+    }
+    return d;
+  }
+
+  const yTicks = [0, Math.ceil(maxVal / 2), maxVal];
+
   return (
-    <div className={`checkbox ${checked ? "checked" : ""}`}>
-      {checked && (
-        <svg width="10" height="10" viewBox="0 0 10 10">
-          <polyline
-            points="1.5,5 4,7.5 8.5,2.5"
-            stroke="white"
-            strokeWidth="1.5"
-            fill="none"
-            strokeLinecap="round"
+    <div style={{ background: "var(--color-background-secondary)", borderRadius: 10, padding: "10px 12px 8px", marginBottom: 12 }}>
+      {/* legend */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 14px", marginBottom: 8 }}>
+        {TYPE_KEYS.map(k => (
+          <span key={k} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "var(--color-text-secondary)" }}>
+            <span style={{ display: "inline-block", width: 16, height: 2, borderRadius: 1, background: TYPE_COLORS[k] }} />
+            {TYPE_MAP[k].lbl}
+          </span>
+        ))}
+      </div>
+
+      {/* SVG chart */}
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }} aria-label="Completed tasks by day and type" role="img">
+        {/* grid lines */}
+        {yTicks.map(v => (
+          <line key={v}
+            x1={PAD.left} y1={yOf(v)}
+            x2={PAD.left + innerW} y2={yOf(v)}
+            stroke="rgba(128,128,128,0.12)" strokeWidth="0.5"
           />
+        ))}
+        {/* y-axis labels */}
+        {yTicks.map(v => (
+          <text key={v} x={PAD.left - 5} y={yOf(v) + 4} textAnchor="end"
+            fontSize="9" fill="rgba(128,128,128,0.7)">{v}</text>
+        ))}
+
+        {/* lines per type */}
+        {TYPE_KEYS.map(k => {
+          const pts = DAYS.map((d, i) => [xOf(i), yOf(counts[d][k])]);
+          return (
+            <g key={k}>
+              <path d={smoothPath(pts)} fill="none" stroke={TYPE_COLORS[k]} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              {pts.map(([cx, cy], i) => (
+                <circle key={i} cx={cx} cy={cy} r="3" fill={TYPE_COLORS[k]} stroke="white" strokeWidth="1.5" />
+              ))}
+            </g>
+          );
+        })}
+
+        {/* x-axis labels */}
+        {DAYS.map((d, i) => (
+          <text key={d} x={xOf(i)} y={H - 6} textAnchor="middle"
+            fontSize="10" fill="rgba(128,128,128,0.8)">{d}</text>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+// ─── small atoms ─────────────────────────────────────────────────────────────
+function Badge({ type }) {
+  const t = TYPE_MAP[type] || { lbl: type, cls: "b-support" };
+  return <span className={`wr-badge ${t.cls}`}>{t.lbl}</span>;
+}
+
+function Cb({ checked }) {
+  return (
+    <div className={`wr-cb ${checked ? "checked" : ""}`}>
+      {checked && (
+        <svg width="9" height="9" viewBox="0 0 10 10">
+          <polyline points="1.5,5 4,7.5 8.5,2.5" stroke="white" strokeWidth="1.8" fill="none" strokeLinecap="round" />
         </svg>
       )}
     </div>
   );
 }
 
-function TaskItem({ item, onToggle }) {
+function DelBtn({ onClick, style }) {
   return (
-    <div className={`task-item ${item.done ? "done" : ""}`} onClick={onToggle}>
-      <Checkbox checked={item.done} />
-      <span className="task-text">{item.text}</span>
-      <Badge type={item.type} />
-    </div>
+    <button
+      className="wr-del"
+      style={style}
+      onClick={e => { e.stopPropagation(); onClick(); }}
+      title="Delete"
+    >×</button>
   );
 }
 
-function Section({ title, sectionKey, collapsed, onToggle, children, rightSlot }) {
+// ─── section wrapper ──────────────────────────────────────────────────────────
+function Section({ title, sectionKey, collapsed, onToggle, count, hint, children }) {
   return (
     <div className="wr-section">
-      <div className="wr-section-header">
-        <button className="wr-section-title wr-section-toggle" onClick={() => onToggle(sectionKey)}>
-          <span>{collapsed ? "▸" : "▾"}</span>
-          <span>{title}</span>
+      <div className="wr-shdr">
+        <button className="wr-stitle" onClick={() => onToggle(sectionKey)}>
+          <span style={{ fontSize: 9, opacity: 0.6 }}>{collapsed ? "▸" : "▾"}</span>
+          {title}
+          {count !== undefined && <span className="wr-count">{count}</span>}
         </button>
-        {rightSlot}
+        {hint && <span className="wr-shint">{hint}</span>}
       </div>
-      {!collapsed && children}
+      {!collapsed && <div className="wr-sbody">{children}</div>}
     </div>
   );
 }
 
+// ─── task item ────────────────────────────────────────────────────────────────
+function TaskItem({ task, handlers, newSubtaskVal, showAssign }) {
+  const [open, setOpen] = useState(false);
+  const { onToggle, onDelete, onUpdateDesc, onUpdateLink,
+          onToggleSub, onDeleteSub, onAddSub, onDayAssign, onSubInput } = handlers;
+
+  return (
+    <div className={`wr-task ${task.done ? "done" : ""}`}>
+      <div className="wr-tmain" onClick={() => onToggle(task.id)}>
+        <Cb checked={task.done} />
+        <span className="wr-ttext">{task.text}</span>
+        <Badge type={task.type} />
+        <button className="wr-expbtn" onClick={e => { e.stopPropagation(); setOpen(o => !o); }}>
+          {open ? "▲" : "▼"}
+        </button>
+        <DelBtn onClick={() => onDelete(task.id)} />
+      </div>
+
+      {open && (
+        <div className="wr-texpand">
+          {showAssign && (
+            <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 8 }}>
+              {DAYS.map(d => (
+                <button key={d}
+                  className={`wr-daybtn ${task.assignedDays.includes(d) ? "active" : ""}`}
+                  onClick={e => { e.stopPropagation(); onDayAssign(task.id, d); }}>
+                  {d}
+                </button>
+              ))}
+            </div>
+          )}
+          <textarea className="wr-expta" placeholder="Optional description..."
+            value={task.description}
+            onChange={e => onUpdateDesc(task.id, e.target.value)} />
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <input type="text" className="wr-input" placeholder="https://... (optional link)"
+              value={task.link}
+              onChange={e => onUpdateLink(task.id, e.target.value)} />
+            {task.link && <a href={task.link} target="_blank" rel="noreferrer" className="wr-linka">Open</a>}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            {(task.subtasks || []).map((sub, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--color-text-secondary)" }}>
+                <div className={`wr-subcb ${sub.done ? "checked" : ""}`}
+                  onClick={() => onToggleSub(task.id, i)} />
+                <span style={{ flex: 1, textDecoration: sub.done ? "line-through" : "none", opacity: sub.done ? 0.5 : 1 }}>{sub.text}</span>
+                <DelBtn onClick={() => onDeleteSub(task.id, i)} style={{ fontSize: 12 }} />
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            <input type="text" className="wr-input" style={{ fontSize: 11 }} placeholder="Add subtask..."
+              value={newSubtaskVal || ""}
+              onChange={e => onSubInput(task.id, e.target.value)}
+              onKeyDown={e => e.key === "Enter" && onAddSub(task.id)} />
+            <button className="wr-btn" onClick={() => onAddSub(task.id)}>+ Sub</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── main component ───────────────────────────────────────────────────────────
 export default function WeeklyReport() {
-  const mon = getMonday();
-  const fri = new Date(mon);
-  fri.setDate(mon.getDate() + 4);
+  const [s, setS] = useState(INITIAL);
 
-  const [weekStart, setWeekStart] = useState(fmt(mon));
-  const [weekEnd, setWeekEnd] = useState(fmt(fri));
-  const [state, setState] = useState(initialState);
-  const [nextId, setNextId] = useState(100);
-  const [notes, setNotes] = useState("");
-  const [copied, setCopied] = useState(false);
-
-  const [view, setView] = useState("weekly");
-  const [reportType, setReportType] = useState("operations");
-  const [selectedDay, setSelectedDay] = useState("Mon");
-  const [collapsed, setCollapsed] = useState({
-    done: false,
-    planned: false,
-    articles: false,
-    videos: false,
-    tests: false,
-    supports: false,
-    blockers: false,
-    notes: false,
-  });
-
-  const [newTaskText, setNewTaskText] = useState("");
-  const [newTaskType, setNewTaskType] = useState("article");
-  const [newTaskDay, setNewTaskDay] = useState("Mon");
-
-  const [newArtTitle, setNewArtTitle] = useState("");
-  const [newArtCat, setNewArtCat] = useState("Onboarding");
-  const [newArtStatus, setNewArtStatus] = useState("s-planned");
-
-  const [newVideoText, setNewVideoText] = useState("");
-  const [newVideoDay, setNewVideoDay] = useState("Mon");
-
-  const [newTestText, setNewTestText] = useState("");
-  const [newTestDay, setNewTestDay] = useState("Mon");
-
-  const [newBlocker, setNewBlocker] = useState("");
-
-  function toggle(listKey, id) {
-    setState((prev) => ({
-      ...prev,
-      [listKey]: prev[listKey].map((t) => (t.id === id ? { ...t, done: !t.done } : t)),
-    }));
-  }
-
-  function toggleSection(key) {
-    setCollapsed((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  }
-
-  function prevWeek() {
-    setWeekStart((s) => shiftDateString(s, -7));
-    setWeekEnd((e) => shiftDateString(e, -7));
-  }
-
-  function nextWeek() {
-    setWeekStart((s) => shiftDateString(s, 7));
-    setWeekEnd((e) => shiftDateString(e, 7));
-  }
-
-  function addTask() {
-    if (!newTaskText.trim()) return;
-    setState((prev) => ({
-      ...prev,
-      plannedTasks: [
-        ...prev.plannedTasks,
-        {
-          id: nextId,
-          text: newTaskText.trim(),
-          type: newTaskType,
-          done: false,
-          day: newTaskDay,
-        },
-      ],
-    }));
-    setNextId((n) => n + 1);
-    setNewTaskText("");
-    setNewTaskType("article");
-    setNewTaskDay("Mon");
-  }
-
-  function addArticle() {
-    if (!newArtTitle.trim()) return;
-    setState((prev) => ({
-      ...prev,
-      articles: [
-        ...prev.articles,
-        { title: newArtTitle.trim(), cat: newArtCat, status: newArtStatus },
-      ],
-    }));
-    setNewArtTitle("");
-  }
-
-  function addVideo() {
-    if (!newVideoText.trim()) return;
-    setState((prev) => ({
-      ...prev,
-      videos: [
-        ...prev.videos,
-        {
-          id: nextId,
-          text: newVideoText.trim(),
-          type: "video",
-          done: false,
-          day: newVideoDay,
-        },
-      ],
-    }));
-    setNextId((n) => n + 1);
-    setNewVideoText("");
-    setNewVideoDay("Mon");
-  }
-
-  function addTest() {
-    if (!newTestText.trim()) return;
-    setState((prev) => ({
-      ...prev,
-      tests: [
-        ...prev.tests,
-        {
-          id: nextId,
-          text: newTestText.trim(),
-          type: "test",
-          done: false,
-          day: newTestDay,
-        },
-      ],
-    }));
-    setNextId((n) => n + 1);
-    setNewTestText("");
-    setNewTestDay("Mon");
-  }
-
-  function addBlocker() {
-    if (!newBlocker.trim()) return;
-    setState((prev) => ({
-      ...prev,
-      blockers: [...prev.blockers, { id: nextId, text: newBlocker.trim() }],
-    }));
-    setNextId((n) => n + 1);
-    setNewBlocker("");
-  }
-
-  function cycleStatus(index) {
-    const order = ["s-planned", "s-draft", "s-review", "s-done"];
-    setState((prev) => {
-      const updated = [...prev.articles];
-      const current = updated[index].status;
-      const currentIndex = order.indexOf(current);
-      updated[index] = {
-        ...updated[index],
-        status: order[(currentIndex + 1) % order.length],
-      };
-      return { ...prev, articles: updated };
+  const upd = useCallback(fn => {
+    setS(prev => {
+      const next = JSON.parse(JSON.stringify(prev));
+      fn(next);
+      return next;
     });
-  }
+  }, []);
 
-  function copyReport() {
-    const lines = [];
-    lines.push(`REPORTE ${view === "weekly" ? "SEMANAL" : "DIARIO"} — ROUTEMIZE`);
-    lines.push(`Tipo: ${reportTypeLabels[reportType]}`);
-    lines.push(`Periodo: ${weekStart} al ${weekEnd}`);
-    if (view === "daily") lines.push(`Día seleccionado: ${selectedDay}`);
-    lines.push("");
+  // tasks
+  const toggleTask   = id       => upd(s => { const t = s.tasks.find(t => t.id === id); if (t) t.done = !t.done; });
+  const deleteTask   = id       => upd(s => { s.tasks = s.tasks.filter(t => t.id !== id); });
+  const updateDesc   = (id, v)  => upd(s => { const t = s.tasks.find(t => t.id === id); if (t) t.description = v; });
+  const updateLink   = (id, v)  => upd(s => { const t = s.tasks.find(t => t.id === id); if (t) t.link = v; });
+  const toggleSub    = (tid, i) => upd(s => { const t = s.tasks.find(t => t.id === tid); if (t) t.subtasks[i].done = !t.subtasks[i].done; });
+  const deleteSub    = (tid, i) => upd(s => { const t = s.tasks.find(t => t.id === tid); if (t) t.subtasks.splice(i, 1); });
+  const addSub       = tid      => { const txt = (s.newSubtask[tid] || "").trim(); if (!txt) return; upd(s => { const t = s.tasks.find(t => t.id === tid); if (t) t.subtasks.push({ text: txt, done: false }); s.newSubtask[tid] = ""; }); };
+  const subInput     = (id, v)  => upd(s => { s.newSubtask[id] = v; });
+  const dayAssign    = (id, day)=> upd(s => { const t = s.tasks.find(t => t.id === id); if (!t) return; const i = t.assignedDays.indexOf(day); if (i > -1) t.assignedDays.splice(i, 1); else t.assignedDays.push(day); });
+  const addTask      = ()       => { if (!s.newTask.text.trim()) return; upd(s => { s.tasks.push({ id: s.nextId++, text: s.newTask.text.trim(), type: s.newTask.type, done: false, assignedDays: [], description: "", link: "", subtasks: [] }); s.newTask = { text: "", type: "article" }; }); };
 
-    lines.push("BLOCKERS / RISKS:");
-    if (state.blockers.length) {
-      state.blockers.forEach((b) => lines.push(`  • ${b.text}`));
-    } else {
-      lines.push("  (sin blockers)");
+  // articles
+  const cycleStatus   = id => upd(s => {
+    const a = s.articles.find(a => a.id === id); if (!a) return;
+    const ni = (STATUS_ORDER.indexOf(a.status) + 1) % STATUS_ORDER.length;
+    a.status = STATUS_ORDER[ni];
+    if (STATUS_ORDER[ni] === "s-done" && !s.tasks.some(t => t.text === `Published article: ${a.title}` && t.done)) {
+      s.tasks.push({ id: s.nextId++, text: `Published article: ${a.title}`, type: "article", done: true, assignedDays: [], description: "Auto-added when marked Published.", link: "", subtasks: [] });
     }
+  });
+  const deleteArticle = id => upd(s => { s.articles = s.articles.filter(a => a.id !== id); });
+  const addArticle    = ()  => { if (!s.newArt.title.trim()) return; upd(s => { s.articles.push({ id: `a${s.nextId++}`, title: s.newArt.title.trim(), cat: s.newArt.cat, status: s.newArt.status }); s.newArt = { ...s.newArt, title: "" }; }); };
 
-    lines.push("\nACTIVIDADES COMPLETADAS:");
-    state.doneTasks
-      .filter((t) => (view === "daily" ? t.day === selectedDay : true))
-      .forEach((t) => lines.push(`  [x] ${t.text}`));
+  // blockers
+  const deleteBlocker = id => upd(s => { s.blockers = s.blockers.filter(b => b.id !== id); });
+  const addBlocker    = ()  => { if (!s.newBlocker.trim()) return; upd(s => { s.blockers.push({ id: s.nextId++, text: s.newBlocker.trim() }); s.newBlocker = ""; }); };
 
-    lines.push("\nACTIVIDADES PLANIFICADAS:");
-    state.plannedTasks
-      .filter((t) => (view === "daily" ? t.day === selectedDay : true))
-      .forEach((t) => lines.push(`  [ ] ${t.text}`));
+  // nav
+  const prevWeek      = () => upd(s => { s.weekStart = shiftDate(s.weekStart, -7); s.weekEnd = shiftDate(s.weekEnd, -7); });
+  const nextWeek      = () => upd(s => { s.weekStart = shiftDate(s.weekStart,  7); s.weekEnd = shiftDate(s.weekEnd,  7); });
+  const toggleSection = key => upd(s => { s.collapsed[key] = !s.collapsed[key]; });
 
-    lines.push("\nARTÍCULOS:");
-    state.articles.forEach((a) =>
-      lines.push(`  · ${a.title} — ${a.cat} — ${statusLabels[a.status]}`)
-    );
-
-    lines.push("\nVIDEOS:");
-    state.videos
-      .filter((t) => (view === "daily" ? t.day === selectedDay : true))
-      .forEach((t) => lines.push(`  ${t.done ? "[x]" : "[ ]"} ${t.text}`));
-
-    lines.push("\nTESTING:");
-    state.tests
-      .filter((t) => (view === "daily" ? t.day === selectedDay : true))
-      .forEach((t) => lines.push(`  ${t.done ? "[x]" : "[ ]"} ${t.text}`));
-
-    lines.push("\nSOPORTE:");
-    state.supports
-      .filter((t) => (view === "daily" ? t.day === selectedDay : true))
-      .forEach((t) => lines.push(`  ${t.done ? "[x]" : "[ ]"} ${t.text}`));
-
-    lines.push("\nNOTAS:");
-    lines.push(notes || "(sin notas)");
-
+  // copy
+  const copyReport = () => {
+    const lines = [`${s.view === "weekly" ? "WEEKLY" : "DAILY"} REPORT — ROUTEMIZE`, `Period: ${s.weekStart} to ${s.weekEnd}`];
+    if (s.view === "daily") lines.push(`Day: ${s.selectedDay}`);
+    lines.push("", "BLOCKERS:");
+    s.blockers.forEach(b => lines.push(`  • ${b.text}`));
+    lines.push("\nTASKS:");
+    const filt = s.view === "daily" ? s.tasks.filter(t => t.assignedDays.includes(s.selectedDay)) : s.tasks;
+    filt.forEach(t => lines.push(`  ${t.done ? "[x]" : "[ ]"} [${TYPE_MAP[t.type]?.lbl}] ${t.text}`));
+    lines.push("\nARTICLES:");
+    s.articles.forEach(a => lines.push(`  · ${a.title} — ${a.cat} — ${STATUS_LABELS[a.status]}`));
+    lines.push("\nNOTES:", s.notes || "(no notes)");
     navigator.clipboard.writeText(lines.join("\n")).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
+      upd(s => { s.copied = true; });
+      setTimeout(() => upd(s => { s.copied = false; }), 1800);
     });
-  }
+  };
 
-  const dailyData = useMemo(() => {
-    const buckets = JSON.parse(JSON.stringify(dailyBucketsTemplate));
+  const filtTasks = s.view === "daily" ? s.tasks.filter(t => t.assignedDays.includes(s.selectedDay)) : s.tasks;
+  const doneTasks = filtTasks.filter(t => t.done);
+  const pendTasks = filtTasks.filter(t => !t.done);
 
-    const register = (label, items) => {
-      items.forEach((item) => {
-        const key = item.day || "Mon";
-        if (!buckets[key]) buckets[key] = [];
-        buckets[key].push({ ...item, section: label });
-      });
-    };
+  const taskHandlers = {
+    onToggle: toggleTask, onDelete: deleteTask,
+    onUpdateDesc: updateDesc, onUpdateLink: updateLink,
+    onToggleSub: toggleSub, onDeleteSub: deleteSub,
+    onAddSub: addSub, onDayAssign: dayAssign, onSubInput: subInput,
+  };
 
-    register("Completed", state.doneTasks);
-    register("Planned", state.plannedTasks);
-    register("Videos", state.videos);
-    register("Testing", state.tests);
-    register("Support", state.supports);
-
-    return buckets;
-  }, [state]);
-
-  const artDone = state.articles.filter((a) => a.status === "s-done").length;
-  const vidDone = state.videos.filter((v) => v.done).length;
-  const testDone = state.tests.filter((t) => t.done).length;
-  const supportDone = state.supports.filter((s) => s.done).length;
-  const totalDone = [...state.doneTasks, ...state.videos, ...state.tests, ...state.supports].filter(
-    (t) => t.done
-  ).length;
-
-  const stats = [
-    { label: "Artículos publicados", value: artDone, sub: `de ${state.articles.length} totales` },
-    { label: "Videos grabados", value: vidDone, sub: `de ${state.videos.length} planeados` },
-    { label: "Pruebas completadas", value: testDone, sub: `de ${state.tests.length} programadas` },
-    { label: "Tickets de soporte", value: supportDone, sub: "resueltos esta semana" },
-  ];
-
-  const showDone = reportType === "operations" || reportType === "support";
-  const showPlanned = reportType === "operations" || reportType === "content" || reportType === "testing";
-  const showArticles = reportType === "operations" || reportType === "content";
-  const showVideos = reportType === "operations" || reportType === "content";
-  const showTests = reportType === "operations" || reportType === "testing";
-  const showSupports = reportType === "operations" || reportType === "support";
+  const renderTask = (t, showAssign = false) => (
+    <TaskItem key={t.id} task={t} handlers={taskHandlers}
+      newSubtaskVal={s.newSubtask[t.id]} showAssign={showAssign} />
+  );
 
   return (
     <>
-      <style>{`
-        .wr-root {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          background: var(--wr-bg, #ffffff);
-          color: var(--wr-text, #1a1a18);
-          padding: 2rem;
-          max-width: 920px;
-          margin: 0 auto;
-        }
-        @media (prefers-color-scheme: dark) {
-          .wr-root {
-            --wr-bg: #1c1c1a;
-            --wr-bg2: #262622;
-            --wr-bg3: #2f2f2b;
-            --wr-text: #e8e6df;
-            --wr-text2: #a8a69f;
-            --wr-text3: #6e6d69;
-            --wr-border: rgba(255,255,255,0.1);
-            --wr-border2: rgba(255,255,255,0.18);
-            --wr-border3: rgba(255,255,255,0.28);
-            --wr-accent-light: #0a3d2b;
-            --wr-accent-dark: #5DCAA5;
-          }
-        }
-        .wr-root {
-          --wr-bg: #ffffff;
-          --wr-bg2: #f4f3ef;
-          --wr-bg3: #ece9e1;
-          --wr-text: #1a1a18;
-          --wr-text2: #5f5e5a;
-          --wr-text3: #888780;
-          --wr-border: rgba(0,0,0,0.12);
-          --wr-border2: rgba(0,0,0,0.22);
-          --wr-border3: rgba(0,0,0,0.32);
-          --wr-accent: #1D9E75;
-          --wr-accent-light: #E1F5EE;
-          --wr-accent-dark: #0F6E56;
-          --wr-danger-bg: #FCEBEB;
-          --wr-danger-text: #791F1F;
-        }
-        .wr-header {
-          border-left: 3px solid var(--wr-accent);
-          padding-left: 1rem;
-          margin-bottom: 1.5rem;
-        }
-        .wr-header h1 {
-          font-size: 20px;
-          font-weight: 600;
-          color: var(--wr-text);
-          margin: 0;
-        }
-        .wr-header .meta {
-          font-size: 13px;
-          color: var(--wr-text2);
-          margin-top: 4px;
-        }
-        .wr-toolbar {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 1rem;
-        }
-        .wr-toolbar-left, .wr-toolbar-right {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-          align-items: center;
-        }
-        .wr-week-selector {
-          display: flex;
-          gap: 8px;
-          align-items: center;
-          margin-bottom: 1.5rem;
-          flex-wrap: wrap;
-        }
-        .wr-week-selector label, .wr-inline-label {
-          font-size: 13px;
-          color: var(--wr-text2);
-        }
-        .wr-week-selector input, .wr-select, .wr-input {
-          font-size: 13px;
-          padding: 7px 10px;
-          border: 0.5px solid var(--wr-border);
-          border-radius: 8px;
-          background: var(--wr-bg);
-          color: var(--wr-text);
-        }
-        .wr-stats-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          gap: 10px;
-          margin-bottom: 1.5rem;
-        }
-        .wr-stat-card {
-          background: var(--wr-bg2);
-          border-radius: 10px;
-          padding: 0.95rem 1rem;
-        }
-        .wr-stat-card .label {
-          font-size: 12px;
-          color: var(--wr-text2);
-          margin-bottom: 4px;
-        }
-        .wr-stat-card .value {
-          font-size: 22px;
-          font-weight: 600;
-          color: var(--wr-text);
-        }
-        .wr-stat-card .sub {
-          font-size: 11px;
-          color: var(--wr-text3);
-          margin-top: 2px;
-        }
-        .wr-section {
-          margin-bottom: 1.8rem;
-        }
-        .wr-section-header {
-          display: flex;
-          justify-content: space-between;
-          gap: 10px;
-          align-items: center;
-          margin-bottom: 0.75rem;
-        }
-        .wr-section-title {
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--wr-text2);
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          padding-bottom: 6px;
-          border-bottom: 0.5px solid var(--wr-border);
-          width: 100%;
-        }
-        .wr-section-toggle {
-          background: transparent;
-          border: none;
-          text-align: left;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          cursor: pointer;
-          padding: 0;
-        }
-        .task-list {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-        .task-item {
-          display: flex;
-          align-items: flex-start;
-          gap: 10px;
-          padding: 0.75rem 1rem;
-          background: var(--wr-bg);
-          border: 0.5px solid var(--wr-border);
-          border-radius: 8px;
-          cursor: pointer;
-          transition: background 0.15s;
-        }
-        .task-item:hover {
-          background: var(--wr-bg2);
-        }
-        .task-item.done {
-          opacity: 0.58;
-        }
-        .task-item.done .task-text {
-          text-decoration: line-through;
-          color: var(--wr-text2);
-        }
-        .checkbox {
-          width: 16px;
-          height: 16px;
-          border: 1.5px solid var(--wr-border3);
-          border-radius: 4px;
-          flex-shrink: 0;
-          margin-top: 1px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .checkbox.checked {
-          background: var(--wr-accent);
-          border-color: var(--wr-accent);
-        }
-        .task-text {
-          font-size: 14px;
-          color: var(--wr-text);
-          flex: 1;
-          line-height: 1.4;
-        }
-        .task-badge {
-          font-size: 11px;
-          padding: 2px 8px;
-          border-radius: 20px;
-          flex-shrink: 0;
-          font-weight: 600;
-        }
-        .badge-article { background: #E1F5EE; color: #0F6E56; }
-        .badge-video   { background: #EEEDFE; color: #3C3489; }
-        .badge-test    { background: #FAEEDA; color: #633806; }
-        .badge-support { background: #E6F1FB; color: #0C447C; }
-        .badge-deploy  { background: #FCEBEB; color: #791F1F; }
-
-        .wr-articles-table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 13px;
-          margin-bottom: 10px;
-        }
-        .wr-articles-table th {
-          text-align: left;
-          padding: 8px 10px;
-          color: var(--wr-text2);
-          border-bottom: 0.5px solid var(--wr-border);
-          font-weight: 600;
-        }
-        .wr-articles-table td {
-          padding: 8px 10px;
-          border-bottom: 0.5px solid var(--wr-border);
-          color: var(--wr-text);
-        }
-        .wr-articles-table tr:last-child td {
-          border-bottom: none;
-        }
-        .status-pill {
-          display: inline-block;
-          font-size: 11px;
-          padding: 3px 8px;
-          border-radius: 20px;
-          font-weight: 600;
-        }
-        .status-clickable {
-          cursor: pointer;
-          user-select: none;
-        }
-        .s-draft   { background: #F1EFE8; color: #5F5E5A; }
-        .s-review  { background: #FAEEDA; color: #633806; }
-        .s-done    { background: #EAF3DE; color: #3B6D11; }
-        .s-planned { background: #E6F1FB; color: #185FA5; }
-
-        .wr-add-row {
-          display: flex;
-          gap: 8px;
-          margin-top: 10px;
-          flex-wrap: wrap;
-        }
-        .wr-add-row input, .wr-add-row select {
-          font-size: 13px;
-          padding: 7px 10px;
-          border: 0.5px solid var(--wr-border);
-          border-radius: 8px;
-          background: var(--wr-bg);
-          color: var(--wr-text);
-          flex: 1;
-          min-width: 120px;
-        }
-        .wr-btn {
-          font-size: 13px;
-          padding: 7px 14px;
-          border: 0.5px solid var(--wr-border2);
-          border-radius: 8px;
-          background: var(--wr-bg);
-          color: var(--wr-text);
-          cursor: pointer;
-          white-space: nowrap;
-        }
-        .wr-btn:hover {
-          background: var(--wr-bg2);
-        }
-        .wr-btn-primary {
-          background: var(--wr-accent-light);
-          color: var(--wr-accent-dark);
-          border-color: var(--wr-accent);
-        }
-        .wr-btn-primary:hover {
-          opacity: 0.9;
-        }
-        .wr-btn-active {
-          background: var(--wr-bg3);
-          border-color: var(--wr-border3);
-          font-weight: 600;
-        }
-        .wr-notes {
-          width: 100%;
-          min-height: 90px;
-          font-size: 14px;
-          padding: 10px 12px;
-          border: 0.5px solid var(--wr-border);
-          border-radius: 8px;
-          background: var(--wr-bg);
-          color: var(--wr-text);
-          resize: vertical;
-          font-family: inherit;
-          line-height: 1.5;
-        }
-        .wr-export-bar {
-          display: flex;
-          gap: 8px;
-          margin-top: 1.5rem;
-          padding-top: 1.5rem;
-          border-top: 0.5px solid var(--wr-border);
-          flex-wrap: wrap;
-          align-items: center;
-        }
-        .wr-export-bar span {
-          font-size: 13px;
-          color: var(--wr-text2);
-          flex: 1;
-        }
-        .wr-blocker-item {
-          background: var(--wr-danger-bg);
-          color: var(--wr-danger-text);
-          border: 0.5px solid rgba(121,31,31,0.18);
-          border-radius: 8px;
-          padding: 0.75rem 1rem;
-          font-size: 13px;
-          margin-bottom: 8px;
-        }
-        .wr-daily-tabs {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-          margin-bottom: 1rem;
-        }
-        .wr-daily-panel {
-          background: var(--wr-bg2);
-          border-radius: 10px;
-          padding: 1rem;
-          margin-bottom: 1rem;
-        }
-        .wr-daily-section-label {
-          font-size: 11px;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          color: var(--wr-text3);
-          margin-bottom: 6px;
-          font-weight: 700;
-        }
-      `}</style>
-
+      <style>{CSS}</style>
       <div className="wr-root">
+
+        {/* header */}
         <div className="wr-header">
-          <h1>Reporte operativo — Customer Success Lead</h1>
-          <div className="meta">
-            Routemize · {formatHeaderRange(weekStart, weekEnd)}
-          </div>
+          <h1 className="wr-h1">Operations report — Customer Success Lead</h1>
+          <div className="wr-meta">Routemize · {fmtRange(s.weekStart, s.weekEnd)}</div>
         </div>
 
+        {/* chart */}
+        <MiniChart tasks={s.tasks} />
+
+        {/* view toggle */}
         <div className="wr-toolbar">
-          <div className="wr-toolbar-left">
-            <button className={`wr-btn ${view === "weekly" ? "wr-btn-active" : ""}`} onClick={() => setView("weekly")}>
-              Weekly View
-            </button>
-            <button className={`wr-btn ${view === "daily" ? "wr-btn-active" : ""}`} onClick={() => setView("daily")}>
-              Daily View
-            </button>
-          </div>
-
-          <div className="wr-toolbar-right">
-            <span className="wr-inline-label">Report type</span>
-            <select className="wr-select" value={reportType} onChange={(e) => setReportType(e.target.value)}>
-              <option value="operations">Operations</option>
-              <option value="content">Content</option>
-              <option value="testing">Testing</option>
-              <option value="support">Support Feedback</option>
-            </select>
-          </div>
+          <button className={`wr-btn ${s.view === "weekly" ? "active" : ""}`} onClick={() => upd(s => { s.view = "weekly"; })}>Weekly view</button>
+          <button className={`wr-btn ${s.view === "daily"  ? "active" : ""}`} onClick={() => upd(s => { s.view = "daily";  })}>Daily view</button>
         </div>
 
-        <div className="wr-week-selector">
-          <button className="wr-btn" onClick={prevWeek}>← Previous week</button>
-          <label>From</label>
-          <input type="date" value={weekStart} onChange={(e) => setWeekStart(e.target.value)} />
-          <label>to</label>
-          <input type="date" value={weekEnd} onChange={(e) => setWeekEnd(e.target.value)} />
-          <button className="wr-btn" onClick={nextWeek}>Next week →</button>
+        {/* week nav — single compact line */}
+        <div className="wr-weeknav">
+          <button className="wr-btn" onClick={prevWeek}>← Prev</button>
+          <input type="date" className="wr-dateinput" value={s.weekStart}
+            onChange={e => upd(st => { st.weekStart = e.target.value; })} />
+          <span className="wr-to">to</span>
+          <input type="date" className="wr-dateinput" value={s.weekEnd}
+            onChange={e => upd(st => { st.weekEnd = e.target.value; })} />
+          <button className="wr-btn" onClick={nextWeek}>Next →</button>
         </div>
 
-        <div className="wr-stats-grid">
-          {stats.map((s) => (
-            <div className="wr-stat-card" key={s.label}>
-              <div className="label">{s.label}</div>
-              <div className="value">{s.value}</div>
-              <div className="sub">{s.sub}</div>
+        {/* stats */}
+        <div className="wr-stats">
+          {[
+            { lbl: "Tasks completed",    val: doneTasks.length,   sub: `of ${filtTasks.length} ${s.view === "daily" ? "today" : "total"}` },
+            { lbl: "Articles published", val: s.articles.filter(a => a.status === "s-done").length, sub: `of ${s.articles.length} total` },
+            { lbl: "Pending",            val: pendTasks.length,   sub: "tasks remaining" },
+            { lbl: "In progress",        val: s.articles.filter(a => ["s-review", "s-draft"].includes(a.status)).length, sub: "articles draft/review" },
+          ].map(d => (
+            <div key={d.lbl} className="wr-stat">
+              <div className="wr-stat-lbl">{d.lbl}</div>
+              <div className="wr-stat-val">{d.val}</div>
+              <div className="wr-stat-sub">{d.sub}</div>
             </div>
           ))}
         </div>
 
-        {view === "daily" && (
+        {/* ── daily view ── */}
+        {s.view === "daily" && (
           <>
-            <div className="wr-daily-tabs">
-              {Object.keys(dailyBucketsTemplate).map((day) => (
-                <button
-                  key={day}
-                  className={`wr-btn ${selectedDay === day ? "wr-btn-active" : ""}`}
-                  onClick={() => setSelectedDay(day)}
-                >
-                  {day}
-                </button>
+            <div className="wr-daytabs">
+              {DAYS.map(d => (
+                <button key={d} className={`wr-btn ${s.selectedDay === d ? "active-green" : ""}`}
+                  onClick={() => upd(s => { s.selectedDay = d; })}>{d}</button>
               ))}
             </div>
 
-            <div className="wr-daily-panel">
-              <div className="wr-section-title" style={{ marginBottom: 12 }}>
-                Daily breakdown — {selectedDay}
-              </div>
+            <Section title={`Tasks for ${s.selectedDay}`} sectionKey="done"
+              collapsed={s.collapsed.done} onToggle={toggleSection}
+              count={s.tasks.filter(t => t.assignedDays.includes(s.selectedDay)).length}>
+              {s.tasks.filter(t => t.assignedDays.includes(s.selectedDay)).length === 0
+                ? <div className="wr-empty">No tasks assigned to this day.</div>
+                : s.tasks.filter(t => t.assignedDays.includes(s.selectedDay)).map(t => renderTask(t, true))}
+            </Section>
 
-              {dailyData[selectedDay].length === 0 ? (
-                <div className="wr-inline-label">No items for this day.</div>
-              ) : (
-                <div className="task-list">
-                  {dailyData[selectedDay].map((item) => (
-                    <div key={`${item.section}-${item.id}`} className={`task-item ${item.done ? "done" : ""}`}>
-                      {"done" in item ? <Checkbox checked={item.done} /> : <div className="checkbox" />}
-                      <div style={{ flex: 1 }}>
-                        <div className="wr-daily-section-label">{item.section}</div>
-                        <div className="task-text">{item.text}</div>
-                      </div>
-                      <Badge type={item.type} />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            {s.tasks.filter(t => !t.done && !t.assignedDays.includes(s.selectedDay)).length > 0 && (
+              <div className="wr-assignpanel">
+                <div className="wr-assignhdr">Weekly backlog — assign to this day</div>
+                {s.tasks.filter(t => !t.done && !t.assignedDays.includes(s.selectedDay)).map(t => (
+                  <div key={t.id} className="wr-assignrow" onClick={() => dayAssign(t.id, s.selectedDay)}>
+                    <span className="wr-assignbadge">+ Assign</span>
+                    <span style={{ flex: 1, fontSize: 12 }}>{t.text}</span>
+                    <Badge type={t.type} />
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         )}
 
-        <Section
-          title="Blockers / Risks"
-          sectionKey="blockers"
-          collapsed={collapsed.blockers}
-          onToggle={toggleSection}
-        >
-          {state.blockers.length ? (
-            state.blockers.map((b) => (
-              <div className="wr-blocker-item" key={b.id}>
-                {b.text}
-              </div>
-            ))
-          ) : (
-            <div className="wr-inline-label" style={{ marginBottom: 8 }}>No blockers registered.</div>
-          )}
-
-          <div className="wr-add-row">
-            <input
-              type="text"
-              placeholder="Nuevo blocker o riesgo..."
-              value={newBlocker}
-              onChange={(e) => setNewBlocker(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && addBlocker()}
-            />
+        {/* ── blockers ── */}
+        <Section title="Blockers / Risks" sectionKey="blockers"
+          collapsed={s.collapsed.blockers} onToggle={toggleSection} count={s.blockers.length}>
+          {s.blockers.map(b => (
+            <div key={b.id} className="wr-blocker">
+              <span style={{ flex: 1 }}>{b.text}</span>
+              <DelBtn onClick={() => deleteBlocker(b.id)} />
+            </div>
+          ))}
+          <div className="wr-addrow">
+            <input type="text" className="wr-input" placeholder="New blocker or risk..."
+              value={s.newBlocker}
+              onChange={e => upd(s => { s.newBlocker = e.target.value; })}
+              onKeyDown={e => e.key === "Enter" && addBlocker()} />
             <button className="wr-btn" onClick={addBlocker}>+ Blocker</button>
           </div>
         </Section>
 
-        {showDone && (
-          <Section
-            title="Actividades de la semana pasada"
-            sectionKey="done"
-            collapsed={collapsed.done}
-            onToggle={toggleSection}
-          >
-            <div className="task-list">
-              {state.doneTasks
-                .filter((t) => (view === "daily" ? t.day === selectedDay : true))
-                .map((t) => (
-                  <TaskItem key={t.id} item={t} onToggle={() => toggle("doneTasks", t.id)} />
-                ))}
-            </div>
-          </Section>
+        {/* ── weekly task sections ── */}
+        {s.view === "weekly" && (
+          <>
+            <Section title="Completed activities" sectionKey="done"
+              collapsed={s.collapsed.done} onToggle={toggleSection} count={doneTasks.length}>
+              {doneTasks.length === 0
+                ? <div className="wr-empty">No completed activities.</div>
+                : doneTasks.map(t => renderTask(t, true))}
+            </Section>
+
+            <Section title="Activity backlog" sectionKey="planned"
+              collapsed={s.collapsed.planned} onToggle={toggleSection} count={pendTasks.length}>
+              {pendTasks.length === 0
+                ? <div className="wr-empty">No pending activities.</div>
+                : pendTasks.map(t => renderTask(t, true))}
+              <div className="wr-addrow" style={{ marginTop: 8 }}>
+                <input type="text" className="wr-input" placeholder="New activity..."
+                  value={s.newTask.text}
+                  onChange={e => upd(s => { s.newTask.text = e.target.value; })}
+                  onKeyDown={e => e.key === "Enter" && addTask()} />
+                <select className="wr-select" value={s.newTask.type}
+                  onChange={e => upd(s => { s.newTask.type = e.target.value; })}>
+                  {Object.entries(TYPE_MAP).map(([v, { lbl }]) => <option key={v} value={v}>{lbl}</option>)}
+                </select>
+                <button className="wr-btn accent" onClick={addTask}>+ Add</button>
+              </div>
+            </Section>
+          </>
         )}
 
-        {showPlanned && (
-          <Section
-            title="Actividades planificadas"
-            sectionKey="planned"
-            collapsed={collapsed.planned}
-            onToggle={toggleSection}
-          >
-            <div className="task-list">
-              {state.plannedTasks
-                .filter((t) => (view === "daily" ? t.day === selectedDay : true))
-                .map((t) => (
-                  <TaskItem key={t.id} item={t} onToggle={() => toggle("plannedTasks", t.id)} />
-                ))}
-            </div>
-
-            <div className="wr-add-row" style={{ marginTop: 12 }}>
-              <input
-                type="text"
-                placeholder="Nueva actividad..."
-                value={newTaskText}
-                onChange={(e) => setNewTaskText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addTask()}
-              />
-              <select value={newTaskType} onChange={(e) => setNewTaskType(e.target.value)}>
-                <option value="article">Artículo</option>
-                <option value="video">Video</option>
-                <option value="test">Testing</option>
-                <option value="support">Soporte</option>
-                <option value="deploy">Deploy</option>
-              </select>
-              <select value={newTaskDay} onChange={(e) => setNewTaskDay(e.target.value)}>
-                <option value="Mon">Mon</option>
-                <option value="Tue">Tue</option>
-                <option value="Wed">Wed</option>
-                <option value="Thu">Thu</option>
-                <option value="Fri">Fri</option>
-              </select>
-              <button className="wr-btn wr-btn-primary" onClick={addTask}>+ Agregar</button>
-            </div>
-          </Section>
-        )}
-
-        {showArticles && (
-          <Section
-            title="Artículos para base de conocimiento"
-            sectionKey="articles"
-            collapsed={collapsed.articles}
-            onToggle={toggleSection}
-            rightSlot={<div className="wr-inline-label">click status to change</div>}
-          >
-            <table className="wr-articles-table">
-              <thead>
-                <tr>
-                  <th>Artículo</th>
-                  <th>Categoría</th>
-                  <th>Estado</th>
+        {/* ── articles ── */}
+        <Section title="Knowledge base articles" sectionKey="articles"
+          collapsed={s.collapsed.articles} onToggle={toggleSection}
+          count={s.articles.length} hint="click status to cycle">
+          <table className="wr-table">
+            <thead>
+              <tr>
+                <th style={{ width: "46%" }}>Article</th>
+                <th style={{ width: "22%" }}>Category</th>
+                <th style={{ width: "22%" }}>Status</th>
+                <th style={{ width: "10%" }} />
+              </tr>
+            </thead>
+            <tbody>
+              {s.articles.map(a => (
+                <tr key={a.id}>
+                  <td>{a.title}</td>
+                  <td style={{ color: "var(--color-text-secondary)" }}>{a.cat}</td>
+                  <td>
+                    <span className={`wr-pill ${a.status}`} onClick={() => cycleStatus(a.id)}>
+                      {STATUS_LABELS[a.status]}
+                    </span>
+                  </td>
+                  <td style={{ textAlign: "center" }}>
+                    <DelBtn onClick={() => deleteArticle(a.id)} />
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {state.articles.map((a, i) => (
-                  <tr key={`${a.title}-${i}`}>
-                    <td>{a.title}</td>
-                    <td style={{ color: "var(--wr-text2)" }}>{a.cat}</td>
-                    <td>
-                      <span
-                        className={`status-pill status-clickable ${a.status}`}
-                        onClick={() => cycleStatus(i)}
-                        title="Click to change status"
-                      >
-                        {statusLabels[a.status]}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            <div className="wr-add-row">
-              <input
-                type="text"
-                placeholder="Título del artículo..."
-                value={newArtTitle}
-                onChange={(e) => setNewArtTitle(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addArticle()}
-              />
-              <select value={newArtCat} onChange={(e) => setNewArtCat(e.target.value)}>
-                {["Onboarding", "Scheduling", "Rutas", "Facturación", "Integraciones", "FAQ"].map((c) => (
-                  <option key={c}>{c}</option>
-                ))}
-              </select>
-              <select value={newArtStatus} onChange={(e) => setNewArtStatus(e.target.value)}>
-                <option value="s-planned">Planeado</option>
-                <option value="s-draft">Borrador</option>
-                <option value="s-review">En revisión</option>
-                <option value="s-done">Publicado</option>
-              </select>
-              <button className="wr-btn" onClick={addArticle}>+ Artículo</button>
-            </div>
-          </Section>
-        )}
-
-        {showVideos && (
-          <Section
-            title="Videos de onboarding / capacitación"
-            sectionKey="videos"
-            collapsed={collapsed.videos}
-            onToggle={toggleSection}
-          >
-            <div className="task-list">
-              {state.videos
-                .filter((t) => (view === "daily" ? t.day === selectedDay : true))
-                .map((t) => (
-                  <TaskItem key={t.id} item={t} onToggle={() => toggle("videos", t.id)} />
-                ))}
-            </div>
-
-            <div className="wr-add-row">
-              <input
-                type="text"
-                placeholder="Nuevo video..."
-                value={newVideoText}
-                onChange={(e) => setNewVideoText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addVideo()}
-              />
-              <select value={newVideoDay} onChange={(e) => setNewVideoDay(e.target.value)}>
-                <option value="Mon">Mon</option>
-                <option value="Tue">Tue</option>
-                <option value="Wed">Wed</option>
-                <option value="Thu">Thu</option>
-                <option value="Fri">Fri</option>
-              </select>
-              <button className="wr-btn" onClick={addVideo}>+ Video</button>
-            </div>
-          </Section>
-        )}
-
-        {showTests && (
-          <Section
-            title="Pruebas de testing del agente"
-            sectionKey="tests"
-            collapsed={collapsed.tests}
-            onToggle={toggleSection}
-          >
-            <div className="task-list">
-              {state.tests
-                .filter((t) => (view === "daily" ? t.day === selectedDay : true))
-                .map((t) => (
-                  <TaskItem key={t.id} item={t} onToggle={() => toggle("tests", t.id)} />
-                ))}
-            </div>
-
-            <div className="wr-add-row">
-              <input
-                type="text"
-                placeholder="Nueva prueba..."
-                value={newTestText}
-                onChange={(e) => setNewTestText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addTest()}
-              />
-              <select value={newTestDay} onChange={(e) => setNewTestDay(e.target.value)}>
-                <option value="Mon">Mon</option>
-                <option value="Tue">Tue</option>
-                <option value="Wed">Wed</option>
-                <option value="Thu">Thu</option>
-                <option value="Fri">Fri</option>
-              </select>
-              <button className="wr-btn" onClick={addTest}>+ Test</button>
-            </div>
-          </Section>
-        )}
-
-        {showSupports && (
-          <Section
-            title="Soporte a usuarios beta"
-            sectionKey="supports"
-            collapsed={collapsed.supports}
-            onToggle={toggleSection}
-          >
-            <div className="task-list">
-              {state.supports
-                .filter((t) => (view === "daily" ? t.day === selectedDay : true))
-                .map((t) => (
-                  <TaskItem key={t.id} item={t} onToggle={() => toggle("supports", t.id)} />
-                ))}
-            </div>
-          </Section>
-        )}
-
-        <Section
-          title="Notas y observaciones para el equipo"
-          sectionKey="notes"
-          collapsed={collapsed.notes}
-          onToggle={toggleSection}
-        >
-          <textarea
-            className="wr-notes"
-            placeholder="Comentarios, blockers, feedback de usuarios, ideas para el producto..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
+              ))}
+            </tbody>
+          </table>
+          <div className="wr-addrow">
+            <input type="text" className="wr-input" placeholder="Article title..."
+              value={s.newArt.title}
+              onChange={e => upd(s => { s.newArt.title = e.target.value; })}
+              onKeyDown={e => e.key === "Enter" && addArticle()} />
+            <select className="wr-select" value={s.newArt.cat}
+              onChange={e => upd(s => { s.newArt.cat = e.target.value; })}>
+              {CATS.map(c => <option key={c}>{c}</option>)}
+            </select>
+            <select className="wr-select" value={s.newArt.status}
+              onChange={e => upd(s => { s.newArt.status = e.target.value; })}>
+              {STATUS_ORDER.map(v => <option key={v} value={v}>{STATUS_LABELS[v]}</option>)}
+            </select>
+            <button className="wr-btn" onClick={addArticle}>+ Article</button>
+          </div>
         </Section>
 
-        <div className="wr-export-bar">
-          <span>
-            {totalDone} tareas completadas · {state.articles.length} artículos · {testDone}/{state.tests.length} pruebas
-          </span>
-          <button className="wr-btn" onClick={copyReport}>
-            {copied ? "¡Copiado!" : "Copiar reporte"}
+        {/* ── notes ── */}
+        <Section title="Notes & observations" sectionKey="notes"
+          collapsed={s.collapsed.notes} onToggle={toggleSection}>
+          <textarea className="wr-notes" placeholder="Comments, observations, blockers, ideas..."
+            value={s.notes}
+            onChange={e => upd(s => { s.notes = e.target.value; })} />
+        </Section>
+
+        {/* export bar */}
+        <div className="wr-exportbar">
+          <span>{doneTasks.length} completed · {s.articles.length} articles · {s.blockers.length} blocker(s)</span>
+          <button className="wr-btn accent" onClick={copyReport}>
+            {s.copied ? "Copied!" : "Copy report"}
           </button>
         </div>
       </div>
     </>
   );
 }
+
+// ─── styles ───────────────────────────────────────────────────────────────────
+const CSS = `
+.wr-root{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  padding:1.5rem;max-width:780px;margin:0 auto;font-size:14px;
+  color:var(--color-text-primary);
+  background:var(--color-background-primary);
+  --acc:#1D9E75;--acc-l:#E1F5EE;--acc-d:#0F6E56;
+}
+.wr-header{border-left:3px solid var(--acc);padding-left:1rem;margin-bottom:1rem;border-radius:0}
+.wr-h1{font-size:18px;font-weight:500;margin:0;color:var(--color-text-primary)}
+.wr-meta{font-size:12px;color:var(--color-text-secondary);margin-top:3px}
+
+.wr-toolbar{display:flex;gap:8px;margin-bottom:8px}
+.wr-weeknav{display:flex;align-items:center;gap:6px;margin-bottom:1rem;flex-wrap:nowrap;overflow-x:auto}
+.wr-dateinput{font-size:12px;padding:4px 6px;width:126px;min-width:110px;
+  border:0.5px solid var(--color-border-tertiary);border-radius:8px;
+  background:var(--color-background-primary);color:var(--color-text-primary)}
+.wr-to{font-size:12px;color:var(--color-text-secondary);white-space:nowrap}
+
+.wr-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:1.25rem}
+.wr-stat{background:var(--color-background-secondary);border-radius:8px;padding:.75rem 1rem}
+.wr-stat-lbl{font-size:11px;color:var(--color-text-secondary);margin-bottom:3px}
+.wr-stat-val{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+.wr-stat-sub{font-size:11px;color:var(--color-text-tertiary);margin-top:2px}
+
+.wr-section{margin-bottom:1.1rem}
+.wr-shdr{display:flex;align-items:center;gap:8px;padding-bottom:5px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.wr-stitle{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--color-text-secondary);flex:1;background:none;border:none;cursor:pointer;
+  text-align:left;display:flex;gap:5px;align-items:center;padding:0}
+.wr-stitle:hover{color:var(--color-text-primary)}
+.wr-count{font-size:10px;padding:1px 5px;border-radius:20px;background:var(--color-background-secondary);
+  color:var(--color-text-tertiary);font-weight:400;margin-left:2px}
+.wr-shint{font-size:11px;color:var(--color-text-tertiary)}
+.wr-sbody{padding-top:.6rem;display:flex;flex-direction:column;gap:5px}
+
+.wr-task{border:0.5px solid var(--color-border-tertiary);border-radius:8px;
+  background:var(--color-background-primary);overflow:hidden}
+.wr-tmain{display:flex;align-items:flex-start;gap:8px;padding:.55rem .8rem;cursor:pointer}
+.wr-tmain:hover{background:var(--color-background-secondary)}
+.wr-task.done .wr-ttext{text-decoration:line-through;color:var(--color-text-tertiary)}
+.wr-task.done{opacity:.6}
+.wr-ttext{flex:1;font-size:13px;line-height:1.4;color:var(--color-text-primary)}
+.wr-cb{width:15px;height:15px;border:1.5px solid var(--color-border-primary);border-radius:4px;
+  flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center}
+.wr-cb.checked{background:var(--acc);border-color:var(--acc)}
+.wr-badge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;flex-shrink:0}
+.b-article{background:#E1F5EE;color:#0F6E56}
+.b-video{background:#EEEDFE;color:#3C3489}
+.b-test{background:#FAEEDA;color:#633806}
+.b-support{background:#E6F1FB;color:#0C447C}
+.b-deploy{background:#FCEBEB;color:#791F1F}
+.wr-expbtn{font-size:9px;color:var(--color-text-tertiary);cursor:pointer;padding:2px 5px;
+  border:0.5px solid var(--color-border-tertiary);border-radius:4px;background:transparent;flex-shrink:0}
+.wr-expbtn:hover{background:var(--color-background-secondary)}
+
+.wr-del{font-size:15px;line-height:1;color:var(--color-text-tertiary);cursor:pointer;
+  padding:1px 5px;border:none;border-radius:4px;background:transparent;flex-shrink:0;
+  opacity:.4;transition:opacity .12s,background .12s,color .12s}
+.wr-del:hover{opacity:1;background:#FCEBEB;color:#791F1F}
+
+.wr-texpand{padding:.5rem .8rem .75rem 2rem;display:flex;flex-direction:column;gap:7px}
+.wr-expta{width:100%;font-size:12px;padding:6px 8px;border:0.5px solid var(--color-border-tertiary);
+  border-radius:6px;background:var(--color-background-secondary);
+  color:var(--color-text-primary);resize:vertical;min-height:56px;font-family:inherit}
+.wr-daybtn{font-size:10px;padding:3px 8px;border:0.5px solid var(--color-border-secondary);border-radius:6px;
+  background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer}
+.wr-daybtn.active{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:500}
+.wr-subcb{width:12px;height:12px;border:1px solid var(--color-border-secondary);border-radius:3px;
+  flex-shrink:0;cursor:pointer}
+.wr-subcb.checked{background:var(--acc);border-color:var(--acc)}
+.wr-linka{font-size:12px;color:var(--acc);text-decoration:none;white-space:nowrap}
+
+.wr-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+.wr-table th{text-align:left;padding:6px 8px;color:var(--color-text-secondary);
+  border-bottom:0.5px solid var(--color-border-tertiary);font-weight:500}
+.wr-table td{padding:6px 8px;border-bottom:0.5px solid var(--color-border-tertiary);
+  word-break:break-word;vertical-align:middle;color:var(--color-text-primary)}
+.wr-table tr:last-child td{border-bottom:none}
+.wr-pill{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;
+  font-weight:500;cursor:pointer;user-select:none}
+.s-draft{background:#F1EFE8;color:#5F5E5A}
+.s-review{background:#FAEEDA;color:#633806}
+.s-done{background:#EAF3DE;color:#3B6D11}
+.s-planned{background:#E6F1FB;color:#185FA5}
+
+.wr-blocker{background:#FCEBEB;color:#791F1F;border:0.5px solid rgba(121,31,31,.18);
+  border-radius:8px;padding:.55rem .8rem;font-size:12px;display:flex;align-items:center;gap:8px}
+
+.wr-daytabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.wr-assignpanel{background:var(--color-background-secondary);border-radius:10px;padding:1rem;margin-bottom:1rem}
+.wr-assignhdr{font-size:11px;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--color-text-secondary);font-weight:500;margin-bottom:.75rem}
+.wr-assignrow{display:flex;align-items:center;gap:8px;padding:7px 0;
+  border-bottom:0.5px solid var(--color-border-tertiary);cursor:pointer}
+.wr-assignrow:last-child{border-bottom:none}
+.wr-assignrow:hover{opacity:.8}
+.wr-assignbadge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;
+  background:var(--color-background-secondary);color:var(--color-text-tertiary);
+  border:0.5px solid var(--color-border-secondary);flex-shrink:0}
+
+.wr-addrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.wr-input{font-size:12px;flex:1;min-width:100px;padding:5px 8px;
+  border:0.5px solid var(--color-border-tertiary);border-radius:8px;
+  background:var(--color-background-primary);color:var(--color-text-primary)}
+.wr-select{font-size:12px;flex:1;min-width:90px;padding:5px 8px;
+  border:0.5px solid var(--color-border-tertiary);border-radius:8px;
+  background:var(--color-background-primary);color:var(--color-text-primary)}
+
+.wr-btn{font-size:12px;padding:5px 11px;border:0.5px solid var(--color-border-secondary);
+  border-radius:8px;background:var(--color-background-primary);
+  color:var(--color-text-primary);cursor:pointer;white-space:nowrap}
+.wr-btn:hover{background:var(--color-background-secondary)}
+.wr-btn.active{background:var(--color-background-secondary);font-weight:500;
+  border-color:var(--color-border-primary)}
+.wr-btn.active-green{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:500}
+.wr-btn.accent{background:var(--acc-l);color:var(--acc-d);border-color:var(--acc)}
+.wr-btn.accent:hover{opacity:.85}
+
+.wr-notes{width:100%;min-height:80px;font-size:13px;padding:8px 10px;
+  border:0.5px solid var(--color-border-tertiary);border-radius:8px;
+  background:var(--color-background-primary);color:var(--color-text-primary);
+  resize:vertical;font-family:inherit;line-height:1.5}
+.wr-exportbar{display:flex;gap:8px;margin-top:1.5rem;padding-top:1.5rem;
+  border-top:0.5px solid var(--color-border-tertiary);flex-wrap:wrap;align-items:center}
+.wr-exportbar span{font-size:12px;color:var(--color-text-secondary);flex:1}
+.wr-empty{font-size:12px;color:var(--color-text-tertiary);padding:4px 0}
+`;
