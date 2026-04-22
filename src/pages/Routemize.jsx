@@ -2,16 +2,22 @@ import { useState, useCallback, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 
 // ─── constants ────────────────────────────────────────────────────────────────
-const TYPE_MAP = {
+const CORE_TASK_TYPES = ["video", "test", "support", "deploy"];
+
+const TYPE_MAP_BASE = {
   video:   { lbl: "Video",    cls: "b-video"   },
   test:    { lbl: "Testing",  cls: "b-test"    },
   support: { lbl: "Support",  cls: "b-support" },
   deploy:  { lbl: "Deploy",   cls: "b-deploy"  },
 };
-// "article" type is removed from task backlog — articles live only in KB section
-const TASK_TYPES   = ["video", "test", "support", "deploy"];
-const TYPE_KEYS    = ["video", "test", "support", "deploy"];
-const TYPE_COLORS  = { video: "#7F77DD", test: "#EF9F27", support: "#378ADD", deploy: "#E24B4A" };
+
+const TYPE_COLORS_BASE = {
+  video: "#7F77DD",
+  test: "#EF9F27",
+  support: "#378ADD",
+  deploy: "#E24B4A",
+};
+
 const STATUS_LABELS = { "s-draft": "Draft", "s-review": "In review", "s-done": "Published", "s-planned": "Planned" };
 const STATUS_ORDER  = ["s-planned", "s-draft", "s-review", "s-done"];
 const DAYS          = ["Mon", "Tue", "Wed", "Thu", "Fri"];
@@ -34,10 +40,9 @@ function fmtRange(s, e) {
   const a=parseDate(s), b=parseDate(e);
   return `${a.toLocaleDateString("en-US",{month:"short",day:"numeric"})} – ${b.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}`;
 }
-// Returns index 0–4 for Mon–Fri of current week; -1 if weekend
 function todayDayIndex() {
   const i = DAYS.indexOf(TODAY_DAY);
-  return i; // -1 on weekends
+  return i;
 }
 
 // ─── initial state ────────────────────────────────────────────────────────────
@@ -51,6 +56,8 @@ const INITIAL = {
   notes: "", copied: false,
   collapsed: { done: false, planned: false, articles: false, blockers: false, notes: false },
   nextId: 100,
+  // custom task categories (on top of the 4 locked core ones)
+  customCategories: [],
   blockers: [{ id: 60, text: "Waiting for beta user feedback to prioritize new articles." }],
   articles: [
     { id:"a1", title:"Configure service zones",            cat:"Onboarding",   status:"s-done"    },
@@ -73,6 +80,9 @@ const INITIAL = {
   newArt:     { title:"", cat:"Onboarding", status:"s-planned" },
   newBlocker: "",
   newSubtask: {},
+  newCatName: "",
+  // track which task ids are newly added and should auto-open
+  newlyAddedId: null,
 };
 
 function normalizeTask(task) {
@@ -85,30 +95,42 @@ function normalizeTask(task) {
   };
 }
 
+// Build dynamic TYPE_MAP from core + custom categories
+function buildTypeMap(customCategories = []) {
+  const map = { ...TYPE_MAP_BASE };
+  const colors = { ...TYPE_COLORS_BASE };
+  const CUSTOM_COLORS = ["#9B59B6","#16A085","#E67E22","#2C3E50","#8E44AD","#27AE60"];
+  customCategories.forEach((cat, i) => {
+    const key = cat.key;
+    map[key] = { lbl: cat.name, cls: `b-custom-${i}` };
+    colors[key] = CUSTOM_COLORS[i % CUSTOM_COLORS.length];
+  });
+  return { typeMap: map, typeColors: colors };
+}
+
 // ─── SVG chart ────────────────────────────────────────────────────────────────
-function MiniChart({ tasks, articles, view, selectedDay }) {
+function MiniChart({ tasks, articles, view, selectedDay, typeMap, typeColors }) {
   const W=700, H=140, PAD={top:12,right:16,bottom:30,left:32};
   const iW=W-PAD.left-PAD.right, iH=H-PAD.top-PAD.bottom;
 
-  // Build counts: tasks done per type per day + articles published per day
+  const allTypeKeys = Object.keys(typeMap);
   const counts = {};
-  DAYS.forEach(d => { counts[d] = { video:0, test:0, support:0, deploy:0, article:0 }; });
+  DAYS.forEach(d => {
+    counts[d] = {};
+    allTypeKeys.forEach(k => { counts[d][k] = 0; });
+    counts[d].article = 0;
+  });
 
   tasks.filter(t=>t.done).forEach(t => {
-    (t.assignedDays||[]).forEach(d => { if (counts[d] && counts[d][t.type]!==undefined) counts[d][t.type]++; });
-  });
-  // articles marked s-done count as "article" completions on whichever days they have tasks
-  articles.filter(a=>a.status==="s-done").forEach(a => {
-    const related = tasks.filter(t=>t.text===`Published: ${a.title}` && t.done);
-    related.forEach(t => { (t.assignedDays||[]).forEach(d => { if(counts[d]) counts[d].article = (counts[d].article||0)+1; }); });
+    (t.assignedDays||[]).forEach(d => {
+      if (counts[d] && counts[d][t.type] !== undefined) counts[d][t.type]++;
+    });
   });
 
-  const allKeys = [...TYPE_KEYS, "article"];
-  const allColors = { ...TYPE_COLORS, article:"#1D9E75" };
+  const allKeys = [...allTypeKeys, "article"];
+  const allColors = { ...typeColors, article:"#1D9E75" };
 
-  // For daily view, highlight the selected day column
   const hlIdx = view==="daily" ? DAYS.indexOf(selectedDay) : -1;
-
   const maxVal = Math.max(1, ...allKeys.flatMap(k => DAYS.map(d => counts[d][k]||0)));
   const xStep  = iW / (DAYS.length-1);
   const xOf = i => PAD.left + i*xStep;
@@ -125,8 +147,6 @@ function MiniChart({ tasks, articles, view, selectedDay }) {
   }
 
   const yTicks=[0,Math.ceil(maxVal/2),maxVal];
-
-  // Summary totals for the chart footer
   const totalDone  = tasks.filter(t=>t.done).length;
   const artDone    = articles.filter(a=>a.status==="s-done").length;
   const dayDone    = view==="daily" ? tasks.filter(t=>t.done && (t.assignedDays||[]).includes(selectedDay)).length : null;
@@ -134,10 +154,10 @@ function MiniChart({ tasks, articles, view, selectedDay }) {
   return (
     <div style={{background:"var(--color-background-secondary)",borderRadius:10,padding:"10px 14px 10px",marginBottom:12}}>
       <div style={{display:"flex",flexWrap:"wrap",gap:"6px 14px",marginBottom:6}}>
-        {[...allKeys].map(k=>(
+        {allKeys.map(k=>(
           <span key={k} style={{display:"flex",alignItems:"center",gap:5,fontSize:11,color:"var(--color-text-secondary)"}}>
             <span style={{display:"inline-block",width:14,height:2,borderRadius:1,background:allColors[k]}}/>
-            {k==="article"?"Article (KB)":TYPE_MAP[k]?.lbl}
+            {k==="article"?"Article (KB)":typeMap[k]?.lbl||k}
           </span>
         ))}
         <span style={{marginLeft:"auto",fontSize:11,color:"var(--color-text-secondary)"}}>
@@ -148,7 +168,6 @@ function MiniChart({ tasks, articles, view, selectedDay }) {
         </span>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} style={{width:"100%",height:"auto",display:"block"}} role="img" aria-label="Activity chart">
-        {/* highlight column for daily view */}
         {hlIdx>=0 && (
           <rect x={xOf(hlIdx)-18} y={PAD.top-4} width={36} height={iH+8}
             fill="rgba(29,158,117,0.07)" rx="4"/>
@@ -181,8 +200,8 @@ function MiniChart({ tasks, articles, view, selectedDay }) {
 }
 
 // ─── atoms ────────────────────────────────────────────────────────────────────
-function Badge({type}){
-  const t=TYPE_MAP[type]||{lbl:type,cls:"b-support"};
+function Badge({ type, typeMap }) {
+  const t = typeMap[type] || { lbl: type || "No category", cls: "b-support" };
   return <span className={`wr-badge ${t.cls}`}>{t.lbl}</span>;
 }
 function Cb({checked}){
@@ -212,59 +231,123 @@ function Section({title,sectionKey,collapsed,onToggle,count,hint,children}){
 }
 
 // ─── task item ────────────────────────────────────────────────────────────────
-function TaskItem({task,h,newSubVal,showAssign,lockedDays}){
-  const [open,setOpen]=useState(false);
+function TaskItem({ task, h, newSubVal, showAssign, typeMap, allTaskTypes, autoOpen }) {
+  const [open, setOpen] = useState(autoOpen || false);
+
+  // If autoOpen changes to true (new task), open it
+  useEffect(() => {
+    if (autoOpen) setOpen(true);
+  }, [autoOpen]);
+
   return(
     <div className={`wr-task ${task.done?"done":""}`}>
       <div className="wr-tmain" onClick={()=>h.toggle(task.id)}>
         <Cb checked={task.done}/>
         <span className="wr-ttext">{task.text}</span>
-        <Badge type={task.type}/>
-        <button className="wr-expbtn" onClick={e=>{e.stopPropagation();setOpen(o=>!o);}}>{open?"▲":"▼"}</button>
+        <Badge type={task.type} typeMap={typeMap}/>
+        <button className="wr-expbtn" onClick={e=>{e.stopPropagation();setOpen(o=>!o);}} title={open?"Collapse details":"Expand details"}>
+          {open?"▲":"▼"}
+        </button>
         <DelBtn onClick={()=>h.del(task.id)}/>
       </div>
       {open&&(
         <div className="wr-texpand">
+          {/* ── Editable title */}
+          <div className="wr-expand-field">
+            <label className="wr-expand-label">Task name</label>
+            <input type="text" className="wr-input" value={task.text}
+              onChange={e=>h.rename(task.id, e.target.value)}
+              placeholder="Task description..."/>
+          </div>
+
+          {/* ── Category/type editor */}
+          <div className="wr-expand-field">
+            <label className="wr-expand-label">Category</label>
+            <div className="wr-type-picker">
+              {allTaskTypes.map(k=>(
+                <button key={k}
+                  className={`wr-typebtn ${task.type===k?"active":""}`}
+                  style={task.type===k ? {
+                    background: typeMap[k]?.cls === "b-video" ? "#EEEDFE" :
+                                typeMap[k]?.cls === "b-test"  ? "#FAEEDA" :
+                                typeMap[k]?.cls === "b-support"?"#E6F1FB" :
+                                typeMap[k]?.cls === "b-deploy" ?"#FCEBEB" : "#F0F0F0",
+                    color: typeMap[k]?.cls === "b-video" ? "#3C3489" :
+                           typeMap[k]?.cls === "b-test"  ? "#633806" :
+                           typeMap[k]?.cls === "b-support"?"#0C447C" :
+                           typeMap[k]?.cls === "b-deploy" ?"#791F1F" : "#333",
+                    borderColor: "transparent"
+                  } : {}}
+                  onClick={e=>{e.stopPropagation();h.changeType(task.id,k);}}>
+                  {typeMap[k]?.lbl||k}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Day assignment */}
           {showAssign&&(
-            <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:6}}>
-              {DAYS.map(d=>{
-                const assigned=task.assignedDays.includes(d);
-                // locked = day already passed relative to today in this week
-                const dayIdx=DAYS.indexOf(d);
-                const todayIdx=todayDayIndex();
-                const isPast=todayIdx>=0 && dayIdx<todayIdx;
-                const disabled=isPast && !assigned;
-                return(
-                  <button key={d}
-                    className={`wr-daybtn ${assigned?"active":""} ${disabled?"disabled":""}`}
-                    disabled={disabled}
-                    title={disabled?"Cannot assign to a past day":""}
-                    onClick={e=>{e.stopPropagation();if(!disabled)h.dayAssign(task.id,d);}}>
-                    {d}
-                  </button>
-                );
-              })}
+            <div className="wr-expand-field">
+              <label className="wr-expand-label">Assign to days</label>
+              <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                {DAYS.map(d=>{
+                  const assigned=task.assignedDays.includes(d);
+                  const dayIdx=DAYS.indexOf(d);
+                  const todayIdx=todayDayIndex();
+                  const isPast=todayIdx>=0 && dayIdx<todayIdx;
+                  const disabled=isPast && !assigned;
+                  return(
+                    <button key={d}
+                      className={`wr-daybtn ${assigned?"active":""} ${disabled?"disabled":""}`}
+                      disabled={disabled}
+                      title={disabled?"Cannot assign to a past day":""}
+                      onClick={e=>{e.stopPropagation();if(!disabled)h.dayAssign(task.id,d);}}>
+                      {d}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
-          <textarea className="wr-expta" placeholder="Notes..."
-            value={task.description} onChange={e=>h.desc(task.id,e.target.value)}/>
-          <div style={{display:"flex",gap:6,alignItems:"center"}}>
-            <input type="text" className="wr-input" placeholder="https://... link"
-              value={task.link} onChange={e=>h.link(task.id,e.target.value)}/>
-            {task.link&&<a href={task.link} target="_blank" rel="noreferrer" className="wr-linka">Open</a>}
+
+          {/* ── Notes */}
+          <div className="wr-expand-field">
+            <label className="wr-expand-label">Notes</label>
+            <textarea className="wr-expta" placeholder="Notes..."
+              value={task.description} onChange={e=>h.desc(task.id,e.target.value)}/>
           </div>
-          {(task.subtasks||[]).map((sub,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:"var(--color-text-secondary)"}}>
-              <div className={`wr-subcb ${sub.done?"on":""}`} onClick={()=>h.toggleSub(task.id,i)}/>
-              <span style={{flex:1,textDecoration:sub.done?"line-through":"none",opacity:sub.done?.5:1}}>{sub.text}</span>
-              <DelBtn onClick={()=>h.delSub(task.id,i)} style={{fontSize:12}}/>
+
+          {/* ── Link */}
+          <div className="wr-expand-field">
+            <label className="wr-expand-label">Link</label>
+            <div style={{display:"flex",gap:6,alignItems:"center"}}>
+              <input type="text" className="wr-input" placeholder="https://... link"
+                value={task.link} onChange={e=>h.link(task.id,e.target.value)}/>
+              {task.link&&<a href={task.link} target="_blank" rel="noreferrer" className="wr-linka">Open ↗</a>}
             </div>
-          ))}
-          <div style={{display:"flex",gap:6}}>
-            <input type="text" className="wr-input" style={{fontSize:11}} placeholder="Add subtask..."
-              value={newSubVal||""} onChange={e=>h.subInput(task.id,e.target.value)}
-              onKeyDown={e=>e.key==="Enter"&&h.addSub(task.id)}/>
-            <button className="wr-btn sm" onClick={()=>h.addSub(task.id)}>+ Sub</button>
+          </div>
+
+          {/* ── Subtasks */}
+          <div className="wr-expand-field">
+            <label className="wr-expand-label">Subtasks</label>
+            {(task.subtasks||[]).length === 0 && (
+              <div style={{fontSize:11,color:"var(--color-text-tertiary)",marginBottom:4}}>No subtasks yet.</div>
+            )}
+            {(task.subtasks||[]).map((sub,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:6,fontSize:12,
+                color:"var(--color-text-secondary)",padding:"4px 0",
+                borderBottom:"0.5px solid var(--color-border-tertiary)"}}>
+                <div className={`wr-subcb ${sub.done?"on":""}`} onClick={()=>h.toggleSub(task.id,i)}/>
+                <span style={{flex:1,textDecoration:sub.done?"line-through":"none",opacity:sub.done?.5:1}}>{sub.text}</span>
+                <DelBtn onClick={()=>h.delSub(task.id,i)} style={{fontSize:12}}/>
+              </div>
+            ))}
+            <div style={{display:"flex",gap:6,marginTop:6}}>
+              <input type="text" className="wr-input" style={{fontSize:11}} placeholder="Add subtask..."
+                value={newSubVal||""} onChange={e=>h.subInput(task.id,e.target.value)}
+                onKeyDown={e=>e.key==="Enter"&&h.addSub(task.id)}/>
+              <button className="wr-btn sm" onClick={()=>h.addSub(task.id)}>+ Sub</button>
+            </div>
           </div>
         </div>
       )}
@@ -284,447 +367,250 @@ export default function WeeklyReport() {
       return next;
     });
   }, []);
-useEffect(() => {
-  async function loadData() {
-    setLoading(true);
 
-    const { data: tasksData, error: tasksError } = await supabase
-      .from("tasks")
-      .select("*")
-      .order("id", { ascending: true });
+  // Build derived type map from current state
+  const { typeMap, typeColors } = buildTypeMap(s.customCategories || []);
+  const allTaskTypes = [...CORE_TASK_TYPES, ...(s.customCategories||[]).map(c=>c.key)];
 
-    const { data: articlesData, error: articlesError } = await supabase
-      .from("articles")
-      .select("*")
-      .order("id", { ascending: true });
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      const { data: tasksData, error: tasksError }     = await supabase.from("tasks").select("*").order("id", { ascending: true });
+      const { data: articlesData, error: articlesError } = await supabase.from("articles").select("*").order("id", { ascending: true });
+      const { data: blockersData, error: blockersError } = await supabase.from("blockers").select("*").order("id", { ascending: true });
+      const { data: reportsData, error: reportsError }   = await supabase.from("reports").select("*").limit(1).maybeSingle();
 
-    const { data: blockersData, error: blockersError } = await supabase
-      .from("blockers")
-      .select("*")
-      .order("id", { ascending: true });
+      if (tasksError) console.error("Tasks load error:", tasksError);
+      if (articlesError) console.error("Articles load error:", articlesError);
+      if (blockersError) console.error("Blockers load error:", blockersError);
+      if (reportsError) console.error("Reports load error:", reportsError);
 
-    const { data: reportsData, error: reportsError } = await supabase
-      .from("reports")
-      .select("*")
-      .limit(1)
-      .maybeSingle();
-
-    if (tasksError) console.error("Tasks load error:", tasksError);
-    if (articlesError) console.error("Articles load error:", articlesError);
-    if (blockersError) console.error("Blockers load error:", blockersError);
-    if (reportsError) console.error("Reports load error:", reportsError);
-
-    setS(prev => ({
-      ...prev,
-      tasks: tasksData ? tasksData.map(normalizeTask) : prev.tasks,
-      articles: articlesData || prev.articles,
-      blockers: blockersData || prev.blockers,
-      notes: reportsData?.notes ?? prev.notes,
-      weekStart: reportsData?.week_start ?? prev.weekStart,
-      weekEnd: reportsData?.week_end ?? prev.weekEnd,
-    }));
-
-    setLoading(false);
-  }
-
-  loadData();
-}, []);
-  // ── task handlers
-  const h = {
-  toggle: async id => {
-    const task = s.tasks.find(t => t.id === id);
-    if (!task) return;
-
-    const newDone = !task.done;
-
-    const { error } = await supabase
-      .from("tasks")
-      .update({ done: newDone })
-      .eq("id", id);
-
-    if (error) {
-      console.error("Toggle task error:", error);
-      return;
+      setS(prev => ({
+        ...prev,
+        tasks: tasksData ? tasksData.map(normalizeTask) : prev.tasks,
+        articles: articlesData || prev.articles,
+        blockers: blockersData || prev.blockers,
+        notes: reportsData?.notes ?? prev.notes,
+        weekStart: reportsData?.week_start ?? prev.weekStart,
+        weekEnd: reportsData?.week_end ?? prev.weekEnd,
+      }));
+      setLoading(false);
     }
+    loadData();
+  }, []);
 
-    upd(s => {
-      const t = s.tasks.find(t => t.id === id);
-      if (t) t.done = newDone;
-    });
-  },
-
-  del: async id => {
-    const { error } = await supabase
-      .from("tasks")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      console.error("Delete task error:", error);
-      return;
-    }
-
-    upd(s => {
-      s.tasks = s.tasks.filter(t => t.id !== id);
-    });
-  },
-
-  desc: async (id, v) => {
-    const { error } = await supabase
-      .from("tasks")
-      .update({ description: v })
-      .eq("id", id);
-
-    if (error) {
-      console.error("Update description error:", error);
-      return;
-    }
-
-    upd(s => {
-      const t = s.tasks.find(t => t.id === id);
-      if (t) t.description = v;
-    });
-  },
-
-  link: async (id, v) => {
-    const { error } = await supabase
-      .from("tasks")
-      .update({ link: v })
-      .eq("id", id);
-
-    if (error) {
-      console.error("Update link error:", error);
-      return;
-    }
-
-    upd(s => {
-      const t = s.tasks.find(t => t.id === id);
-      if (t) t.link = v;
-    });
-  },
-
-  toggleSub: async (tid, i) => {
-    const task = s.tasks.find(t => t.id === tid);
-    if (!task) return;
-
-    const subtasks = [...(task.subtasks || [])];
-    if (!subtasks[i]) return;
-
-    subtasks[i].done = !subtasks[i].done;
-
-    const { error } = await supabase
-      .from("tasks")
-      .update({ subtasks })
-      .eq("id", tid);
-
-    if (error) {
-      console.error("Toggle subtask error:", error);
-      return;
-    }
-
-    upd(s => {
-      const t = s.tasks.find(t => t.id === tid);
-      if (t) t.subtasks = subtasks;
-    });
-  },
-
-  delSub: async (tid, i) => {
-    const task = s.tasks.find(t => t.id === tid);
-    if (!task) return;
-
-    const subtasks = [...(task.subtasks || [])];
-    subtasks.splice(i, 1);
-
-    const { error } = await supabase
-      .from("tasks")
-      .update({ subtasks })
-      .eq("id", tid);
-
-    if (error) {
-      console.error("Delete subtask error:", error);
-      return;
-    }
-
-    upd(s => {
-      const t = s.tasks.find(t => t.id === tid);
-      if (t) t.subtasks = subtasks;
-    });
-  },
-
-  addSub: async tid => {
-    const txt = (s.newSubtask[tid] || "").trim();
-    if (!txt) return;
-
-    const task = s.tasks.find(t => t.id === tid);
-    if (!task) return;
-
-    const subtasks = [...(task.subtasks || []), { text: txt, done: false }];
-
-    const { error } = await supabase
-      .from("tasks")
-      .update({ subtasks })
-      .eq("id", tid);
-
-    if (error) {
-      console.error("Add subtask error:", error);
-      return;
-    }
-
-    upd(s => {
-      const t = s.tasks.find(t => t.id === tid);
-      if (t) t.subtasks = subtasks;
-      s.newSubtask[tid] = "";
-    });
-  },
-
-  subInput: (id, v) =>
-    upd(s => {
-      s.newSubtask[id] = v;
-    }),
-
-  dayAssign: async (id, day) => {
-    const task = s.tasks.find(t => t.id === id);
-    if (!task) return;
-
-    const assignedDays = [...(task.assignedDays || [])];
-    const idx = assignedDays.indexOf(day);
-
-    if (idx > -1) assignedDays.splice(idx, 1);
-    else assignedDays.push(day);
-
-    const { error } = await supabase
-      .from("tasks")
-      .update({ assigned_days: assignedDays })
-      .eq("id", id);
-
-    if (error) {
-      console.error("Assign day error:", error);
-      return;
-    }
-
-    upd(s => {
-      const t = s.tasks.find(t => t.id === id);
-      if (t) t.assignedDays = assignedDays;
-    });
-  },
-};
-
-  const addTask = async () => {
-  if (!s.newTask.text.trim()) return;
-
-  const payload = {
-    text: s.newTask.text.trim(),
-    type: s.newTask.type,
-    done: false,
-    assigned_days: [],
-    description: "",
-    link: "",
-    subtasks: [],
-  };
-
-  const { data, error } = await supabase
-    .from("tasks")
-    .insert([payload])
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Add task error:", error);
-    return;
-  }
-
-  upd(s => {
-    s.tasks.push(normalizeTask(data));
-    s.newTask = { text: "", type: "video" };
-  });
-};
-
-
-  const addDayTask = async () => {
-  if (!s.newDayTask?.text?.trim()) return;
-
-  const payload = {
-    text: s.newDayTask.text.trim(),
-    type: s.newDayTask.type || "support",
-    done: false,
-    assigned_days: [s.selectedDay],
-    description: "",
-    link: "",
-    subtasks: [],
-  };
-
-  const { data, error } = await supabase
-    .from("tasks")
-    .insert([payload])
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Add day task error:", error);
-    return;
-  }
-
-  upd(s => {
-    s.tasks.push(normalizeTask(data));
-    s.newDayTask = { text: "", type: "support" };
-  });
-};
-
-  // ── article handlers
-  const cycleStatus = async id => {
-  const article = s.articles.find(a => a.id === id);
-  if (!article) return;
-
-  const ni = (STATUS_ORDER.indexOf(article.status) + 1) % STATUS_ORDER.length;
-  const newStatus = STATUS_ORDER[ni];
-
-  const { error } = await supabase
-    .from("articles")
-    .update({ status: newStatus })
-    .eq("id", id);
-
-  if (error) {
-    console.error("Cycle article status error:", error);
-    return;
-  }
-
-  upd(s => {
-    const a = s.articles.find(a => a.id === id);
-    if (a) a.status = newStatus;
-  });
-
-  if (newStatus === "s-done") {
-    const label = `Published: ${article.title}`;
-    const alreadyExists = s.tasks.some(t => t.text === label && t.done);
-
-    if (!alreadyExists) {
-      const todayIdx = todayDayIndex();
-      const assignDay = todayIdx >= 0 ? [DAYS[todayIdx]] : [];
-
-      const { data, error: taskError } = await supabase
-        .from("tasks")
-        .insert([{
-          text: label,
-          type: "deploy",
-          done: true,
-          assigned_days: assignDay,
-          description: "KB article published.",
-          link: "",
-          subtasks: [],
-        }])
-        .select()
-        .single();
-
-      if (taskError) {
-        console.error("Auto-create publish task error:", taskError);
-        return;
-      }
-
-      upd(s => {
-        s.tasks.push(normalizeTask(data));
-      });
-    }
-  }
-};
-
-const delArticle = async id => {
-  const { error } = await supabase
-    .from("articles")
-    .delete()
-    .eq("id", id);
-
-  if (error) {
-    console.error("Delete article error:", error);
-    return;
-  }
-
-  upd(s => {
-    s.articles = s.articles.filter(a => a.id !== id);
-  });
-};
-
-const addArticle = async () => {
-  if (!s.newArt.title.trim()) return;
-
-  const payload = {
-    title: s.newArt.title.trim(),
-    cat: s.newArt.cat,
-    status: s.newArt.status,
-  };
-
-  const { data, error } = await supabase
-    .from("articles")
-    .insert([payload])
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Add article error:", error);
-    return;
-  }
-
-  upd(s => {
-    s.articles.push(data);
-    s.newArt = { ...s.newArt, title: "" };
-  });
-};
-
-  // ── blocker handlers
- const delBlocker = async id => {
-  const { error } = await supabase
-    .from("blockers")
-    .delete()
-    .eq("id", id);
-
-  if (error) {
-    console.error("Delete blocker error:", error);
-    return;
-  }
-
-  upd(s => {
-    s.blockers = s.blockers.filter(b => b.id !== id);
-  });
-};
-
-const addBlocker = async () => {
-  if (!s.newBlocker.trim()) return;
-
+  // ── notes saver (scoped correctly at component level)
   const saveNotes = async value => {
-  upd(s => {
-    s.notes = value;
-  });
-
-  const { error } = await supabase
-    .from("reports")
-    .upsert([{
+    upd(s => { s.notes = value; });
+    const { error } = await supabase.from("reports").upsert([{
       id: 1,
       week_start: s.weekStart,
       week_end: s.weekEnd,
       notes: value,
     }]);
+    if (error) console.error("Save notes error:", error);
+  };
 
-  if (error) {
-    console.error("Save notes error:", error);
-  }
-};
+  // ── task handlers
+  const h = {
+    toggle: async id => {
+      const task = s.tasks.find(t => t.id === id);
+      if (!task) return;
+      const newDone = !task.done;
+      const { error } = await supabase.from("tasks").update({ done: newDone }).eq("id", id);
+      if (error) { console.error("Toggle task error:", error); return; }
+      upd(s => { const t = s.tasks.find(t => t.id === id); if (t) t.done = newDone; });
+    },
 
-  const { data, error } = await supabase
-    .from("blockers")
-    .insert([{ text: s.newBlocker.trim() }])
-    .select()
-    .single();
+    del: async id => {
+      const { error } = await supabase.from("tasks").delete().eq("id", id);
+      if (error) { console.error("Delete task error:", error); return; }
+      upd(s => { s.tasks = s.tasks.filter(t => t.id !== id); });
+    },
 
-  if (error) {
-    console.error("Add blocker error:", error);
-    return;
-  }
+    rename: async (id, v) => {
+      const { error } = await supabase.from("tasks").update({ text: v }).eq("id", id);
+      if (error) { console.error("Rename task error:", error); return; }
+      upd(s => { const t = s.tasks.find(t => t.id === id); if (t) t.text = v; });
+    },
 
-  upd(s => {
-    s.blockers.push(data);
-    s.newBlocker = "";
-  });
-};
+    changeType: async (id, newType) => {
+      const { error } = await supabase.from("tasks").update({ type: newType }).eq("id", id);
+      if (error) { console.error("Change type error:", error); return; }
+      upd(s => { const t = s.tasks.find(t => t.id === id); if (t) t.type = newType; });
+    },
 
+    desc: async (id, v) => {
+      const { error } = await supabase.from("tasks").update({ description: v }).eq("id", id);
+      if (error) { console.error("Update description error:", error); return; }
+      upd(s => { const t = s.tasks.find(t => t.id === id); if (t) t.description = v; });
+    },
+
+    link: async (id, v) => {
+      const { error } = await supabase.from("tasks").update({ link: v }).eq("id", id);
+      if (error) { console.error("Update link error:", error); return; }
+      upd(s => { const t = s.tasks.find(t => t.id === id); if (t) t.link = v; });
+    },
+
+    toggleSub: async (tid, i) => {
+      const task = s.tasks.find(t => t.id === tid);
+      if (!task) return;
+      const subtasks = [...(task.subtasks || [])];
+      if (!subtasks[i]) return;
+      subtasks[i].done = !subtasks[i].done;
+      const { error } = await supabase.from("tasks").update({ subtasks }).eq("id", tid);
+      if (error) { console.error("Toggle subtask error:", error); return; }
+      upd(s => { const t = s.tasks.find(t => t.id === tid); if (t) t.subtasks = subtasks; });
+    },
+
+    delSub: async (tid, i) => {
+      const task = s.tasks.find(t => t.id === tid);
+      if (!task) return;
+      const subtasks = [...(task.subtasks || [])];
+      subtasks.splice(i, 1);
+      const { error } = await supabase.from("tasks").update({ subtasks }).eq("id", tid);
+      if (error) { console.error("Delete subtask error:", error); return; }
+      upd(s => { const t = s.tasks.find(t => t.id === tid); if (t) t.subtasks = subtasks; });
+    },
+
+    addSub: async tid => {
+      const txt = (s.newSubtask[tid] || "").trim();
+      if (!txt) return;
+      const task = s.tasks.find(t => t.id === tid);
+      if (!task) return;
+      const subtasks = [...(task.subtasks || []), { text: txt, done: false }];
+      const { error } = await supabase.from("tasks").update({ subtasks }).eq("id", tid);
+      if (error) { console.error("Add subtask error:", error); return; }
+      upd(s => { const t = s.tasks.find(t => t.id === tid); if (t) t.subtasks = subtasks; s.newSubtask[tid] = ""; });
+    },
+
+    subInput: (id, v) => upd(s => { s.newSubtask[id] = v; }),
+
+    dayAssign: async (id, day) => {
+      const task = s.tasks.find(t => t.id === id);
+      if (!task) return;
+      const assignedDays = [...(task.assignedDays || [])];
+      const idx = assignedDays.indexOf(day);
+      if (idx > -1) assignedDays.splice(idx, 1);
+      else assignedDays.push(day);
+      const { error } = await supabase.from("tasks").update({ assigned_days: assignedDays }).eq("id", id);
+      if (error) { console.error("Assign day error:", error); return; }
+      upd(s => { const t = s.tasks.find(t => t.id === id); if (t) t.assignedDays = assignedDays; });
+    },
+  };
+
+  const addTask = async () => {
+    if (!s.newTask.text.trim()) return;
+    const payload = {
+      text: s.newTask.text.trim(),
+      type: s.newTask.type,
+      done: false,
+      assigned_days: [],
+      description: "",
+      link: "",
+      subtasks: [],
+    };
+    const { data, error } = await supabase.from("tasks").insert([payload]).select().single();
+    if (error) { console.error("Add task error:", error); return; }
+    upd(s => {
+      s.tasks.push(normalizeTask(data));
+      s.newTask = { text: "", type: "video" };
+      s.newlyAddedId = data.id; // mark for auto-open
+    });
+  };
+
+  const addDayTask = async () => {
+    if (!s.newDayTask?.text?.trim()) return;
+    const payload = {
+      text: s.newDayTask.text.trim(),
+      type: s.newDayTask.type || "support",
+      done: false,
+      assigned_days: [s.selectedDay],
+      description: "",
+      link: "",
+      subtasks: [],
+    };
+    const { data, error } = await supabase.from("tasks").insert([payload]).select().single();
+    if (error) { console.error("Add day task error:", error); return; }
+    upd(s => {
+      s.tasks.push(normalizeTask(data));
+      s.newDayTask = { text: "", type: "support" };
+      s.newlyAddedId = data.id;
+    });
+  };
+
+  // ── article handlers
+  const cycleStatus = async id => {
+    const article = s.articles.find(a => a.id === id);
+    if (!article) return;
+    const ni = (STATUS_ORDER.indexOf(article.status) + 1) % STATUS_ORDER.length;
+    const newStatus = STATUS_ORDER[ni];
+    const { error } = await supabase.from("articles").update({ status: newStatus }).eq("id", id);
+    if (error) { console.error("Cycle article status error:", error); return; }
+    upd(s => { const a = s.articles.find(a => a.id === id); if (a) a.status = newStatus; });
+
+    if (newStatus === "s-done") {
+      const label = `Published: ${article.title}`;
+      const alreadyExists = s.tasks.some(t => t.text === label && t.done);
+      if (!alreadyExists) {
+        const todayIdx = todayDayIndex();
+        const assignDay = todayIdx >= 0 ? [DAYS[todayIdx]] : [];
+        const { data, error: taskError } = await supabase.from("tasks").insert([{
+          text: label, type: "deploy", done: true,
+          assigned_days: assignDay, description: "KB article published.", link: "", subtasks: [],
+        }]).select().single();
+        if (taskError) { console.error("Auto-create publish task error:", taskError); return; }
+        upd(s => { s.tasks.push(normalizeTask(data)); });
+      }
+    }
+  };
+
+  const delArticle = async id => {
+    const { error } = await supabase.from("articles").delete().eq("id", id);
+    if (error) { console.error("Delete article error:", error); return; }
+    upd(s => { s.articles = s.articles.filter(a => a.id !== id); });
+  };
+
+  const addArticle = async () => {
+    if (!s.newArt.title.trim()) return;
+    const payload = { title: s.newArt.title.trim(), cat: s.newArt.cat, status: s.newArt.status };
+    const { data, error } = await supabase.from("articles").insert([payload]).select().single();
+    if (error) { console.error("Add article error:", error); return; }
+    upd(s => { s.articles.push(data); s.newArt = { ...s.newArt, title: "" }; });
+  };
+
+  // ── blocker handlers
+  const delBlocker = async id => {
+    const { error } = await supabase.from("blockers").delete().eq("id", id);
+    if (error) { console.error("Delete blocker error:", error); return; }
+    upd(s => { s.blockers = s.blockers.filter(b => b.id !== id); });
+  };
+
+  const addBlocker = async () => {
+    if (!s.newBlocker.trim()) return;
+    const { data, error } = await supabase.from("blockers").insert([{ text: s.newBlocker.trim() }]).select().single();
+    if (error) { console.error("Add blocker error:", error); return; }
+    upd(s => { s.blockers.push(data); s.newBlocker = ""; });
+  };
+
+  // ── custom category handlers
+  const addCustomCategory = () => {
+    const name = (s.newCatName || "").trim();
+    if (!name) return;
+    const key = `custom_${name.toLowerCase().replace(/\s+/g,"_")}_${Date.now()}`;
+    upd(s => {
+      s.customCategories = [...(s.customCategories||[]), { key, name }];
+      s.newCatName = "";
+    });
+  };
+
+  const removeCustomCategory = (key) => {
+    upd(s => {
+      s.customCategories = (s.customCategories||[]).filter(c => c.key !== key);
+      // Tasks with this category become "uncategorized" — set type to null or keep key
+      // They'll just display "No category" gracefully via Badge fallback
+    });
+  };
 
   // ── nav
   const prevWeek=()=>upd(s=>{s.weekStart=shiftDate(s.weekStart,-7);s.weekEnd=shiftDate(s.weekEnd,-7);});
@@ -737,42 +623,50 @@ const addBlocker = async () => {
     lines.push("","BLOCKERS:");s.blockers.forEach(b=>lines.push(`  • ${b.text}`));
     lines.push("\nTASKS:");
     const filt=s.view==="daily"?s.tasks.filter(t=>t.assignedDays.includes(s.selectedDay)):s.tasks;
-    filt.forEach(t=>lines.push(`  ${t.done?"[x]":"[ ]"} [${TYPE_MAP[t.type]?.lbl||t.type}] ${t.text}`));
+    filt.forEach(t=>lines.push(`  ${t.done?"[x]":"[ ]"} [${typeMap[t.type]?.lbl||t.type}] ${t.text}`));
     lines.push("\nARTICLES:");s.articles.forEach(a=>lines.push(`  · ${a.title} — ${a.cat} — ${STATUS_LABELS[a.status]}`));
     lines.push("\nNOTES:",s.notes||"(no notes)");
     navigator.clipboard.writeText(lines.join("\n")).then(()=>{upd(s=>{s.copied=true;});setTimeout(()=>upd(s=>{s.copied=false;}),1800);});
   };
 
   // ── derived state
-  const allTasks   = s.tasks;
-  const doneTasks  = allTasks.filter(t=>t.done);
-  const pendTasks  = allTasks.filter(t=>!t.done);
+  const allTasks  = s.tasks;
+  const doneTasks = allTasks.filter(t=>t.done);
+  const pendTasks = allTasks.filter(t=>!t.done);
 
-  // Daily
-  const dayTasks   = allTasks.filter(t=>(t.assignedDays||[]).includes(s.selectedDay));
-  const dayDone    = dayTasks.filter(t=>t.done).length;
-  const dayPend    = dayTasks.filter(t=>!t.done).length;
+  const dayTasks = allTasks.filter(t=>(t.assignedDays||[]).includes(s.selectedDay));
+  const dayDone  = dayTasks.filter(t=>t.done).length;
+  const dayPend  = dayTasks.filter(t=>!t.done).length;
 
-  // Stats depend on view
-  const statDone   = s.view==="daily" ? dayDone  : doneTasks.length;
-  const statPend   = s.view==="daily" ? dayPend  : pendTasks.length;
-  const statTotal  = s.view==="daily" ? dayTasks.length : allTasks.length;
-  const statLabel  = s.view==="daily" ? s.selectedDay : "total";
+  const statDone  = s.view==="daily" ? dayDone  : doneTasks.length;
+  const statPend  = s.view==="daily" ? dayPend  : pendTasks.length;
+  const statTotal = s.view==="daily" ? dayTasks.length : allTasks.length;
+  const statLabel = s.view==="daily" ? s.selectedDay : "total";
 
-  // Group pending tasks by type for weekly backlog
+  // Group pending by type for backlog (all types including custom)
   const pendByType = {};
-  TASK_TYPES.forEach(k=>{pendByType[k]=pendTasks.filter(t=>t.type===k);});
+  allTaskTypes.forEach(k=>{ pendByType[k] = pendTasks.filter(t=>t.type===k); });
+  // Uncategorized tasks (type doesn't match any known key)
+  const uncategorized = pendTasks.filter(t => !allTaskTypes.includes(t.type));
 
-  // Unassigned tasks for daily backlog panel
   const unassigned = pendTasks.filter(t=>!(t.assignedDays||[]).includes(s.selectedDay));
 
-  const renderTask=(t,showAssign)=>(
-    <TaskItem key={t.id} task={t} h={h} newSubVal={s.newSubtask[t.id]} showAssign={showAssign}/>
+  const renderTask = (t, showAssign) => (
+    <TaskItem
+      key={t.id}
+      task={t}
+      h={h}
+      newSubVal={s.newSubtask[t.id]}
+      showAssign={showAssign}
+      typeMap={typeMap}
+      allTaskTypes={allTaskTypes}
+      autoOpen={s.newlyAddedId === t.id}
+    />
   );
 
-if (loading) {
-  return <div style={{ padding: "2rem" }}>Loading data...</div>;
-}
+  if (loading) {
+    return <div style={{ padding: "2rem" }}>Loading data...</div>;
+  }
 
   return(
     <>{/* styles injected once */}<style>{CSS}</style>
@@ -785,7 +679,8 @@ if (loading) {
       </div>
 
       {/* chart */}
-      <MiniChart tasks={s.tasks} articles={s.articles} view={s.view} selectedDay={s.selectedDay}/>
+      <MiniChart tasks={s.tasks} articles={s.articles} view={s.view} selectedDay={s.selectedDay}
+        typeMap={typeMap} typeColors={typeColors}/>
 
       {/* view toggle */}
       <div className="wr-toolbar">
@@ -802,7 +697,7 @@ if (loading) {
         <button className="wr-navbtn" onClick={nextWeek}>Next →</button>
       </div>
 
-      {/* stats — change based on view */}
+      {/* stats */}
       <div className="wr-stats">
         {[
           {lbl: s.view==="daily"?`Done (${statLabel})`:"Tasks completed",  val:statDone,  sub:`of ${statTotal} ${statLabel}`},
@@ -821,7 +716,6 @@ if (loading) {
       {/* ─── DAILY VIEW ─── */}
       {s.view==="daily"&&(
         <>
-          {/* day tabs */}
           <div className="wr-daytabs">
             {DAYS.map(d=>(
               <button key={d} className={`wr-daytab ${s.selectedDay===d?"active":""}`}
@@ -834,13 +728,11 @@ if (loading) {
             ))}
           </div>
 
-          {/* tasks for this day */}
           <Section title={`Tasks — ${s.selectedDay}`} sectionKey="done"
             collapsed={s.collapsed.done} onToggle={toggleSection} count={dayTasks.length}>
             {dayTasks.length===0
               ?<div className="wr-empty">No tasks assigned to {s.selectedDay}.</div>
               :dayTasks.map(t=>renderTask(t,true))}
-            {/* add task directly to this day */}
             <div className="wr-addrow" style={{marginTop:8}}>
               <input type="text" className="wr-input" placeholder={`New task for ${s.selectedDay}...`}
                 value={s.newDayTask?.text||""}
@@ -848,13 +740,12 @@ if (loading) {
                 onKeyDown={e=>e.key==="Enter"&&addDayTask()}/>
               <select className="wr-select" value={s.newDayTask?.type||"support"}
                 onChange={e=>upd(s=>{if(!s.newDayTask)s.newDayTask={text:"",type:"support"};s.newDayTask.type=e.target.value;})}>
-                {TASK_TYPES.map(v=><option key={v} value={v}>{TYPE_MAP[v].lbl}</option>)}
+                {allTaskTypes.map(v=><option key={v} value={v}>{typeMap[v]?.lbl||v}</option>)}
               </select>
               <button className="wr-btn accent" onClick={addDayTask}>+ Add</button>
             </div>
           </Section>
 
-          {/* weekly backlog — assign to day */}
           {unassigned.length>0&&(
             <div className="wr-assignpanel">
               <div className="wr-assignhdr">Weekly backlog — tap to assign to {s.selectedDay}</div>
@@ -867,7 +758,7 @@ if (loading) {
                     onClick={()=>!isPast&&h.dayAssign(t.id,s.selectedDay)}>
                     <span className="wr-assignbadge">{isPast?"Past":"+ Assign"}</span>
                     <span style={{flex:1,fontSize:12,color:isPast?"var(--color-text-tertiary)":"var(--color-text-primary)"}}>{t.text}</span>
-                    <Badge type={t.type}/>
+                    <Badge type={t.type} typeMap={typeMap}/>
                   </div>
                 );
               })}
@@ -879,7 +770,6 @@ if (loading) {
       {/* ─── WEEKLY VIEW ─── */}
       {s.view==="weekly"&&(
         <>
-          {/* Completed */}
           <Section title="Completed activities" sectionKey="done"
             collapsed={s.collapsed.done} onToggle={toggleSection} count={doneTasks.length}>
             {doneTasks.length===0
@@ -887,23 +777,65 @@ if (loading) {
               :doneTasks.map(t=>renderTask(t,true))}
           </Section>
 
-          {/* Backlog grouped by type */}
+          {/* Activity backlog — grouped by type */}
           <Section title="Activity backlog" sectionKey="planned"
             collapsed={s.collapsed.planned} onToggle={toggleSection} count={pendTasks.length}>
             {pendTasks.length===0&&<div className="wr-empty">All caught up!</div>}
-            {TASK_TYPES.map(k=>{
-              const group=pendByType[k];
-              if(!group.length)return null;
+
+            {allTaskTypes.map(k=>{
+              const group=pendByType[k]||[];
+              if(!group.length) return null;
               return(
                 <div key={k} className="wr-type-group">
                   <div className="wr-type-group-hdr">
-                    <span className={`wr-badge ${TYPE_MAP[k].cls}`}>{TYPE_MAP[k].lbl}</span>
+                    <Badge type={k} typeMap={typeMap}/>
                     <span className="wr-type-count">{group.length}</span>
                   </div>
                   {group.map(t=>renderTask(t,true))}
                 </div>
               );
             })}
+
+            {/* Uncategorized tasks (category was removed) */}
+            {uncategorized.length > 0 && (
+              <div className="wr-type-group">
+                <div className="wr-type-group-hdr">
+                  <span className="wr-badge b-support" style={{opacity:.6}}>No category</span>
+                  <span className="wr-type-count">{uncategorized.length}</span>
+                </div>
+                {uncategorized.map(t=>renderTask(t,true))}
+              </div>
+            )}
+
+            {/* Custom category manager */}
+            <div className="wr-catmanager">
+              <div className="wr-catmanager-hdr">
+                <span>Activity categories</span>
+                <span className="wr-shint">Core categories cannot be removed</span>
+              </div>
+              <div className="wr-catpills">
+                {CORE_TASK_TYPES.map(k=>(
+                  <span key={k} className={`wr-catpill locked wr-badge ${typeMap[k].cls}`}>
+                    {typeMap[k].lbl} <span className="wr-catpill-lock">🔒</span>
+                  </span>
+                ))}
+                {(s.customCategories||[]).map((cat,i)=>(
+                  <span key={cat.key} className="wr-catpill custom">
+                    {cat.name}
+                    <button className="wr-catpill-del" onClick={()=>removeCustomCategory(cat.key)} title="Remove category">×</button>
+                  </span>
+                ))}
+              </div>
+              <div className="wr-addrow" style={{marginTop:8}}>
+                <input type="text" className="wr-input" placeholder="New category name..."
+                  value={s.newCatName||""}
+                  onChange={e=>upd(s=>{s.newCatName=e.target.value;})}
+                  onKeyDown={e=>e.key==="Enter"&&addCustomCategory()}/>
+                <button className="wr-btn" onClick={addCustomCategory}>+ Category</button>
+              </div>
+            </div>
+
+            {/* Add task row */}
             <div className="wr-addrow" style={{marginTop:10}}>
               <input type="text" className="wr-input" placeholder="New activity..."
                 value={s.newTask.text}
@@ -911,7 +843,7 @@ if (loading) {
                 onKeyDown={e=>e.key==="Enter"&&addTask()}/>
               <select className="wr-select" value={s.newTask.type}
                 onChange={e=>upd(s=>{s.newTask.type=e.target.value;})}>
-                {TASK_TYPES.map(v=><option key={v} value={v}>{TYPE_MAP[v].lbl}</option>)}
+                {allTaskTypes.map(v=><option key={v} value={v}>{typeMap[v]?.lbl||v}</option>)}
               </select>
               <button className="wr-btn accent" onClick={addTask}>+ Add</button>
             </div>
@@ -961,7 +893,7 @@ if (loading) {
             ))}
           </tbody>
         </table>
-        <div className="wr-addrow">
+        <div className="wr-addrow" style={{marginTop:8}}>
           <input type="text" className="wr-input" placeholder="Article title..."
             value={s.newArt.title}
             onChange={e=>upd(s=>{s.newArt.title=e.target.value;})}
@@ -980,11 +912,11 @@ if (loading) {
       <Section title="Notes & observations" sectionKey="notes"
         collapsed={s.collapsed.notes} onToggle={toggleSection}>
         <textarea
-  className="wr-notes"
-  placeholder="Comments, blockers, ideas..."
-  value={s.notes}
-  onChange={e => saveNotes(e.target.value)}
-/>
+          className="wr-notes"
+          placeholder="Comments, blockers, ideas..."
+          value={s.notes}
+          onChange={e=>saveNotes(e.target.value)}
+        />
       </Section>
 
       {/* export bar */}
@@ -1009,17 +941,17 @@ const CSS=`
   color:var(--color-text-primary);background:var(--color-background-primary);
   --acc:#1D9E75;--acc-l:#E1F5EE;--acc-d:#0F6E56;
 }
-.wr-header{border-left:3px solid var(--acc);padding-left:1rem;margin-bottom:1rem;border-radius:0}
+.wr-header{border-left:3px solid var(--acc);padding-left:1rem;margin-bottom:1rem}
 .wr-h1{font-size:18px;font-weight:500;margin:0;color:var(--color-text-primary)}
 .wr-meta{font-size:12px;color:var(--color-text-secondary);margin-top:3px}
 
-/* view toggle — clear pill style so it's obviously interactive */
+/* view toggle */
 .wr-toolbar{display:flex;gap:6px;margin-bottom:10px;padding:3px;background:var(--color-background-secondary);border-radius:10px;width:fit-content}
 .wr-viewbtn{font-size:12px;padding:5px 14px;border:none;border-radius:8px;
   background:transparent;color:var(--color-text-secondary);cursor:pointer;font-weight:400;transition:all .15s}
 .wr-viewbtn:hover{color:var(--color-text-primary)}
 .wr-viewbtn.active{background:var(--color-background-primary);color:var(--color-text-primary);
-  font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.08);border:0.5px solid var(--color-border-tertiary)}
+  font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid var(--color-border-tertiary,rgba(0,0,0,.08))}
 
 /* week nav */
 .wr-weeknav{display:flex;align-items:center;gap:6px;margin-bottom:1rem;flex-wrap:nowrap;overflow-x:auto}
@@ -1066,10 +998,15 @@ const CSS=`
 .wr-task.done{opacity:.62}
 .wr-ttext{flex:1;font-size:13px;line-height:1.4;color:var(--color-text-primary)}
 
-/* checkbox — clearly visible */
-.wr-cb{width:16px;height:16px;border:2px solid var(--color-border-secondary);border-radius:4px;
-  flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;
-  transition:background .1s,border-color .1s}
+/* checkbox — subtle, not heavy */
+.wr-cb{
+  width:15px;height:15px;
+  border:1.5px solid var(--color-border-secondary,rgba(0,0,0,.18));
+  border-radius:4px;flex-shrink:0;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .12s,border-color .12s;
+  background:var(--color-background-primary);
+}
 .wr-cb.on{background:var(--acc);border-color:var(--acc)}
 
 .wr-badge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;flex-shrink:0}
@@ -1078,29 +1015,53 @@ const CSS=`
 .b-test{background:#FAEEDA;color:#633806}
 .b-support{background:#E6F1FB;color:#0C447C}
 .b-deploy{background:#FCEBEB;color:#791F1F}
+.b-custom-0{background:#F3ECF8;color:#6B3FA0}
+.b-custom-1{background:#E0F4EF;color:#0A5C42}
+.b-custom-2{background:#FEF0E3;color:#7A3E0A}
+.b-custom-3{background:#EAEDF2;color:#2C3E50}
+.b-custom-4{background:#F0ECF8;color:#5C3085}
+.b-custom-5{background:#E3F7EC;color:#1A6B3C}
 
 .wr-expbtn{font-size:9px;color:var(--color-text-tertiary);cursor:pointer;padding:2px 5px;
-  border:1px solid var(--color-border-tertiary);border-radius:4px;background:transparent;flex-shrink:0}
+  border:1px solid rgba(0,0,0,.08);border-radius:4px;background:transparent;flex-shrink:0}
 .wr-expbtn:hover{background:var(--color-background-secondary)}
 .wr-del{font-size:15px;line-height:1;color:var(--color-text-tertiary);cursor:pointer;
   padding:1px 5px;border:none;border-radius:4px;background:transparent;flex-shrink:0;
   opacity:.35;transition:opacity .12s,background .12s,color .12s}
 .wr-del:hover{opacity:1;background:#FCEBEB;color:#791F1F}
 
-.wr-texpand{padding:.5rem .8rem .75rem 2rem;display:flex;flex-direction:column;gap:7px}
-.wr-expta{width:100%;font-size:12px;padding:6px 8px;border:1px solid var(--color-border-tertiary);
-  border-radius:6px;background:var(--color-background-secondary);
+/* expanded task panel */
+.wr-texpand{padding:.6rem .8rem .8rem 2rem;display:flex;flex-direction:column;gap:10px;
+  border-top:1px solid var(--color-border-tertiary,rgba(0,0,0,.06));
+  background:var(--color-background-secondary,rgba(0,0,0,.015))}
+.wr-expand-field{display:flex;flex-direction:column;gap:4px}
+.wr-expand-label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--color-text-tertiary)}
+.wr-expta{width:100%;font-size:12px;padding:6px 8px;
+  border:1px solid var(--color-border-tertiary,rgba(0,0,0,.1));
+  border-radius:6px;background:var(--color-background-primary);
   color:var(--color-text-primary);resize:vertical;min-height:54px;font-family:inherit}
 
-/* day assign buttons inside task expand */
-.wr-daybtn{font-size:10px;padding:3px 9px;border:1.5px solid var(--color-border-secondary);
-  border-radius:6px;background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;font-weight:400}
-.wr-daybtn:hover{border-color:var(--acc)}
-.wr-daybtn.active{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:500}
-.wr-daybtn.disabled{opacity:.35;cursor:not-allowed;border-color:var(--color-border-tertiary)}
+/* type picker buttons inside task expand */
+.wr-type-picker{display:flex;gap:5px;flex-wrap:wrap}
+.wr-typebtn{font-size:11px;padding:3px 10px;
+  border:1px solid rgba(0,0,0,.1);
+  border-radius:20px;background:transparent;
+  color:var(--color-text-secondary);cursor:pointer;transition:all .12s}
+.wr-typebtn:hover{border-color:var(--acc);color:var(--acc)}
+.wr-typebtn.active{font-weight:500}
 
-.wr-subcb{width:12px;height:12px;border:1.5px solid var(--color-border-secondary);border-radius:3px;
-  flex-shrink:0;cursor:pointer}
+/* day assign buttons */
+.wr-daybtn{font-size:10px;padding:3px 9px;
+  border:1px solid rgba(0,0,0,.1);
+  border-radius:6px;background:var(--color-background-primary);
+  color:var(--color-text-secondary);cursor:pointer;font-weight:400;transition:all .12s}
+.wr-daybtn:hover{border-color:var(--acc);color:var(--acc)}
+.wr-daybtn.active{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:500}
+.wr-daybtn.disabled{opacity:.3;cursor:not-allowed}
+
+.wr-subcb{width:12px;height:12px;border:1.5px solid rgba(0,0,0,.15);border-radius:3px;
+  flex-shrink:0;cursor:pointer;transition:background .1s}
 .wr-subcb.on{background:var(--acc);border-color:var(--acc)}
 .wr-linka{font-size:12px;color:var(--acc);text-decoration:none;white-space:nowrap}
 
@@ -1112,19 +1073,21 @@ const CSS=`
   word-break:break-word;vertical-align:middle;color:var(--color-text-primary)}
 .wr-table tr:last-child td{border-bottom:none}
 .wr-pill{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;
-  font-weight:500;cursor:pointer;user-select:none}
+  font-weight:500;cursor:pointer;user-select:none;transition:opacity .12s}
+.wr-pill:hover{opacity:.75}
 .s-draft{background:#F1EFE8;color:#5F5E5A}
 .s-review{background:#FAEEDA;color:#633806}
 .s-done{background:#EAF3DE;color:#3B6D11}
 .s-planned{background:#E6F1FB;color:#185FA5}
 
-.wr-blocker{background:#FCEBEB;color:#791F1F;border:0.5px solid rgba(121,31,31,.18);
+.wr-blocker{background:#FCEBEB;color:#791F1F;border:0.5px solid rgba(121,31,31,.14);
   border-radius:8px;padding:.55rem .8rem;font-size:12px;display:flex;align-items:center;gap:8px}
 
-/* daily tabs */
+/* daily tabs — subtle border */
 .wr-daytabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
-.wr-daytab{font-size:12px;padding:5px 14px;border:1.5px solid var(--color-border-secondary);
-  border-radius:8px;background:var(--color-background-primary);color:var(--color-text-primary);
+.wr-daytab{font-size:12px;padding:5px 14px;
+  border:1px solid rgba(0,0,0,.1);
+  border-radius:8px;background:var(--color-background-primary);color:var(--color-text-secondary);
   cursor:pointer;display:flex;align-items:center;gap:5px;font-weight:400;transition:all .12s}
 .wr-daytab:hover{border-color:var(--acc);color:var(--acc)}
 .wr-daytab.active{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:500}
@@ -1136,13 +1099,13 @@ const CSS=`
 .wr-assignhdr{font-size:11px;text-transform:uppercase;letter-spacing:.08em;
   color:var(--color-text-secondary);font-weight:500;margin-bottom:.75rem}
 .wr-assignrow{display:flex;align-items:center;gap:8px;padding:7px 0;
-  border-bottom:0.5px solid var(--color-border-tertiary);cursor:pointer}
+  border-bottom:0.5px solid var(--color-border-tertiary);cursor:pointer;transition:opacity .12s}
 .wr-assignrow:last-child{border-bottom:none}
-.wr-assignrow:hover{opacity:.8}
-.wr-assignrow.disabled{cursor:not-allowed;opacity:.45}
+.wr-assignrow:hover{opacity:.75}
+.wr-assignrow.disabled{cursor:not-allowed;opacity:.4}
 .wr-assignbadge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;
   background:var(--color-background-secondary);color:var(--color-text-tertiary);
-  border:0.5px solid var(--color-border-secondary);flex-shrink:0}
+  border:0.5px solid rgba(0,0,0,.1);flex-shrink:0}
 
 /* add row */
 .wr-addrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
@@ -1157,11 +1120,28 @@ const CSS=`
 /* buttons */
 .wr-btn{font-size:12px;padding:5px 11px;border:1px solid var(--color-border-secondary);
   border-radius:8px;background:var(--color-background-primary);
-  color:var(--color-text-primary);cursor:pointer;white-space:nowrap}
+  color:var(--color-text-primary);cursor:pointer;white-space:nowrap;transition:background .12s}
 .wr-btn:hover{background:var(--color-background-secondary)}
 .wr-btn.sm{font-size:11px;padding:4px 8px}
-.wr-btn.accent{background:var(--acc-l);color:var(--acc-d);border-color:var(--acc)}
+.wr-btn.accent{background:var(--acc-l);color:var(--acc-d);border-color:rgba(29,158,117,.3)}
 .wr-btn.accent:hover{opacity:.85}
+
+/* category manager */
+.wr-catmanager{margin-top:14px;padding:10px 12px;background:var(--color-background-secondary);
+  border-radius:8px;border:0.5px solid var(--color-border-tertiary)}
+.wr-catmanager-hdr{display:flex;align-items:center;justify-content:space-between;
+  font-size:11px;font-weight:500;color:var(--color-text-secondary);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.wr-catpills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.wr-catpill{font-size:11px;padding:3px 9px;border-radius:20px;
+  display:flex;align-items:center;gap:5px}
+.wr-catpill.locked{opacity:.85;cursor:default}
+.wr-catpill.custom{background:var(--color-background-primary);color:var(--color-text-secondary);
+  border:1px solid rgba(0,0,0,.1)}
+.wr-catpill-lock{font-size:9px;opacity:.6}
+.wr-catpill-del{font-size:13px;line-height:1;border:none;background:none;cursor:pointer;
+  color:var(--color-text-tertiary);padding:0 0 0 2px;opacity:.5;transition:opacity .12s}
+.wr-catpill-del:hover{opacity:1;color:#791F1F}
 
 .wr-notes{width:100%;min-height:80px;font-size:13px;padding:8px 10px;
   border:1px solid var(--color-border-secondary);border-radius:8px;
