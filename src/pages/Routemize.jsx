@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { supabase } from "../lib/supabase";
 
 // ─── constants ────────────────────────────────────────────────────────────────
 const TYPE_MAP = {
@@ -73,6 +74,16 @@ const INITIAL = {
   newBlocker: "",
   newSubtask: {},
 };
+
+function normalizeTask(task) {
+  return {
+    ...task,
+    assignedDays: task.assignedDays || task.assigned_days || [],
+    subtasks: task.subtasks || [],
+    description: task.description || "",
+    link: task.link || "",
+  };
+}
 
 // ─── SVG chart ────────────────────────────────────────────────────────────────
 function MiniChart({ tasks, articles, view, selectedDay }) {
@@ -263,55 +274,449 @@ function TaskItem({task,h,newSubVal,showAssign,lockedDays}){
 
 // ─── main ─────────────────────────────────────────────────────────────────────
 export default function WeeklyReport(){
-  const [s,setS]=useState(INITIAL);
-  const upd=useCallback(fn=>setS(prev=>{const next=JSON.parse(JSON.stringify(prev));fn(next);return next;}),[]);
+  const [s, setS] = useState(INITIAL);
+  const [loading, setLoading] = useState(true);
+useEffect(() => {
+  async function loadData() {
+    setLoading(true);
 
+    const { data: tasksData, error: tasksError } = await supabase
+      .from("tasks")
+      .select("*")
+      .order("id", { ascending: true });
+
+    const { data: articlesData, error: articlesError } = await supabase
+      .from("articles")
+      .select("*")
+      .order("id", { ascending: true });
+
+    const { data: blockersData, error: blockersError } = await supabase
+      .from("blockers")
+      .select("*")
+      .order("id", { ascending: true });
+
+    const { data: reportsData, error: reportsError } = await supabase
+      .from("reports")
+      .select("*")
+      .limit(1)
+      .maybeSingle();
+
+    if (tasksError) console.error("Tasks load error:", tasksError);
+    if (articlesError) console.error("Articles load error:", articlesError);
+    if (blockersError) console.error("Blockers load error:", blockersError);
+    if (reportsError) console.error("Reports load error:", reportsError);
+
+    setS(prev => ({
+      ...prev,
+      tasks: tasksData ? tasksData.map(normalizeTask) : prev.tasks,
+      articles: articlesData || prev.articles,
+      blockers: blockersData || prev.blockers,
+      notes: reportsData?.notes ?? prev.notes,
+      weekStart: reportsData?.week_start ?? prev.weekStart,
+      weekEnd: reportsData?.week_end ?? prev.weekEnd,
+    }));
+
+    setLoading(false);
+  }
+
+  loadData();
+}, []);
   // ── task handlers
-  const h={
-    toggle:    id       =>upd(s=>{const t=s.tasks.find(t=>t.id===id);if(t)t.done=!t.done;}),
-    del:       id       =>upd(s=>{s.tasks=s.tasks.filter(t=>t.id!==id);}),
-    desc:      (id,v)   =>upd(s=>{const t=s.tasks.find(t=>t.id===id);if(t)t.description=v;}),
-    link:      (id,v)   =>upd(s=>{const t=s.tasks.find(t=>t.id===id);if(t)t.link=v;}),
-    toggleSub: (tid,i)  =>upd(s=>{const t=s.tasks.find(t=>t.id===tid);if(t)t.subtasks[i].done=!t.subtasks[i].done;}),
-    delSub:    (tid,i)  =>upd(s=>{const t=s.tasks.find(t=>t.id===tid);if(t)t.subtasks.splice(i,1);}),
-    addSub:    tid      =>{const txt=(s.newSubtask[tid]||"").trim();if(!txt)return;upd(s=>{const t=s.tasks.find(t=>t.id===tid);if(t)t.subtasks.push({text:txt,done:false});s.newSubtask[tid]="";});},
-    subInput:  (id,v)   =>upd(s=>{s.newSubtask[id]=v;}),
-    dayAssign: (id,day) =>upd(s=>{const t=s.tasks.find(t=>t.id===id);if(!t)return;const i=t.assignedDays.indexOf(day);if(i>-1)t.assignedDays.splice(i,1);else t.assignedDays.push(day);}),
+  const h = {
+  toggle: async id => {
+    const task = s.tasks.find(t => t.id === id);
+    if (!task) return;
+
+    const newDone = !task.done;
+
+    const { error } = await supabase
+      .from("tasks")
+      .update({ done: newDone })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Toggle task error:", error);
+      return;
+    }
+
+    upd(s => {
+      const t = s.tasks.find(t => t.id === id);
+      if (t) t.done = newDone;
+    });
+  },
+
+  del: async id => {
+    const { error } = await supabase
+      .from("tasks")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Delete task error:", error);
+      return;
+    }
+
+    upd(s => {
+      s.tasks = s.tasks.filter(t => t.id !== id);
+    });
+  },
+
+  desc: async (id, v) => {
+    const { error } = await supabase
+      .from("tasks")
+      .update({ description: v })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Update description error:", error);
+      return;
+    }
+
+    upd(s => {
+      const t = s.tasks.find(t => t.id === id);
+      if (t) t.description = v;
+    });
+  },
+
+  link: async (id, v) => {
+    const { error } = await supabase
+      .from("tasks")
+      .update({ link: v })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Update link error:", error);
+      return;
+    }
+
+    upd(s => {
+      const t = s.tasks.find(t => t.id === id);
+      if (t) t.link = v;
+    });
+  },
+
+  toggleSub: async (tid, i) => {
+    const task = s.tasks.find(t => t.id === tid);
+    if (!task) return;
+
+    const subtasks = [...(task.subtasks || [])];
+    if (!subtasks[i]) return;
+
+    subtasks[i].done = !subtasks[i].done;
+
+    const { error } = await supabase
+      .from("tasks")
+      .update({ subtasks })
+      .eq("id", tid);
+
+    if (error) {
+      console.error("Toggle subtask error:", error);
+      return;
+    }
+
+    upd(s => {
+      const t = s.tasks.find(t => t.id === tid);
+      if (t) t.subtasks = subtasks;
+    });
+  },
+
+  delSub: async (tid, i) => {
+    const task = s.tasks.find(t => t.id === tid);
+    if (!task) return;
+
+    const subtasks = [...(task.subtasks || [])];
+    subtasks.splice(i, 1);
+
+    const { error } = await supabase
+      .from("tasks")
+      .update({ subtasks })
+      .eq("id", tid);
+
+    if (error) {
+      console.error("Delete subtask error:", error);
+      return;
+    }
+
+    upd(s => {
+      const t = s.tasks.find(t => t.id === tid);
+      if (t) t.subtasks = subtasks;
+    });
+  },
+
+  addSub: async tid => {
+    const txt = (s.newSubtask[tid] || "").trim();
+    if (!txt) return;
+
+    const task = s.tasks.find(t => t.id === tid);
+    if (!task) return;
+
+    const subtasks = [...(task.subtasks || []), { text: txt, done: false }];
+
+    const { error } = await supabase
+      .from("tasks")
+      .update({ subtasks })
+      .eq("id", tid);
+
+    if (error) {
+      console.error("Add subtask error:", error);
+      return;
+    }
+
+    upd(s => {
+      const t = s.tasks.find(t => t.id === tid);
+      if (t) t.subtasks = subtasks;
+      s.newSubtask[tid] = "";
+    });
+  },
+
+  subInput: (id, v) =>
+    upd(s => {
+      s.newSubtask[id] = v;
+    }),
+
+  dayAssign: async (id, day) => {
+    const task = s.tasks.find(t => t.id === id);
+    if (!task) return;
+
+    const assignedDays = [...(task.assignedDays || [])];
+    const idx = assignedDays.indexOf(day);
+
+    if (idx > -1) assignedDays.splice(idx, 1);
+    else assignedDays.push(day);
+
+    const { error } = await supabase
+      .from("tasks")
+      .update({ assigned_days: assignedDays })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Assign day error:", error);
+      return;
+    }
+
+    upd(s => {
+      const t = s.tasks.find(t => t.id === id);
+      if (t) t.assignedDays = assignedDays;
+    });
+  },
+};
+
+  const addTask = async () => {
+  if (!s.newTask.text.trim()) return;
+
+  const payload = {
+    text: s.newTask.text.trim(),
+    type: s.newTask.type,
+    done: false,
+    assigned_days: [],
+    description: "",
+    link: "",
+    subtasks: [],
   };
 
-  const addTask=()=>{
-    if(!s.newTask.text.trim())return;
-    upd(s=>{s.tasks.push({id:s.nextId++,text:s.newTask.text.trim(),type:s.newTask.type,done:false,assignedDays:[],description:"",link:"",subtasks:[]});s.newTask={text:"",type:"video"};});
+  const { data, error } = await supabase
+    .from("tasks")
+    .insert([payload])
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Add task error:", error);
+    return;
+  }
+
+  upd(s => {
+    s.tasks.push(normalizeTask(data));
+    s.newTask = { text: "", type: "video" };
+  });
+};
+
+
+  const addDayTask = async () => {
+  if (!s.newDayTask?.text?.trim()) return;
+
+  const payload = {
+    text: s.newDayTask.text.trim(),
+    type: s.newDayTask.type || "support",
+    done: false,
+    assigned_days: [s.selectedDay],
+    description: "",
+    link: "",
+    subtasks: [],
   };
-  const addDayTask=()=>{
-    if(!s.newDayTask?.text?.trim())return;
-    upd(s=>{
-      s.tasks.push({id:s.nextId++,text:s.newDayTask.text.trim(),type:s.newDayTask.type||"support",done:false,assignedDays:[s.selectedDay],description:"",link:"",subtasks:[]});
-      s.newDayTask={text:"",type:"support"};
-    });
-  };
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .insert([payload])
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Add day task error:", error);
+    return;
+  }
+
+  upd(s => {
+    s.tasks.push(normalizeTask(data));
+    s.newDayTask = { text: "", type: "support" };
+  });
+};
 
   // ── article handlers
-  const cycleStatus=id=>upd(s=>{
-    const a=s.articles.find(a=>a.id===id);if(!a)return;
-    const ni=(STATUS_ORDER.indexOf(a.status)+1)%STATUS_ORDER.length;
-    a.status=STATUS_ORDER[ni];
-    // When published: add a completed task entry
-    if(STATUS_ORDER[ni]==="s-done"){
-      const label=`Published: ${a.title}`;
-      if(!s.tasks.some(t=>t.text===label&&t.done)){
-        const todayIdx=todayDayIndex();
-        const assignDay=todayIdx>=0?[DAYS[todayIdx]]:[];
-        s.tasks.push({id:s.nextId++,text:label,type:"deploy",done:true,assignedDays:assignDay,description:"KB article published.",link:"",subtasks:[]});
-      }
-    }
+  const cycleStatus = async id => {
+  const article = s.articles.find(a => a.id === id);
+  if (!article) return;
+
+  const ni = (STATUS_ORDER.indexOf(article.status) + 1) % STATUS_ORDER.length;
+  const newStatus = STATUS_ORDER[ni];
+
+  const { error } = await supabase
+    .from("articles")
+    .update({ status: newStatus })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Cycle article status error:", error);
+    return;
+  }
+
+  upd(s => {
+    const a = s.articles.find(a => a.id === id);
+    if (a) a.status = newStatus;
   });
-  const delArticle=id=>upd(s=>{s.articles=s.articles.filter(a=>a.id!==id);});
-  const addArticle=()=>{if(!s.newArt.title.trim())return;upd(s=>{s.articles.push({id:`a${s.nextId++}`,title:s.newArt.title.trim(),cat:s.newArt.cat,status:s.newArt.status});s.newArt={...s.newArt,title:""};});};
+
+  if (newStatus === "s-done") {
+    const label = `Published: ${article.title}`;
+    const alreadyExists = s.tasks.some(t => t.text === label && t.done);
+
+    if (!alreadyExists) {
+      const todayIdx = todayDayIndex();
+      const assignDay = todayIdx >= 0 ? [DAYS[todayIdx]] : [];
+
+      const { data, error: taskError } = await supabase
+        .from("tasks")
+        .insert([{
+          text: label,
+          type: "deploy",
+          done: true,
+          assigned_days: assignDay,
+          description: "KB article published.",
+          link: "",
+          subtasks: [],
+        }])
+        .select()
+        .single();
+
+      if (taskError) {
+        console.error("Auto-create publish task error:", taskError);
+        return;
+      }
+
+      upd(s => {
+        s.tasks.push(normalizeTask(data));
+      });
+    }
+  }
+};
+
+const delArticle = async id => {
+  const { error } = await supabase
+    .from("articles")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Delete article error:", error);
+    return;
+  }
+
+  upd(s => {
+    s.articles = s.articles.filter(a => a.id !== id);
+  });
+};
+
+const addArticle = async () => {
+  if (!s.newArt.title.trim()) return;
+
+  const payload = {
+    title: s.newArt.title.trim(),
+    cat: s.newArt.cat,
+    status: s.newArt.status,
+  };
+
+  const { data, error } = await supabase
+    .from("articles")
+    .insert([payload])
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Add article error:", error);
+    return;
+  }
+
+  upd(s => {
+    s.articles.push(data);
+    s.newArt = { ...s.newArt, title: "" };
+  });
+};
 
   // ── blocker handlers
-  const delBlocker=id=>upd(s=>{s.blockers=s.blockers.filter(b=>b.id!==id);});
-  const addBlocker=()=>{if(!s.newBlocker.trim())return;upd(s=>{s.blockers.push({id:s.nextId++,text:s.newBlocker.trim()});s.newBlocker="";});};
+ const delBlocker = async id => {
+  const { error } = await supabase
+    .from("blockers")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Delete blocker error:", error);
+    return;
+  }
+
+  upd(s => {
+    s.blockers = s.blockers.filter(b => b.id !== id);
+  });
+};
+
+const addBlocker = async () => {
+  if (!s.newBlocker.trim()) return;
+
+  const saveNotes = async value => {
+  upd(s => {
+    s.notes = value;
+  });
+
+  const { error } = await supabase
+    .from("reports")
+    .upsert([{
+      id: 1,
+      week_start: s.weekStart,
+      week_end: s.weekEnd,
+      notes: value,
+    }]);
+
+  if (error) {
+    console.error("Save notes error:", error);
+  }
+};
+
+  const { data, error } = await supabase
+    .from("blockers")
+    .insert([{ text: s.newBlocker.trim() }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Add blocker error:", error);
+    return;
+  }
+
+  upd(s => {
+    s.blockers.push(data);
+    s.newBlocker = "";
+  });
+};
+
 
   // ── nav
   const prevWeek=()=>upd(s=>{s.weekStart=shiftDate(s.weekStart,-7);s.weekEnd=shiftDate(s.weekEnd,-7);});
@@ -356,6 +761,10 @@ export default function WeeklyReport(){
   const renderTask=(t,showAssign)=>(
     <TaskItem key={t.id} task={t} h={h} newSubVal={s.newSubtask[t.id]} showAssign={showAssign}/>
   );
+
+if (loading) {
+  return <div style={{ padding: "2rem" }}>Loading data...</div>;
+}
 
   return(
     <>{/* styles injected once */}<style>{CSS}</style>
@@ -562,8 +971,12 @@ export default function WeeklyReport(){
       {/* ─── NOTES ─── */}
       <Section title="Notes & observations" sectionKey="notes"
         collapsed={s.collapsed.notes} onToggle={toggleSection}>
-        <textarea className="wr-notes" placeholder="Comments, blockers, ideas..."
-          value={s.notes} onChange={e=>upd(s=>{s.notes=e.target.value;})}/>
+        <textarea
+  className="wr-notes"
+  placeholder="Comments, blockers, ideas..."
+  value={s.notes}
+  onChange={e => saveNotes(e.target.value)}
+/>
       </Section>
 
       {/* export bar */}
