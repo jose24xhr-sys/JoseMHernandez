@@ -273,9 +273,17 @@ function TaskItem({task,h,newSubVal,showAssign,lockedDays}){
 }
 
 // ─── main ─────────────────────────────────────────────────────────────────────
-export default function WeeklyReport(){
+export default function WeeklyReport() {
   const [s, setS] = useState(INITIAL);
   const [loading, setLoading] = useState(true);
+
+  const upd = useCallback(fn => {
+    setS(prev => {
+      const next = JSON.parse(JSON.stringify(prev));
+      fn(next);
+      return next;
+    });
+  }, []);
 useEffect(() => {
   async function loadData() {
     setLoading(true);
