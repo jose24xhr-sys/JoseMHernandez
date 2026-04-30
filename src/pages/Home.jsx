@@ -1,6 +1,6 @@
 // src/App.jsx (cleaned)
 import React, { useState, useEffect, useRef } from "react";
-import myPhoto from "../assets/JoseP.jpg"; // usar ruta relativa
+import myPhoto from "../assets/JoseP.png"; // usar ruta relativa
 import {
   ArrowUpRight, Linkedin, Mail, X as XIcon,
   BookOpen, Briefcase, FilePenLine, Instagram
@@ -9,7 +9,7 @@ import {
 // Perfil y datos (mismo contenido)
 const profile = {
   name: "José M Hernández",
-  tagline: "Customer Success & Operations Specialist",
+  tagline: "Customer Success & Automation Specialist",
   blurb: (
     <>
       <p>
@@ -37,6 +37,18 @@ const profile = {
 };
 
 const experience = [
+
+  {
+    period: "2026 – Present",
+    company: "Routemize",
+    role: "Customer Success & Automation Specialist",
+    link: "https://routemize.com",
+    bullets: [
+      "Supporting customer onboarding and operations within a fast-growing SaaS environment.",
+  "Improving customer experience through automation, AI-assisted support, and workflow optimization.",
+  "Reporting bugs, documenting feedback, and creating scalable support resources."
+    ],
+  },
   {
     period: "2023 – Present",
     company: "Tata Consultancy Services",
@@ -163,6 +175,54 @@ export default function App() {
 
   useEffect(() => setMounted(true), []);
 
+useEffect(() => {
+  let modal = null;
+
+  function createModal() {
+    if (modal) return;
+    modal = document.createElement("div");
+    modal.innerHTML = `
+      <div style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);
+        backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;">
+        <div style="position:relative;width:90%;max-width:480px;max-height:90vh;
+          background:white;border-radius:16px;overflow:hidden;
+          box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+          <button class="rtmz-close" style="position:absolute;top:12px;right:12px;z-index:10;
+            width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+            background:rgba(255,255,255,0.9);border:none;border-radius:50%;cursor:pointer;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+          <iframe src="https://maximumtest.routemize.com/e/385e412a-4ec4-e97d-0908-3a209aabce4e?embed=true"
+            width="100%" height="600" frameborder="0" style="border:none;display:block;"
+            title="Schedule a time" allow="camera; microphone"></iframe>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.querySelector(".rtmz-close").addEventListener("click", closeModal);
+    modal.firstElementChild.addEventListener("click", (e) => {
+      if (e.target === modal.firstElementChild) closeModal();
+    });
+  }
+
+  function openModal() {
+    createModal();
+    modal.style.display = "block";
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeModal() {
+    if (modal) {
+      modal.style.display = "none";
+      document.body.style.overflow = "";
+    }
+  }
+
+  window.openRoutemizeModal = openModal;
+  return () => { delete window.openRoutemizeModal; if (modal) document.body.removeChild(modal); };
+}, []);
+
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
     localStorage.setItem("theme", darkMode ? "dark" : "light");
@@ -180,6 +240,18 @@ export default function App() {
     return () => io.disconnect();
   }, []);
 
+useEffect(() => {
+  const script = document.createElement("script");
+  script.src = "https://maximumtest.routemize.com/chatbot-embed.js";
+  script.setAttribute("data-form-id", "385e412a-4ec4-e97d-0908-3a209aabce4e");
+  script.setAttribute("data-position", "bottom-right");
+  script.setAttribute("data-primary-color", "#2563eb");
+  script.setAttribute("data-base-url", "https://maximumtest.routemize.com");
+  script.setAttribute("data-greeting-delay", "3000");
+  script.async = true;
+  document.body.appendChild(script);
+  return () => document.body.removeChild(script);
+}, []);
 
   return ( 
     <main className="min-h-screen bg-white text-neutral-900 antialiased dark:bg-[#0F1720] dark:text-neutral-100">
@@ -377,6 +449,14 @@ export default function App() {
         </section>
 
         {/* CONTACT */}
+      {/* Dentro del div de botones de Contact, agrega: */}
+<button
+  onClick={() => window.openRoutemizeModal?.()}
+  className="inline-flex items-center gap-2 rounded-2xl border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-900"
+>
+  <FilePenLine className="h-4 w-4" /> Schedule a time
+</button>
+      
         <section
   id="contact"
   className="mx-auto max-w-[52rem] px-5 md:px-3 pt-6 md:pt-8 pb-6 md:pb-8 section-fade js-reveal"
