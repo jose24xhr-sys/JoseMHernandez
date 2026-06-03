@@ -10,8 +10,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/routemize" element={<Routemize />} />
-        <Route path="/ops-tracker" element={<OpsGate><OpsTracker /></OpsGate>} />
-
+        <Route path="/ops-tracker" element={<OpsTracker />} />
 
       </Routes>
     </BrowserRouter>
