@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { supabase } from "../lib/supabase";
+import Script from "next/script";
+
 
 // ─── constants ────────────────────────────────────────────────────────────────
 const CORE_TASK_TYPES = ["video", "test", "support", "deploy"];
@@ -354,7 +356,22 @@ function TaskItem({ task, h, newSubVal, showAssign, typeMap, allTaskTypes, autoO
     </div>
   );
 }
-
+export default function App({ Component, pageProps }) {
+  return (
+    <>
+      <Component {...pageProps} />
+      <Script
+        src="https://maximumtest.routemize.com/chatbot-embed.js"
+        data-form-id="385e412a-4ec4-e97d-0908-3a209aabce4e"
+        data-position="bottom-right"
+        data-primary-color="#2563eb"
+        data-base-url="https://maximumtest.routemize.com"
+        data-greeting-delay="3000"
+        strategy="afterInteractive"
+      />
+    </>
+  );
+}
 // ─── main ─────────────────────────────────────────────────────────────────────
 export default function WeeklyReport() {
   const [s, setS] = useState(INITIAL);

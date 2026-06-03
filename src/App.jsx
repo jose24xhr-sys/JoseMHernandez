@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Routemize from "./pages/Routemize";
-import BehavioralTest from "./pages/BehavioralTest";
+import OpsTracker from './pages/OpsTracker'
+
 
 export default function App() {
   return (
@@ -10,6 +11,8 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/routemize" element={<Routemize />} />
         <Route path="/behavioraltest" element={<BehavioralTest />} />
+        <Route path="/ops" element={<OpsGate><OpsTracker /></OpsGate>} />
+
 
       </Routes>
     </BrowserRouter>
