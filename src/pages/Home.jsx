@@ -248,6 +248,22 @@ useEffect(() => {
   return () => window.removeEventListener('message', handler);
 }, []);
 
+// Auto-resize for the Premium Testing (gopremium) embed
+useEffect(() => {
+  const f = document.getElementById('routemize-frame-eb6380dc-3794-9753-34d2-3a21e81896bd');
+  if (!f) return;
+  const handler = (e) => {
+    if (e.data?.source === 'routemize-embed' &&
+        (e.data?.formId === 'eb6380dc-3794-9753-34d2-3a21e81896bd' ||
+         e.data?.landingPageId === 'eb6380dc-3794-9753-34d2-3a21e81896bd') &&
+        e.data?.height) {
+      f.style.height = e.data.height + 'px';
+    }
+  };
+  window.addEventListener('message', handler);
+  return () => window.removeEventListener('message', handler);
+}, []);
+
   useEffect(() => setMounted(true), []);
 
 useEffect(() => {
@@ -568,6 +584,34 @@ useEffect(() => {
       minHeight:"700px"
     }}
     title="Book Business / Commercial Request"
+    allow="camera; microphone"
+  />
+</div>
+
+{/* Routemize Booking Form Embed — Premium Testing (gopremium) */}
+<div
+  className="mt-10 routemize-inline-embed"
+  data-form-id="eb6380dc-3794-9753-34d2-3a21e81896bd"
+  style={{width:"100%", maxWidth:"100%", overflow:"hidden"}}
+>
+  <iframe
+    id="routemize-frame-eb6380dc-3794-9753-34d2-3a21e81896bd"
+    src="https://gopremium.routemize.com/l/eb6380dc-3794-9753-34d2-3a21e81896bd?embed=true"
+    width="100%"
+    height="700"
+    frameBorder="0"
+    loading="eager"
+    data-no-lazy="1"
+    data-skip-lazy=""
+    scrolling="no"
+    style={{
+      border:"none",
+      borderRadius:"12px",
+      boxShadow:"0 4px 6px -1px rgb(0 0 0 / 0.1)",
+      minWidth:"100%",
+      minHeight:"700px"
+    }}
+    title="Book Premium Testing"
     allow="camera; microphone"
   />
 </div>
