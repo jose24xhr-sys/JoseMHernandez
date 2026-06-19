@@ -10,9 +10,14 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/ops-tracker" element={<OpsTracker />} />
-        <Route path="/weeklyreport" element={<WeeklyReport />} />
+        <Route path="/weekly-report" element={<WeeklyReport />} />
 
       </Routes>
     </BrowserRouter>
   );
 }
+
+git status 
+git add . 
+git commit -m "Update project2" 
+git push
