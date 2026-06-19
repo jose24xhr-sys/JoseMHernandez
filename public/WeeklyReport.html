@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Ops Report · Routemize</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Epilogue:ital,wght@0,400;0,500;0,600;0,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0d10;
+    --surface:#15151a;
+    --surface-2:#1a1a20;
+    --line:#2a2a32;
+    --line-soft:#1f1f27;
+    --ink:#f1ede4;
+    --ink-mid:#a8a8b2;
+    --ink-dim:#70707a;
+    --orange:#e8500a;       --orange-soft:rgba(232,80,10,.13);
+    --green:#5fcf80;        --green-soft:rgba(95,207,128,.12);
+    --blue:#6aa8e8;         --blue-soft:rgba(106,168,232,.13);
+    --teal:#4fc4c4;         --teal-soft:rgba(79,196,196,.13);
+    --purple:#b08ae8;       --purple-soft:rgba(176,138,232,.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:'Epilogue',system-ui,sans-serif;line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1000px;margin:0 auto;padding:0 28px}
+
+  /* masthead */
+  .mast-bar{border-bottom:1px solid var(--line)}
+  .mast-bar-inner{
+    max-width:1000px;margin:0 auto;padding:12px 28px;
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-dim);
+  }
+  .mast-bar-inner .l{display:flex;align-items:center;gap:9px;color:var(--ink-mid)}
+  .dot{width:8px;height:8px;background:var(--orange);border-radius:2px;transform:rotate(45deg)}
+
+  .mast{padding:46px 0 28px}
+  .mast .label{
+    font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--orange);margin-bottom:14px;
+  }
+  .mast h1{
+    font-family:'Bebas Neue',sans-serif;font-weight:400;
+    font-size:clamp(2.6rem,6vw,4rem);line-height:.95;letter-spacing:.02em;text-transform:uppercase;
+  }
+  .mast .prepared{margin-top:12px;font-size:1rem;color:var(--ink-mid)}
+  .mast .prepared b{color:var(--ink);font-weight:600}
+  .mast .scope{margin-top:14px;font-size:.95rem;color:var(--ink-dim);max-width:66ch}
+
+  /* stats */
+  .stats{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    border:1px solid var(--line);border-radius:4px;overflow:hidden;margin:30px 0 0;
+  }
+  .stat{padding:22px 22px;border-right:1px solid var(--line)}
+  .stat:last-child{border-right:none}
+  .stat .n{font-family:'Bebas Neue',sans-serif;font-size:3rem;line-height:.9;letter-spacing:.01em}
+  .stat .n .plus{color:var(--orange);font-size:1.9rem;vertical-align:top}
+  .stat .t{
+    font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--ink-dim);margin-top:9px;line-height:1.4;
+  }
+
+  /* legend */
+  .legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:22px 0 2px}
+  .legend .lg-label{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);margin-right:4px}
+  .legend .lg{display:flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-mid)}
+  .legend .sw{width:10px;height:10px;border-radius:2px}
+  .sw.doc{background:var(--blue)} .sw.bug{background:var(--orange)} .sw.qa{background:var(--teal)} .sw.ai{background:var(--purple)}
+
+  /* days */
+  .days{padding:18px 0 8px;display:flex;flex-direction:column;gap:16px}
+  .day{
+    border:1px solid var(--line);background:var(--surface);border-radius:4px;
+    padding:24px 26px 24px;transition:border-color .25s ease;
+  }
+  .day:hover{border-color:#37373f}
+  .day.peak{border-left:3px solid var(--orange)}
+
+  .day-top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;margin-bottom:18px}
+  .day-id{display:flex;align-items:baseline;gap:14px}
+  .dnum{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--orange);letter-spacing:.08em}
+  .dname{font-family:'Bebas Neue',sans-serif;font-size:2.3rem;letter-spacing:.03em;line-height:.85;font-weight:400}
+  .dfocus{
+    display:inline-block;margin-top:7px;font-family:'JetBrains Mono',monospace;
+    font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);
+    background:var(--orange-soft);padding:4px 9px;border-radius:2px;
+  }
+  .day-metrics{display:flex;gap:8px;flex-wrap:wrap}
+  .metric{border:1px solid var(--line);border-radius:3px;padding:8px 13px;text-align:center;min-width:76px}
+  .metric .mv{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;line-height:.9;letter-spacing:.01em}
+  .metric .ml{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-top:4px}
+  .metric.bug .mv{color:var(--orange)} .metric.doc .mv{color:var(--blue)} .metric.q .mv{color:var(--purple)}
+
+  /* task list with category tags */
+  .tasks{list-style:none;display:flex;flex-direction:column;gap:12px}
+  .tasks li{
+    position:relative;padding-left:20px;display:flex;gap:14px;align-items:flex-start;
+    font-size:.96rem;color:var(--ink-mid);
+  }
+  .tasks li .txt{flex:1}
+  .tasks li .txt strong{color:var(--ink);font-weight:600}
+  .tasks li::before{
+    content:"";position:absolute;left:0;top:.58em;width:6px;height:6px;
+    background:var(--line);border-radius:1px;transform:rotate(45deg);
+  }
+  .cat{
+    font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.06em;
+    text-transform:uppercase;padding:3px 8px;border-radius:2px;white-space:nowrap;
+    flex-shrink:0;align-self:flex-start;margin-top:2px;
+  }
+  .cat.doc{color:var(--blue);background:var(--blue-soft)}
+  .cat.bug{color:var(--orange);background:var(--orange-soft)}
+  .cat.qa{color:var(--teal);background:var(--teal-soft)}
+  .cat.ai{color:var(--purple);background:var(--purple-soft)}
+
+  /* weekend */
+  .weekend{
+    margin-top:16px;border:1px solid var(--orange);border-radius:4px;
+    background:linear-gradient(180deg,rgba(232,80,10,.06),var(--surface) 60%);padding:26px 26px;
+  }
+  .weekend .wk-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+  .weekend .wk-idx{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--orange);letter-spacing:.08em}
+  .weekend .wk-title{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:.03em;font-weight:400;line-height:1}
+  .weekend p{font-size:.96rem;color:var(--ink-mid);max-width:74ch}
+  .weekend p b{color:var(--ink)}
+
+  footer{padding:34px 0 56px;border-top:1px solid var(--line-soft);margin-top:26px;text-align:center}
+  footer .sig{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim)}
+  footer .sig b{color:var(--ink)}
+
+  .reveal{opacity:0;transform:translateY(12px);transition:opacity .5s ease,transform .5s ease}
+  .reveal.in{opacity:1;transform:none}
+  a:focus-visible{outline:2px solid var(--orange);outline-offset:3px}
+
+  @media(max-width:760px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .stat{border-bottom:1px solid var(--line)}
+    .stat:nth-child(2){border-right:none}
+    .stat:nth-child(4){border-right:none}
+  }
+  @media(max-width:560px){
+    .wrap{padding:0 20px}
+    .mast-bar-inner{padding:11px 20px}
+    .mast-bar-inner .r{display:none}
+    .mast{padding:34px 0 22px}
+    .stat .n{font-size:2.6rem}
+    .day-top{flex-direction:column;gap:14px}
+    .day-metrics{width:100%}
+    .metric{flex:1}
+    .tasks li{flex-direction:column;gap:7px}
+    .cat{margin-top:0}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .reveal{opacity:1;transform:none;transition:none}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+
+  <div class="mast-bar">
+    <div class="mast-bar-inner">
+      <span class="l"><span class="dot"></span> Routemize · Customer Success</span>
+      <span class="r">Week Summary</span>
+    </div>
+  </div>
+
+  <header class="mast">
+    <div class="wrap">
+      <div class="label reveal">QA · Documentation · AI Agent</div>
+      <h1 class="reveal">Weekly Ops Report</h1>
+      <p class="prepared reveal">Prepared for <b>Routemize</b></p>
+      <p class="scope reveal">A day-by-day summary of the bug testing, documentation, and AI agent work completed this week. Each task is tagged by the area of work it belongs to.</p>
+
+      <div class="stats reveal">
+        <div class="stat"><div class="n" data-count="46">0</div><div class="t">Bugs reported</div></div>
+        <div class="stat"><div class="n" data-count="44">0</div><div class="t">Articles published</div></div>
+        <div class="stat"><div class="n" data-count="220" data-suffix="+">0</div><div class="t">Chatbot questions</div></div>
+        <div class="stat"><div class="n" data-count="5">0</div><div class="t">Working days</div></div>
+      </div>
+
+      <div class="legend reveal">
+        <span class="lg-label">Categories</span>
+        <span class="lg"><span class="sw doc"></span> Documentation</span>
+        <span class="lg"><span class="sw bug"></span> Bug Reporting</span>
+        <span class="lg"><span class="sw qa"></span> QA Testing</span>
+        <span class="lg"><span class="sw ai"></span> AI Agent</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="days-wrap">
+    <div class="wrap">
+      <div class="days">
+
+        <!-- MONDAY -->
+        <section class="day reveal">
+          <div class="day-top">
+            <div class="day-id">
+              <span class="dnum">01</span>
+              <div><div class="dname">Monday</div><span class="dfocus">Article Cleanup &amp; Retesting</span></div>
+            </div>
+            <div class="day-metrics">
+              <div class="metric bug"><div class="mv">7</div><div class="ml">Bugs</div></div>
+              <div class="metric doc"><div class="mv">7</div><div class="ml">Articles</div></div>
+            </div>
+          </div>
+          <ul class="tasks">
+            <li><span class="txt">Finalized <strong>7 Intercom articles</strong> — the drafts already existed, so I added the <strong>Tango screenshots</strong> and corrected the styling and responses so each one was clean and ready to publish</span><span class="cat doc">Documentation</span></li>
+            <li><span class="txt">Reported <strong>7 bugs</strong> found while testing the platform</span><span class="cat bug">Bug Reporting</span></li>
+            <li><span class="txt">Retested previously reported bugs on <strong>Android</strong> and in <strong>ClickUp</strong> to confirm which fixes had landed</span><span class="cat qa">QA Testing</span></li>
+            <li><span class="txt">Reviewed desktop and mobile features to verify they were behaving as expected</span><span class="cat qa">QA Testing</span></li>
+          </ul>
+        </section>
+
+        <!-- TUESDAY -->
+        <section class="day reveal">
+          <div class="day-top">
+            <div class="day-id">
+              <span class="dnum">02</span>
+              <div><div class="dname">Tuesday</div><span class="dfocus">Docs &amp; QA Kickback</span></div>
+            </div>
+            <div class="day-metrics">
+              <div class="metric bug"><div class="mv">11</div><div class="ml">Bugs</div></div>
+              <div class="metric doc"><div class="mv">11</div><div class="ml">Articles</div></div>
+            </div>
+          </div>
+          <ul class="tasks">
+            <li><span class="txt">Published <strong>11 Intercom articles</strong> with their matching screenshots</span><span class="cat doc">Documentation</span></li>
+            <li><span class="txt">Reported <strong>11 bugs</strong></span><span class="cat bug">Bug Reporting</span></li>
+            <li><span class="txt">Corrected the <strong>QA kickback notes</strong> so they reflected the latest test results</span><span class="cat qa">QA Testing</span></li>
+            <li><span class="txt">Tested <strong>Android and desktop</strong> features to confirm expected behavior and catch regressions</span><span class="cat qa">QA Testing</span></li>
+            <li><span class="txt">Checked <strong>Voice AI Agent</strong> behavior and logged the issues found</span><span class="cat ai">AI Agent</span></li>
+          </ul>
+        </section>
+
+        <!-- WEDNESDAY -->
+        <section class="day peak reveal">
+          <div class="day-top">
+            <div class="day-id">
+              <span class="dnum">03</span>
+              <div><div class="dname">Wednesday</div><span class="dfocus">Peak QA + Landing Pages</span></div>
+            </div>
+            <div class="day-metrics">
+              <div class="metric bug"><div class="mv">15</div><div class="ml">Bugs</div></div>
+              <div class="metric doc"><div class="mv">15</div><div class="ml">Articles</div></div>
+            </div>
+          </div>
+          <ul class="tasks">
+            <li><span class="txt">Posted <strong>15 articles</strong> in Intercom and kept building out the article guidelines with new content</span><span class="cat doc">Documentation</span></li>
+            <li><span class="txt">Reported <strong>15 bugs</strong></span><span class="cat bug">Bug Reporting</span></li>
+            <li><span class="txt">Reprioritized the bugs in <strong>ClickUp</strong> so severity and order were accurate</span><span class="cat qa">QA Testing</span></li>
+            <li><span class="txt">Tested the <strong>Voice AI Agent</strong>, cleared the bugs already resolved in ClickUp, and updated the persistent ones</span><span class="cat ai">AI Agent</span></li>
+            <li><span class="txt">Checked the <strong>availability bugs</strong> on that feature and created reports for them</span><span class="cat bug">Bug Reporting</span></li>
+            <li><span class="txt">Tested the new <strong>Landing Pages</strong> feature and filed a bug report for it</span><span class="cat qa">QA Testing</span></li>
+            <li><span class="txt">Validated fixes across desktop and mobile to confirm resolved issues stayed fixed</span><span class="cat qa">QA Testing</span></li>
+          </ul>
+        </section>
+
+        <!-- THURSDAY -->
+        <section class="day reveal">
+          <div class="day-top">
+            <div class="day-id">
+              <span class="dnum">04</span>
+              <div><div class="dname">Thursday</div><span class="dfocus">Conditional Logic &amp; Chatbot Review</span></div>
+            </div>
+            <div class="day-metrics">
+              <div class="metric bug"><div class="mv">9</div><div class="ml">Bugs</div></div>
+              <div class="metric doc"><div class="mv">9</div><div class="ml">Articles</div></div>
+            </div>
+          </div>
+          <ul class="tasks">
+            <li><span class="txt">Published <strong>9 articles</strong></span><span class="cat doc">Documentation</span></li>
+            <li><span class="txt">Reported <strong>9 bugs</strong></span><span class="cat bug">Bug Reporting</span></li>
+            <li><span class="txt">Rechecked the updates on <strong>Conditional Logic</strong> within the booking forms to confirm the behavior was correct</span><span class="cat qa">QA Testing</span></li>
+            <li><span class="txt">Reviewed the <strong>Intercom chatbot</strong> functionality and how it handled responses</span><span class="cat ai">AI Agent</span></li>
+            <li><span class="txt">Reviewed the bugs that had been corrected to confirm they were fully resolved</span><span class="cat qa">QA Testing</span></li>
+          </ul>
+        </section>
+
+        <!-- FRIDAY -->
+        <section class="day reveal">
+          <div class="day-top">
+            <div class="day-id">
+              <span class="dnum">05</span>
+              <div><div class="dname">Friday</div><span class="dfocus">Voice AI Agent + Chatbot Training</span></div>
+            </div>
+            <div class="day-metrics">
+              <div class="metric q"><div class="mv">220<span style="font-size:1rem">+</span></div><div class="ml">Questions</div></div>
+              <div class="metric bug"><div class="mv">4</div><div class="ml">Reports</div></div>
+              <div class="metric doc"><div class="mv">2</div><div class="ml">Articles</div></div>
+            </div>
+          </div>
+          <ul class="tasks">
+            <li><span class="txt">Created <strong>220+ questions</strong> to train the chatbot so it's ready to answer real customer questions</span><span class="cat ai">AI Agent</span></li>
+            <li><span class="txt">Tested the <strong>Voice AI Agent</strong>, cleared the bugs already resolved in ClickUp, and updated the persistent ones</span><span class="cat ai">AI Agent</span></li>
+            <li><span class="txt">Wrote <strong>2 new articles</strong> for the new <strong>AI Responses</strong> feature</span><span class="cat doc">Documentation</span></li>
+            <li><span class="txt">Tested the app and pushed bugs that had already been corrected</span><span class="cat qa">QA Testing</span></li>
+            <li><span class="txt">Filed <strong>4 bug reports</strong></span><span class="cat bug">Bug Reporting</span></li>
+          </ul>
+        </section>
+
+        <!-- WEEKEND -->
+        <section class="weekend reveal">
+          <div class="wk-head">
+            <span class="wk-idx">→</span>
+            <span class="wk-title">Goals For The Weekend</span>
+          </div>
+          <p>Keep <b>scoring the 220+ questions</b>, improving the weak answers, and refining the chatbot's behavior so the full question set is ready and the assistant can reliably answer real customer support questions.</p>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="sig">Mike Hernandez &nbsp;·&nbsp; Customer Success &nbsp;·&nbsp; <b>Routemize</b></div>
+    </div>
+  </footer>
+
+<script>
+  const io = new IntersectionObserver((es)=>{
+    es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  },{threshold:.08,rootMargin:'0px 0px -30px 0px'});
+  document.querySelectorAll('.reveal').forEach((el,i)=>{ el.style.transitionDelay=(Math.min(i,6)*35)+'ms'; io.observe(el); });
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function countUp(el){
+    const target=parseInt(el.dataset.count,10), suffix=el.dataset.suffix||'';
+    if(reduce){ el.innerHTML=target+(suffix?'<span class="plus">'+suffix+'</span>':''); return; }
+    const dur=900,start=performance.now();
+    function tick(now){
+      const p=Math.min((now-start)/dur,1), eased=1-Math.pow(1-p,3);
+      el.innerHTML=Math.round(target*eased)+(p>=1&&suffix?'<span class="plus">'+suffix+'</span>':'');
+      if(p<1)requestAnimationFrame(tick);
+    } requestAnimationFrame(tick);
+  }
+  const sio=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){countUp(e.target);sio.unobserve(e.target);}});},{threshold:.6});
+  document.querySelectorAll('.stat .n').forEach(el=>sio.observe(el));
+</script>
+</body>
+</html>
