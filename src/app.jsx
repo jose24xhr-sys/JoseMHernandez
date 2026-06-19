@@ -16,8 +16,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-
-git status 
-git add . 
-git commit -m "Update project2" 
-git push
