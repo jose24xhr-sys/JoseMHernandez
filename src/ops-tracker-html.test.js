@@ -295,11 +295,13 @@ describe("Ops Tracker browser interactions", () => {
     expect(window.document.getElementById("tab-finances").parentElement.classList.contains("shell")).toBe(true);
     expect(window.document.getElementById("tab-finances").closest("#focus-modal")).toBeNull();
     expect(window.eval("FINANCE_DATA.expenses.length")).toBe(0);
+    expect(window.eval("FINANCE_DATA.incomes.length")).toBe(0);
     expect(window.eval("FINANCE_DATA.pendingPurchases.length")).toBe(0);
     expect(window.eval("FINANCE_DATA.pendingDebts.length")).toBe(0);
     expect(window.eval("OpsTrackerCore.financeMonthSummary(FINANCE_DATA.budgets,[],financeMonthPrefix()).monthlyReference")).toBe(23939);
     expect(window.eval("OpsTrackerCore.financeMonthSummary(FINANCE_DATA.budgets,[],financeMonthPrefix()).annualReference")).toBe(167573);
     expect(window.document.getElementById("finance-today-list").textContent).toContain("No expenses");
+    expect(window.document.getElementById("finance-expense-form").closest(".finance-side")).not.toBeNull();
   });
 
   it("adds, edits, and deletes an expense for the selected day", () => {
@@ -328,6 +330,11 @@ describe("Ops Tracker browser interactions", () => {
     window.document.getElementById("inline-expense-date").value = window.eval("dayKey(currentDay)");
     window.eval("addInlineExpense()");
 
+    window.document.getElementById("inline-income-description").value = "Salary";
+    window.document.getElementById("inline-income-amount").value = "5000";
+    window.document.getElementById("inline-income-date").value = window.eval("dayKey(currentDay)");
+    window.eval("addInlineIncome()");
+
     window.document.getElementById("inline-purchase-name").value = "Desk lamp";
     window.document.getElementById("inline-purchase-amount").value = "500";
     window.eval("addInlinePurchase()");
@@ -336,11 +343,27 @@ describe("Ops Tracker browser interactions", () => {
     window.eval("addInlineDebt()");
 
     expect(window.eval("FINANCE_DATA.expenses[0].description")).toBe("Lunch");
+    expect(window.eval("FINANCE_DATA.incomes[0].description")).toBe("Salary");
+    expect(window.document.getElementById("finance-income-list").textContent).toContain("Salary");
     expect(window.eval("FINANCE_DATA.pendingPurchases[0].name")).toBe("Desk lamp");
     expect(window.eval("FINANCE_DATA.pendingDebts[0].name")).toBe("Card");
     expect(window.document.getElementById("expense-modal").classList.contains("on")).toBe(false);
     expect(window.document.getElementById("purchase-modal").classList.contains("on")).toBe(false);
     expect(window.document.getElementById("debt-modal").classList.contains("on")).toBe(false);
+  });
+
+  it("edits and deletes income while keeping the month summary current", () => {
+    window.eval(`{
+      FINANCE_DATA=defaultFinanceData();
+      FINANCE_DATA.incomes=[{id:'salary',description:'Salary',amount:5000,dateKey:dayKey(currentDay)}];
+      renderFinances();openIncomeModal('salary');
+    }`);
+    window.document.getElementById("income-amount").value = "5500";
+    window.eval("saveIncome()");
+    expect(window.eval("FINANCE_DATA.incomes[0].amount")).toBe(5500);
+    expect(window.document.getElementById("finance-kpis").textContent).toContain("5,500.00");
+    window.eval("openIncomeModal('salary');deleteEditingIncome()");
+    expect(window.eval("FINANCE_DATA.incomes.length")).toBe(0);
   });
 
   it("adds an expense inline from Agenda for the selected day", () => {
@@ -375,6 +398,30 @@ describe("Ops Tracker browser interactions", () => {
     window.eval("confirmDeleteFinanceCategory()");
     expect(window.eval("FINANCE_DATA.budgets.some(item=>item.id==='food')")).toBe(false);
     expect(window.eval("FINANCE_DATA.expenses[0].categoryId")).not.toBe("food");
+  });
+
+  it("adds costed budget subitems and collapses their category details", () => {
+    window.eval("FINANCE_DATA=defaultFinanceData();renderFinances();openBudgetModal('rent');addBudgetSubItemEditor();");
+    const editor = window.document.querySelector("#budget-subitem-editor .budget-subitem-edit-row");
+    editor.querySelector('input[type="text"]').value = "Internet";
+    editor.querySelector('input[type="text"]').dispatchEvent(new window.Event("input"));
+    editor.querySelector('input[type="number"]').value = "500";
+    editor.querySelector('input[type="number"]').dispatchEvent(new window.Event("input"));
+    window.eval("saveBudgetReference()");
+
+    expect(window.eval("FINANCE_DATA.budgets.find(item=>item.id==='rent').subItems[0].cost")).toBe(500);
+    expect(window.eval("OpsTrackerCore.financeBudgetMonthlyTotal(FINANCE_DATA.budgets.find(item=>item.id==='rent'))")).toBe(2500);
+    expect(window.document.getElementById("finance-budget-list").textContent).toContain("Internet");
+    window.eval("toggleFinanceBudgetItems('rent')");
+    expect(window.document.querySelector("#finance-budget-list .finance-budget-subitems.collapsed")).not.toBeNull();
+  });
+
+  it("collapses and restores the complete Blocks panel", () => {
+    window.eval("blocksPanelOpen=true;renderBlocks();toggleBlocksPanel();");
+    expect(window.document.getElementById("blocks-panel-body").classList.contains("collapsed")).toBe(true);
+    expect(window.document.getElementById("blocks-panel-hdr").getAttribute("aria-expanded")).toBe("false");
+    window.eval("toggleBlocksPanel()");
+    expect(window.document.getElementById("blocks-panel-body").classList.contains("collapsed")).toBe(false);
   });
 
   it("shows complete calendar weeks with adjacent-month days and their expenses", () => {
@@ -464,7 +511,7 @@ describe("Ops Tracker browser interactions", () => {
 
   it("includes a phone layout with stacked finance forms and visible touch actions", () => {
     expect(htmlSource).toContain("@media (max-width:520px)");
-    expect(htmlSource).toContain(".finance-inline-form,.finance-inline-purchase,.finance-inline-debt,.finance-side .finance-inline-form{grid-template-columns:1fr");
+    expect(htmlSource).toContain(".finance-inline-form,.finance-inline-purchase,.finance-inline-debt,.finance-inline-income,.finance-side .finance-inline-form{grid-template-columns:1fr");
     expect(htmlSource).toContain(".todo-item-actions,.note-card-actions,.reward-del,.reward-edit,.act-del-btn{opacity:1}");
     expect(htmlSource).toContain(".finance-history-items{grid-column:1/-1;grid-row:2}");
   });

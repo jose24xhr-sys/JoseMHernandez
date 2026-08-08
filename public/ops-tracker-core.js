@@ -210,7 +210,16 @@
     };
   }
 
-  function financeMonthSummary(budgets, expenses, monthPrefix) {
+  function financeBudgetMonthlyTotal(budget) {
+    const base = Number(budget?.monthlyReference) || 0;
+    const subItems = (budget?.subItems || []).reduce(
+      (sum, item) => sum + (Number(item.cost) || 0),
+      0,
+    );
+    return Math.max(0, base + subItems);
+  }
+
+  function financeMonthSummary(budgets, expenses, monthPrefix, incomes = []) {
     const monthExpenses = (expenses || []).filter((item) =>
       String(item.dateKey || "").startsWith(monthPrefix),
     );
@@ -220,7 +229,7 @@
       spentByCategory[categoryId] = (spentByCategory[categoryId] || 0) + (Number(item.amount) || 0);
     });
     const monthlyReference = (budgets || []).reduce(
-      (sum, item) => sum + (Number(item.monthlyReference) || 0),
+      (sum, item) => sum + financeBudgetMonthlyTotal(item),
       0,
     );
     const annualReference = (budgets || []).reduce(
@@ -228,8 +237,13 @@
       0,
     );
     const spent = monthExpenses.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+    const income = (incomes || [])
+      .filter((item) => String(item.dateKey || "").startsWith(monthPrefix))
+      .reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
     return {
       spent,
+      income,
+      net: income - spent,
       monthlyReference,
       annualReference,
       remaining: monthlyReference - spent,
@@ -305,6 +319,7 @@
     emptyBlockState,
     findTodoItem,
     financeBudgetStatus,
+    financeBudgetMonthlyTotal,
     financeMonthSummary,
     habitReport,
     linkedHabitCompletion,
