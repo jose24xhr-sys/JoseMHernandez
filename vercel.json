@@ -1,5 +1,12 @@
 {
   "rewrites": [
+    { "source": "/monobot-studio", "destination": "/monobot-studio/index.html" },
+    { "source": "/monobot-studio/servicios", "destination": "/monobot-studio/servicios/index.html" },
+    { "source": "/monobot-studio/portafolio", "destination": "/monobot-studio/portafolio/index.html" },
+    { "source": "/monobot-studio/blog", "destination": "/monobot-studio/blog/index.html" },
+    { "source": "/monobot-studio/faq", "destination": "/monobot-studio/faq/index.html" },
+    { "source": "/monobot-studio/agenda", "destination": "/monobot-studio/agenda/index.html" },
+    { "source": "/monobot-studio/admin/blog", "destination": "/monobot-studio/admin/blog/index.html" },
     { "source": "/(.*)", "destination": "/" }
   ]
 }
