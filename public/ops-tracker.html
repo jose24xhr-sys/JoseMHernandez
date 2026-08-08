@@ -439,7 +439,7 @@ body{font-family:var(--sans);font-size:14px;background:var(--bg2);color:var(--te
 }
 @media (max-width:520px){
   input,select,textarea{font-size:16px!important}
-  .date-bar{gap:8px;padding-top:9px;padding-bottom:9px}.date-nav,.date-bar-right{width:100%;justify-content:space-between}.date-label{min-width:0;flex:1}.date-bar-right{gap:5px}.month-nav{flex:1;justify-content:space-between}.month-nav-label{min-width:88px}.sync-status{display:none}
+  .date-bar{gap:8px;padding-top:9px;padding-bottom:9px}.date-nav,.date-bar-right{width:100%;justify-content:space-between}.date-label{min-width:0;flex:1}.date-bar-right{gap:5px}.month-nav{flex:1;justify-content:space-between}.month-nav-label{min-width:88px}.sync-status{display:inline-block;min-width:auto;font-size:9px}
   .phrase-text{font-size:12px}.tabs{position:sticky;top:0;z-index:30}.tab{min-width:64px;padding:9px 3px;font-size:11px}
   .banner-item{align-items:flex-start}.banner-item-actions{flex-wrap:wrap;justify-content:flex-end}.banner-pill{font-size:9px}
   .block-head,.subtask,.todo-item,.hab-row{align-items:flex-start}.subtasks{margin-left:14px}.todo-children{margin-left:12px;padding-left:6px}.todo-child-add{margin-left:12px}.todo-item-actions{flex-wrap:wrap;max-width:82px;justify-content:flex-end}
@@ -1058,12 +1058,12 @@ const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 function dayKey(d){return OpsTrackerCore.dayKey(viewYear,viewMonth,d);}
 function setSyncStatus(state,label){const el=document.getElementById('sync-status');if(!el)return;el.className='sync-status '+state;el.textContent=label;}
 async function dbSaveDay(k,blocks,habits,todos){
-  const r=await fetch(`${SUPABASE_URL}/rest/v1/ops_days`,{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({day_key:k,blocks,habits,todos_today:todos})});
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/ops_days?on_conflict=day_key`,{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({day_key:k,blocks,habits,todos_today:todos,updated_at:new Date().toISOString()})});
   if(!r.ok)throw new Error(`Day sync failed (${r.status})`);
 }
 async function dbLoadDay(k){const r=await fetch(`${SUPABASE_URL}/rest/v1/ops_days?day_key=eq.${encodeURIComponent(k)}&select=*`,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}});if(!r.ok)throw new Error(`Day load failed (${r.status})`);const d=await r.json();return d[0]||null;}
 async function dbLoadMonth(prefix){const start=`${prefix}-01`,end=`${prefix}-31`;const r=await fetch(`${SUPABASE_URL}/rest/v1/ops_days?day_key=gte.${encodeURIComponent(start)}&day_key=lte.${encodeURIComponent(end)}&select=*&order=day_key`,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}});if(!r.ok)throw new Error(`Month sync failed (${r.status})`);return r.json();}
-async function dbSaveGeneral(todos){const r=await fetch(`${SUPABASE_URL}/rest/v1/ops_general`,{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id:'00000000-0000-0000-0000-000000000001',todos})});if(!r.ok)throw new Error(`General sync failed (${r.status})`);}
+async function dbSaveGeneral(todos){const r=await fetch(`${SUPABASE_URL}/rest/v1/ops_general`,{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id:'00000000-0000-0000-0000-000000000001',todos,updated_at:new Date().toISOString()})});if(!r.ok)throw new Error(`General sync failed (${r.status})`);}
 async function dbLoadGeneral(){const r=await fetch(`${SUPABASE_URL}/rest/v1/ops_general?id=eq.00000000-0000-0000-0000-000000000001&select=*`,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}});if(!r.ok)throw new Error(`General load failed (${r.status})`);const d=await r.json();return d[0]?.todos||null;}
 
 function lsSave(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
@@ -1178,7 +1178,12 @@ async function loadDayFromDB(d){
         if(remoteMeta.lists)TODO_LISTS_DAY[k]=remoteMeta.lists;
         if(remoteMeta.note){NOTES[k]={date:fmt(d),...remoteMeta.note};lsSave('ops-notes',NOTES);}
         lsSave('ops-day-'+k,merged);lsSave('ops-todo-day',TODO_LISTS_DAY);
+      }else if(localUpdated>remoteUpdated){
+        await dbSaveDay(k,local.blocks,local.habits,daySyncPayload(k,local));
       }
+    }else{
+      const local=getDayState(d);
+      if(Number(local._updatedAt||0)>0)await dbSaveDay(k,local.blocks,local.habits,daySyncPayload(k,local));
     }
     setSyncStatus('saved','synced');
   }catch(e){console.error(e);setSyncStatus('error','offline');}
@@ -1204,6 +1209,9 @@ function daySyncPayload(k,state){
   const st=state||DAY_STORE[k]||OpsTrackerCore.normalizeDayState(lsLoad('ops-day-'+k)||{},BLOCK_TEMPLATES);
   return {lists:TODO_LISTS_DAY[k]||[],note:NOTES[k]||st.note||{},dailyGoal:st.dailyGoal||'',manualFocus:st.manualFocus||[],events:st.events||[],eventDone:st.eventDone||{},eventHidden:st.eventHidden||{},habitAssignments:st.habitAssignments||{},updatedAt:st._updatedAt||Date.now()};
 }
+function generalSyncPayload(updatedAt=generalStateUpdatedAt||Date.now()){
+  return {lists:TODO_LISTS_GLOBAL,habits:HABITS,activities:ACTIVITIES,rewards:REWARDS,blockTemplates:BLOCK_TEMPLATES,agendaEvents:AGENDA_EVENTS,habitMasterEveryDay:HABIT_MASTER_EVERY_DAY,finance:FINANCE_DATA,phrase:dailyPhrase,top3Done:TOP3_DONE,updatedAt};
+}
 function persistCurrentDay(){
   const k=dayKey(currentDay),st=getDayState(currentDay);st._updatedAt=Date.now();
   st.note=NOTES[k]||st.note;st.todoLists=TODO_LISTS_DAY[k]||st.todoLists;
@@ -1212,14 +1220,16 @@ function persistCurrentDay(){
   clearTimeout(daySaveTimer);daySaveTimer=setTimeout(async()=>{try{await dbSaveDay(k,st.blocks,st.habits,daySyncPayload(k,st));setSyncStatus('saved','saved');}catch(e){console.error(e);setSyncStatus('error','offline');}},350);
 }
 function persistGeneral(){
-  const payload={lists:TODO_LISTS_GLOBAL,habits:HABITS,activities:ACTIVITIES,rewards:REWARDS,blockTemplates:BLOCK_TEMPLATES,agendaEvents:AGENDA_EVENTS,habitMasterEveryDay:HABIT_MASTER_EVERY_DAY,finance:FINANCE_DATA,phrase:dailyPhrase,top3Done:TOP3_DONE,updatedAt:Date.now()};
+  generalStateUpdatedAt=Date.now();
+  const payload=generalSyncPayload(generalStateUpdatedAt);
   lsSave('ops-global-v2',payload);lsSave('ops-todo-global',TODO_LISTS_GLOBAL);
   clearTimeout(generalSaveTimer);generalSaveTimer=setTimeout(async()=>{try{await dbSaveGeneral(payload);setSyncStatus('saved','saved');}catch(e){console.error(e);setSyncStatus('error','offline');}},350);
 }
 async function loadGeneralFromDB(){
   try{
-    setSyncStatus('saving','loading');const remote=await dbLoadGeneral();if(!remote){setSyncStatus('saved','synced');return;}
-    const localUpdated=Number(CACHED_GLOBAL?.updatedAt||0),remoteUpdated=Number(remote.updatedAt||0);
+    setSyncStatus('saving','loading');const remote=await dbLoadGeneral();
+    if(!remote){if(generalStateUpdatedAt>0)await dbSaveGeneral(generalSyncPayload(generalStateUpdatedAt));setSyncStatus('saved','synced');return;}
+    const localUpdated=Number(generalStateUpdatedAt||0),remoteUpdated=Number(remote.updatedAt||0);
     if(!localUpdated||!remoteUpdated||remoteUpdated>=localUpdated){
       if(Array.isArray(remote.lists))TODO_LISTS_GLOBAL=remote.lists.map(list=>({...list,items:(list.items||[]).map(OpsTrackerCore.normalizeTodoItem)}));
       if(Array.isArray(remote.habits))HABITS=remote.habits;
@@ -1232,6 +1242,9 @@ async function loadGeneralFromDB(){
       if(typeof remote.phrase==='string'&&remote.phrase){dailyPhrase=remote.phrase;lsSave('ops-phrase',dailyPhrase);renderPhrase();}
       if(remote.top3Done&&typeof remote.top3Done==='object'){Object.keys(TOP3_DONE).forEach(key=>delete TOP3_DONE[key]);Object.assign(TOP3_DONE,remote.top3Done);lsSave('ops-top3done',TOP3_DONE);}
       lsSave('ops-global-v2',remote);lsSave('ops-todo-global',TODO_LISTS_GLOBAL);
+      generalStateUpdatedAt=remoteUpdated||localUpdated;
+    }else if(localUpdated>remoteUpdated){
+      await dbSaveGeneral(generalSyncPayload(localUpdated));
     }
     setSyncStatus('saved','synced');
   }catch(error){console.error(error);setSyncStatus('error','offline');}
@@ -1299,6 +1312,7 @@ function defaultFinanceData(){return{budgets:FINANCE_BUDGET_SEED.map(item=>({...
 function normalizeFinanceData(value){const base=defaultFinanceData(),source=value&&typeof value==='object'?value:{},savedBudgets=Array.isArray(source.budgets)&&source.budgets.length?source.budgets:null;return{budgets:savedBudgets?savedBudgets.map(item=>({...item,name:item.name||'Untitled category',monthlyReference:Number(item.monthlyReference)||0,annualReference:Number(item.annualReference)||0,subItems:Array.isArray(item.subItems)?item.subItems.map(sub=>({id:sub.id||'bsi'+Date.now()+Math.random().toString(36).slice(2),name:sub.name||'Untitled subitem',cost:Math.max(0,Number(sub.cost)||0)})):[]})):base.budgets,expenses:Array.isArray(source.expenses)?source.expenses:[],incomes:Array.isArray(source.incomes)?source.incomes.map(item=>({...item,amount:Math.max(0,Number(item.amount)||0),description:item.description||'Income',dateKey:item.dateKey||dayKey(currentDay)})):[],pendingPurchases:Array.isArray(source.pendingPurchases)?source.pendingPurchases.map(item=>({...item,status:item.status||'pending',targetDate:item.targetDate||dayKey(currentDay)})):[],pendingDebts:Array.isArray(source.pendingDebts)?source.pendingDebts:[]};}
 
 const CACHED_GLOBAL=lsLoad('ops-global-v2');
+let generalStateUpdatedAt=Number(CACHED_GLOBAL?.updatedAt||0);
 if(CACHED_GLOBAL){
   if(Array.isArray(CACHED_GLOBAL.habits))HABITS=CACHED_GLOBAL.habits;
   if(Array.isArray(CACHED_GLOBAL.activities))ACTIVITIES=CACHED_GLOBAL.activities;
@@ -2522,12 +2536,20 @@ renderBlocks();renderAgendaEvents();renderDailyGoal();renderFinanceToday();rende
 let draftAutosaveTimer=null;
 function queueDraftAutosave(){clearTimeout(draftAutosaveTimer);draftAutosaveTimer=setTimeout(()=>{captureDrafts();renderDailyGoal();renderBanner();renderNotesArchive();},250);}
 ['log-reflection','log-financial','log-top3','daily-goal-input'].forEach(id=>document.getElementById(id)?.addEventListener('input',queueDraftAutosave));
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')captureDrafts();});
+let cloudRefreshPromise=null;
+function userIsEditing(){const active=document.activeElement;return !!active&&(active.matches('input,textarea,select,[contenteditable="true"]')||!!document.querySelector('.overlay.on'));}
+function requestCloudRefresh(){
+  if(document.hidden||userIsEditing())return cloudRefreshPromise||Promise.resolve();
+  if(cloudRefreshPromise)return cloudRefreshPromise;
+  cloudRefreshPromise=(async()=>{await loadGeneralFromDB();await loadDayFromDB(currentDay);loadDayState();refreshAll();renderNotesArchive();})().finally(()=>{cloudRefreshPromise=null;});
+  return cloudRefreshPromise;
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')captureDrafts();else requestCloudRefresh();});
+window.addEventListener('focus',requestCloudRefresh);
+window.setInterval(()=>{if(!document.hidden&&!userIsEditing())requestCloudRefresh();},30000);
 window.addEventListener('beforeunload',captureDrafts);
 
-(async()=>{
-  await loadGeneralFromDB();await loadDayFromDB(currentDay);loadDayState();refreshAll();renderNotesArchive();
-})();
+requestCloudRefresh();
 </script>
 </body>
 </html>
