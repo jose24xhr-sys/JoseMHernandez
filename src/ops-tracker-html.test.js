@@ -516,6 +516,17 @@ describe("Ops Tracker browser interactions", () => {
     expect(htmlSource).toContain(".finance-history-items{grid-column:1/-1;grid-row:2}");
   });
 
+  it("keeps cloud sync visible on phones and refreshes stale tabs", () => {
+    expect(htmlSource).not.toContain(".sync-status{display:none}");
+    expect(htmlSource).toContain("window.addEventListener('focus',requestCloudRefresh)");
+    expect(htmlSource).toContain("else requestCloudRefresh()");
+    expect(htmlSource).toContain("requestCloudRefresh();");
+  });
+
+  it("upserts day records by their unique date key", () => {
+    expect(htmlSource).toContain("ops_days?on_conflict=day_key");
+  });
+
   it("collapses the finance overview and monthly budget from mobile arrow controls", () => {
     const overviewToggle = window.document.getElementById("finance-overview-toggle");
     const budgetToggle = window.document.getElementById("finance-budget-toggle");
