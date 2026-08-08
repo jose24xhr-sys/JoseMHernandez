@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import myPhoto from "../assets/JoseP.png"; // usar ruta relativa
 import {
   ArrowUpRight, Linkedin, Mail, X as XIcon,
-  BookOpen, Briefcase, FilePenLine, Instagram
+  BookOpen, Briefcase, Instagram
 } from "lucide-react";
 
 // Perfil y datos (mismo contenido)
@@ -44,9 +44,11 @@ const experience = [
     role: "Customer Success & Automation Specialist",
     link: "https://routemize.com",
     bullets: [
-      "Supporting customer onboarding and operations within a fast-growing SaaS environment.",
-  "Improving customer experience through automation, AI-assisted support, and workflow optimization.",
-  "Reporting bugs, documenting feedback, and creating scalable support resources."
+      "Supported customer onboarding, product adoption, and daily operations within a fast-growing SaaS startup serving contractors and field service businesses. Improved the customer experience through AI-assisted support, automation, product testing, workflow optimization, and scalable documentation.",
+      "Customer Success & Operations: Guided customers through onboarding, platform configuration, integrations, and day-to-day troubleshooting to improve adoption and retention.",
+      "Automation & Zapier Workflows: Assisted customers with Zapier integrations, created and tested automated workflows between Routemize and third-party platforms, troubleshot workflow issues, and documented setup processes, field mappings, triggers, actions, and integration requirements.",
+      "AI Training & Support Automation: Trained and tested AI assistants, created question banks, improved response accuracy, and developed scalable Help Center resources and support workflows.",
+      "Product Quality & Feedback: Tested web and mobile features, reported reproducible bugs, documented customer feedback, and collaborated with product teams to improve usability and platform performance."
     ],
   },
   {
@@ -173,146 +175,7 @@ export default function App() {
   // usa SIEMPRE este ref
   const heroRef = useRef(null);
 
-useEffect(() => {
-  // Create widget container
-  const widget = document.createElement('div');
-  widget.id = 'routemize-widget-385e412a-4ec4-e97d-0908-3a209aabce4e';
-  widget.innerHTML = `
-    <button id="rtmz-trigger-btn" style="
-      position:fixed;bottom:24px;left:24px;z-index:9998;
-      display:flex;align-items:center;gap:8px;padding:14px 24px;
-      background:#2563eb;color:white;border:none;border-radius:50px;
-      font-size:15px;font-weight:600;cursor:pointer;
-      box-shadow:0 4px 14px rgba(0,0,0,0.25);">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-        <line x1="16" y1="2" x2="16" y2="6"/>
-        <line x1="8" y1="2" x2="8" y2="6"/>
-        <line x1="3" y1="10" x2="21" y2="10"/>
-      </svg>
-      Book Now
-    </button>
-    <div id="rtmz-modal" style="display:none;position:fixed;inset:0;z-index:9999;
-      background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
-      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-        width:90%;max-width:480px;background:white;border-radius:16px;overflow:hidden;
-        box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
-        <button id="rtmz-close-btn" style="position:absolute;top:12px;right:12px;z-index:10;
-          width:36px;height:36px;display:flex;align-items:center;justify-content:center;
-          background:rgba(255,255,255,0.9);border:none;border-radius:50%;cursor:pointer;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
-        <iframe src="https://maximumtest.routemize.com/e/385e412a-4ec4-e97d-0908-3a209aabce4e?embed=true"
-          width="100%" height="600" frameborder="0"
-          style="border:none;display:block;" allow="camera; microphone"/>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(widget);
-
-  document.getElementById('rtmz-trigger-btn').addEventListener('click', () => {
-    document.getElementById('rtmz-modal').style.display = 'block';
-    document.body.style.overflow = 'hidden';
-  });
-  document.getElementById('rtmz-close-btn').addEventListener('click', () => {
-    document.getElementById('rtmz-modal').style.display = 'none';
-    document.body.style.overflow = '';
-  });
-  document.getElementById('rtmz-modal').addEventListener('click', function(e) {
-    if (e.target === this) {
-      this.style.display = 'none';
-      document.body.style.overflow = '';
-    }
-  });
-
-  return () => {
-    const el = document.getElementById('routemize-widget-385e412a-4ec4-e97d-0908-3a209aabce4e');
-    if (el) document.body.removeChild(el);
-  };
-}, []);
-
-useEffect(() => {
-  const f = document.getElementById('routemize-frame-385e412a-4ec4-e97d-0908-3a209aabce4e');
-  if (!f) return;
-  const handler = (e) => {
-    if (e.data?.source === 'routemize-embed' &&
-        e.data?.formId === '385e412a-4ec4-e97d-0908-3a209aabce4e' &&
-        e.data?.height) {
-      f.style.height = e.data.height + 'px';
-    }
-  };
-  window.addEventListener('message', handler);
-  return () => window.removeEventListener('message', handler);
-}, []);
-
-// Auto-resize for the Premium Testing (gopremium) embed
-useEffect(() => {
-  const f = document.getElementById('routemize-frame-eb6380dc-3794-9753-34d2-3a21e81896bd');
-  if (!f) return;
-  const handler = (e) => {
-    if (e.data?.source === 'routemize-embed' &&
-        (e.data?.formId === 'eb6380dc-3794-9753-34d2-3a21e81896bd' ||
-         e.data?.landingPageId === 'eb6380dc-3794-9753-34d2-3a21e81896bd') &&
-        e.data?.height) {
-      f.style.height = e.data.height + 'px';
-    }
-  };
-  window.addEventListener('message', handler);
-  return () => window.removeEventListener('message', handler);
-}, []);
-
   useEffect(() => setMounted(true), []);
-
-useEffect(() => {
-  let modal = null;
-
-  function createModal() {
-    if (modal) return;
-    modal = document.createElement("div");
-    modal.innerHTML = `
-      <div style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);
-        backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;">
-        <div style="position:relative;width:90%;max-width:480px;max-height:90vh;
-          background:white;border-radius:16px;overflow:hidden;
-          box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
-          <button class="rtmz-close" style="position:absolute;top:12px;right:12px;z-index:10;
-            width:36px;height:36px;display:flex;align-items:center;justify-content:center;
-            background:rgba(255,255,255,0.9);border:none;border-radius:50%;cursor:pointer;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-          <iframe src="https://maximumtest.routemize.com/e/385e412a-4ec4-e97d-0908-3a209aabce4e?embed=true"
-            width="100%" height="600" frameborder="0" style="border:none;display:block;"
-            title="Schedule a time" allow="camera; microphone"></iframe>
-        </div>
-      </div>`;
-    document.body.appendChild(modal);
-    modal.querySelector(".rtmz-close").addEventListener("click", closeModal);
-    modal.firstElementChild.addEventListener("click", (e) => {
-      if (e.target === modal.firstElementChild) closeModal();
-    });
-  }
-
-  function openModal() {
-    createModal();
-    modal.style.display = "block";
-    document.body.style.overflow = "hidden";
-  }
-
-  function closeModal() {
-    if (modal) {
-      modal.style.display = "none";
-      document.body.style.overflow = "";
-    }
-  }
-
-  window.openRoutemizeModal = openModal;
-  return () => { delete window.openRoutemizeModal; if (modal) document.body.removeChild(modal); };
-}, []);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
@@ -330,19 +193,6 @@ useEffect(() => {
     io.observe(el);
     return () => io.disconnect();
   }, []);
-
-useEffect(() => {
-  const script = document.createElement("script");
-  script.src = "https://maximumtest.routemize.com/chatbot-embed.js";
-  script.setAttribute("data-form-id", "385e412a-4ec4-e97d-0908-3a209aabce4e");
-  script.setAttribute("data-position", "bottom-right");
-  script.setAttribute("data-primary-color", "#2563eb");
-  script.setAttribute("data-base-url", "https://maximumtest.routemize.com");
-  script.setAttribute("data-greeting-delay", "3000");
-  script.async = true;
-  document.body.appendChild(script);
-  return () => document.body.removeChild(script);
-}, []);
 
   return ( 
     <main className="min-h-screen bg-white text-neutral-900 antialiased dark:bg-[#0F1720] dark:text-neutral-100">
@@ -540,14 +390,6 @@ useEffect(() => {
         </section>
 
         {/* CONTACT */}
-      {/* Dentro del div de botones de Contact, agrega: */}
-<button
-  onClick={() => window.openRoutemizeModal?.()}
-  className="inline-flex items-center gap-2 rounded-2xl border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-900"
->
-  <FilePenLine className="h-4 w-4" /> Schedule a time
-</button>
-      
         <section
   id="contact"
   className="mx-auto max-w-[52rem] px-5 md:px-3 pt-6 md:pt-8 pb-6 md:pb-8 section-fade js-reveal"
@@ -565,56 +407,6 @@ useEffect(() => {
             <a href={profile.social.instagram} className="inline-flex items-center gap-2 rounded-2xl border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-900"><Instagram className="h-4 w-4" /> Follow</a>
             <a href={profile.social.x} className="inline-flex items-center gap-2 rounded-2xl border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-900"><XIcon className="h-4 w-4" /> Follow</a>
           </div>
-
-{/* After the div with Email/LinkedIn/Instagram/X buttons */}
-
-<div className="mt-10 routemize-inline-embed" style={{width:"100%", overflow:"hidden"}}>
-  <iframe
-    id="routemize-frame-385e412a-4ec4-e97d-0908-3a209aabce4e"
-    src="https://maximumtest.routemize.com/e/385e412a-4ec4-e97d-0908-3a209aabce4e?embed=true"
-    width="100%"
-    height="700"
-    frameBorder="0"
-    scrolling="no"
-    style={{
-      border:"none",
-      borderRadius:"12px",
-      boxShadow:"0 4px 6px -1px rgb(0 0 0 / 0.1)",
-      minWidth:"100%",
-      minHeight:"700px"
-    }}
-    title="Book Business / Commercial Request"
-    allow="camera; microphone"
-  />
-</div>
-
-{/* Routemize Booking Form Embed — Premium Testing (gopremium) */}
-<div
-  className="mt-10 routemize-inline-embed"
-  data-form-id="eb6380dc-3794-9753-34d2-3a21e81896bd"
-  style={{width:"100%", maxWidth:"100%", overflow:"hidden"}}
->
-  <iframe
-    id="routemize-frame-eb6380dc-3794-9753-34d2-3a21e81896bd"
-    src="https://gopremium.routemize.com/l/eb6380dc-3794-9753-34d2-3a21e81896bd?embed=true"
-    width="100%"
-    height="700"
-    frameBorder="0"
-    loading="eager"
-    data-no-lazy="1"
-    data-skip-lazy=""
-    scrolling="no"
-    style={{
-      border:"none",
-      borderRadius:"12px",
-      boxShadow:"0 4px 6px -1px rgb(0 0 0 / 0.1)",
-      minWidth:"100%",
-      minHeight:"700px"
-    }}
-    title="Book Premium Testing"
-    allow="camera; microphone"
-  />
-</div>
 
           <footer className="mt-16 py-10 text-center text-sm text-neutral-500 dark:text-neutral-400">© {new Date().getFullYear()} {profile.name}</footer>
         </section>
