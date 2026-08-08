@@ -246,6 +246,27 @@ describe("finance reporting", () => {
     expect(report.remaining).toBe(1550);
   });
 
+  it("includes budget subitems and monthly income in the finance summary", () => {
+    const detailedBudgets = [
+      { id: "home", monthlyReference: 1000, annualReference: 12000, subItems: [
+        { name: "Internet", cost: 500 },
+        { name: "Electricity", cost: 250 },
+      ] },
+    ];
+    const report = core.financeMonthSummary(
+      detailedBudgets,
+      [{ dateKey: "2026-08-08", categoryId: "home", amount: 600 }],
+      "2026-08",
+      [
+        { dateKey: "2026-08-01", amount: 3000 },
+        { dateKey: "2026-09-01", amount: 5000 },
+      ],
+    );
+
+    expect(core.financeBudgetMonthlyTotal(detailedBudgets[0])).toBe(1750);
+    expect(report).toMatchObject({ monthlyReference: 1750, income: 3000, net: 2400 });
+  });
+
   it("highlights warning and over-budget thresholds", () => {
     expect(core.financeBudgetStatus(799, 1000).status).toBe("normal");
     expect(core.financeBudgetStatus(800, 1000).status).toBe("warning");
