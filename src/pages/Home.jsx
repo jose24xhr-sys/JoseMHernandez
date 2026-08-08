@@ -52,7 +52,7 @@ const experience = [
     ],
   },
   {
-    period: "2023 – Present",
+    period: "2023 – 2025",
     company: "Tata Consultancy Services",
     role: "Operations & Customer Support (Life Insurance Industry)",
     link: "https://www.tcs.com/",
