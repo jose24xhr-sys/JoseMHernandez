@@ -399,6 +399,7 @@ body{font-family:var(--sans);font-size:14px;background:var(--bg2);color:var(--te
 /* ── FINANCES ── */
 .finance-panel{padding:18px 24px 28px;overflow-y:auto;display:flex;flex-direction:column;gap:16px;flex:1}
 .finance-toolbar,.finance-section-hdr,.finance-expense-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.finance-overview,.finance-overview-body{display:flex;flex-direction:column}.finance-overview-body{gap:10px}.finance-mobile-toggle{display:none;border:1px solid var(--border);background:var(--bg);color:var(--text3);border-radius:5px;width:30px;height:30px;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}.finance-mobile-toggle:hover{background:var(--bg3);color:var(--text)}
 .finance-title{font-size:16px;font-weight:500}.finance-subtitle{font-size:11px;color:var(--text3);margin-top:2px}
 .finance-primary{font:12px var(--sans);padding:6px 11px;border:1px solid var(--green-border);border-radius:6px;background:var(--green-bg);color:var(--green-text);cursor:pointer}.finance-primary:hover{background:var(--green);color:#fff}
 .finance-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.finance-kpi{padding:12px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg2)}
@@ -443,7 +444,7 @@ body{font-family:var(--sans);font-size:14px;background:var(--bg2);color:var(--te
   .banner-item{align-items:flex-start}.banner-item-actions{flex-wrap:wrap;justify-content:flex-end}.banner-pill{font-size:9px}
   .block-head,.subtask,.todo-item,.hab-row{align-items:flex-start}.subtasks{margin-left:14px}.todo-children{margin-left:12px;padding-left:6px}.todo-child-add{margin-left:12px}.todo-item-actions{flex-wrap:wrap;max-width:82px;justify-content:flex-end}
   .hab-col-hdr,.daily-goal-hdr,.daily-goal-body{padding-left:12px;padding-right:12px}.tracker-habit-label{min-width:185px}.tracker-habit-actions{flex-wrap:wrap;justify-content:flex-end}.report-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.rewards-title{align-items:flex-start;gap:8px;flex-wrap:wrap}.reward-grid{grid-template-columns:1fr}.note-card-body,.note-card-top3{padding-right:42px}
-  .finance-toolbar{align-items:flex-start;flex-wrap:wrap}.finance-toolbar>.finance-primary{width:100%}.finance-subtitle{line-height:1.4}.finance-kpis{gap:7px}.finance-kpi{padding:9px}.finance-kpi-value{font-size:15px;overflow-wrap:anywhere}.finance-kpi-note{line-height:1.3}
+  .finance-toolbar{align-items:center;flex-wrap:wrap}.finance-toolbar>.finance-primary{width:100%}.finance-subtitle{line-height:1.4}.finance-mobile-toggle{display:inline-flex}.finance-mobile-collapse-body.mobile-collapsed{display:none}.finance-overview-body{margin-top:4px}.finance-kpis{gap:7px}.finance-kpi{padding:9px}.finance-kpi-value{font-size:15px;overflow-wrap:anywhere}.finance-kpi-note{line-height:1.3}
   .finance-section-hdr{align-items:flex-start}.finance-section-title{line-height:1.35}.finance-section-body{padding:8px}.finance-inline-form,.finance-inline-purchase,.finance-inline-debt,.finance-inline-income,.finance-side .finance-inline-form{grid-template-columns:1fr;padding:10px}.finance-inline-form button,.finance-side .finance-inline-form button{grid-column:1}.finance-inline-form .mf input,.finance-inline-form .mf select{min-height:40px}
   .finance-budget-head,.finance-budget-row{grid-template-columns:minmax(72px,1fr) 54px 61px 88px;gap:4px}.finance-budget-head{font-size:8px}.finance-budget-value{font-size:9px}.finance-actions{flex-wrap:wrap}.finance-drag{display:none}.finance-actions .finance-icon-btn{min-width:20px;padding:2px}
   .finance-expense-row{align-items:flex-start;flex-wrap:wrap}.finance-expense-main{min-width:150px}.finance-expense-row>.finance-expense-amount{margin-left:auto}.finance-history-week-hdr>span:first-child{flex:1;line-height:1.35}.finance-history-day{grid-template-columns:minmax(0,1fr) auto;gap:5px;padding:9px 6px}.finance-history-day.today{padding:9px 7px}.finance-history-day>div:first-child{grid-column:1;grid-row:1}.finance-history-items{grid-column:1/-1;grid-row:2}.finance-history-total{grid-column:2;grid-row:1}.finance-history-item-name{flex-basis:100%;white-space:normal}.finance-history-item .finance-expense-amount{margin-right:auto}.finance-day-toggle{min-height:24px}
@@ -616,14 +617,20 @@ body{font-family:var(--sans);font-size:14px;background:var(--bg2);color:var(--te
 
   <div id="tab-finances" class="panel">
     <div class="finance-panel">
-      <div class="finance-toolbar">
-        <div><div class="finance-title" id="finance-month-title">Finances</div><div class="finance-subtitle">Track daily expenses and monthly income. Budget references come from the Finanzas sheet.</div></div>
+      <div class="finance-overview">
+        <div class="finance-toolbar">
+          <div class="finance-title" id="finance-month-title">Finances</div>
+          <button class="finance-mobile-toggle" id="finance-overview-toggle" type="button" aria-label="Hide finance overview" aria-controls="finance-overview-body" aria-expanded="true" onclick="toggleFinanceOverview()"><span class="finance-section-chev" id="finance-overview-chev">&#8964;</span></button>
+        </div>
+        <div class="finance-overview-body finance-mobile-collapse-body" id="finance-overview-body">
+          <div class="finance-subtitle">Track daily expenses and monthly income. Budget references come from the Finanzas sheet.</div>
+          <div class="finance-kpis" id="finance-kpis"></div>
+        </div>
       </div>
-      <div class="finance-kpis" id="finance-kpis"></div>
       <div class="finance-grid">
         <div class="finance-section">
-          <div class="finance-section-hdr"><span class="finance-section-title">Monthly budget by category</span><span class="finance-subtitle">80% warning · 100% over budget</span></div>
-          <div class="finance-section-body"><div class="finance-budget-head"><span>Category</span><span style="text-align:right">Actual</span><span style="text-align:right">Monthly</span><span style="text-align:right">Annual/plan</span><span></span></div><div id="finance-budget-list"></div></div>
+          <div class="finance-section-hdr"><span class="finance-section-title">Monthly budget by category</span><span class="finance-subtitle">80% warning · 100% over budget</span><button class="finance-mobile-toggle" id="finance-budget-toggle" type="button" aria-label="Hide monthly budget by category" aria-controls="finance-budget-body" aria-expanded="true" onclick="toggleFinanceBudgetSection()"><span class="finance-section-chev" id="finance-budget-chev">&#8964;</span></button></div>
+          <div class="finance-section-body finance-mobile-collapse-body" id="finance-budget-body"><div class="finance-budget-head"><span>Category</span><span style="text-align:right">Actual</span><span style="text-align:right">Monthly</span><span style="text-align:right">Annual/plan</span><span></span></div><div id="finance-budget-list"></div></div>
         </div>
         <div class="finance-side">
           <div class="finance-section">
@@ -2078,6 +2085,8 @@ let agendaExpenseEntryOpen=lsLoad('ops-agenda-expense-entry-open')!==false;
 const FINANCE_ENTRY_OPEN={expense:lsLoad('ops-finance-expense-form-open')!==false,income:lsLoad('ops-finance-income-form-open')!==false,purchase:lsLoad('ops-finance-purchase-form-open')!==false,debt:lsLoad('ops-finance-debt-form-open')!==false};
 let financeHistoryOpen=lsLoad('ops-finance-history-open')!==false;
 let purchaseHistoryOpen=lsLoad('ops-purchase-history-open')!==false;
+let financeOverviewOpen=lsLoad('ops-finance-overview-open')!==false;
+let financeBudgetSectionOpen=lsLoad('ops-finance-budget-section-open')!==false;
 const FINANCE_HISTORY_DAY_OPEN=lsLoad('ops-finance-history-day-open')||{};
 const FINANCE_HISTORY_WEEK_OPEN=lsLoad('ops-finance-history-week-open')||{};
 const FINANCE_BUDGET_ITEM_OPEN=lsLoad('ops-finance-budget-item-open')||{};
@@ -2091,9 +2100,12 @@ function toggleAgendaExpenseEntry(){agendaExpenseEntryOpen=!agendaExpenseEntryOp
 function toggleFinanceEntry(type){FINANCE_ENTRY_OPEN[type]=!FINANCE_ENTRY_OPEN[type];lsSave(`ops-finance-${type}-form-open`,FINANCE_ENTRY_OPEN[type]);renderFinanceEntryStates();}
 function toggleFinanceHistory(){financeHistoryOpen=!financeHistoryOpen;lsSave('ops-finance-history-open',financeHistoryOpen);renderFinanceEntryStates();}
 function togglePurchaseHistory(){purchaseHistoryOpen=!purchaseHistoryOpen;lsSave('ops-purchase-history-open',purchaseHistoryOpen);renderFinanceEntryStates();}
+function toggleFinanceOverview(){financeOverviewOpen=!financeOverviewOpen;lsSave('ops-finance-overview-open',financeOverviewOpen);renderFinanceMobileCollapseStates();}
+function toggleFinanceBudgetSection(){financeBudgetSectionOpen=!financeBudgetSectionOpen;lsSave('ops-finance-budget-section-open',financeBudgetSectionOpen);renderFinanceMobileCollapseStates();}
 function toggleFinanceHistoryDay(key){FINANCE_HISTORY_DAY_OPEN[key]=FINANCE_HISTORY_DAY_OPEN[key]===false;lsSave('ops-finance-history-day-open',FINANCE_HISTORY_DAY_OPEN);renderFinanceHistory();}
 function toggleFinanceHistoryWeek(key){FINANCE_HISTORY_WEEK_OPEN[key]=FINANCE_HISTORY_WEEK_OPEN[key]===false;lsSave('ops-finance-history-week-open',FINANCE_HISTORY_WEEK_OPEN);renderFinanceHistory();}
-function renderFinanceEntryStates(){['expense','income','purchase','debt'].forEach(type=>{document.getElementById(`finance-${type}-form`)?.classList.toggle('collapsed',!FINANCE_ENTRY_OPEN[type]);document.getElementById(`finance-${type}-form-chev`)?.classList.toggle('closed',!FINANCE_ENTRY_OPEN[type]);});document.getElementById('finance-history-body')?.classList.toggle('collapsed',!financeHistoryOpen);document.getElementById('finance-history-chev')?.classList.toggle('closed',!financeHistoryOpen);document.getElementById('purchase-history-body')?.classList.toggle('collapsed',!purchaseHistoryOpen);document.getElementById('purchase-history-chev')?.classList.toggle('closed',!purchaseHistoryOpen);}
+function renderFinanceMobileCollapseStates(){[['overview',financeOverviewOpen],['budget',financeBudgetSectionOpen]].forEach(([name,isOpen])=>{document.getElementById(`finance-${name}-body`)?.classList.toggle('mobile-collapsed',!isOpen);document.getElementById(`finance-${name}-chev`)?.classList.toggle('closed',!isOpen);const button=document.getElementById(`finance-${name}-toggle`);if(button){button.setAttribute('aria-expanded',String(isOpen));button.setAttribute('aria-label',`${isOpen?'Hide':'Show'} ${name==='overview'?'finance overview':'monthly budget by category'}`);}});}
+function renderFinanceEntryStates(){['expense','income','purchase','debt'].forEach(type=>{document.getElementById(`finance-${type}-form`)?.classList.toggle('collapsed',!FINANCE_ENTRY_OPEN[type]);document.getElementById(`finance-${type}-form-chev`)?.classList.toggle('closed',!FINANCE_ENTRY_OPEN[type]);});document.getElementById('finance-history-body')?.classList.toggle('collapsed',!financeHistoryOpen);document.getElementById('finance-history-chev')?.classList.toggle('closed',!financeHistoryOpen);document.getElementById('purchase-history-body')?.classList.toggle('collapsed',!purchaseHistoryOpen);document.getElementById('purchase-history-chev')?.classList.toggle('closed',!purchaseHistoryOpen);renderFinanceMobileCollapseStates();}
 function financeExpenseRow(expense,compact=false){
   const row=document.createElement('div');row.className='finance-expense-row';
   const main=document.createElement('div');main.className='finance-expense-main';

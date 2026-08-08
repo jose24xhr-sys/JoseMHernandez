@@ -515,4 +515,22 @@ describe("Ops Tracker browser interactions", () => {
     expect(htmlSource).toContain(".todo-item-actions,.note-card-actions,.reward-del,.reward-edit,.act-del-btn{opacity:1}");
     expect(htmlSource).toContain(".finance-history-items{grid-column:1/-1;grid-row:2}");
   });
+
+  it("collapses the finance overview and monthly budget from mobile arrow controls", () => {
+    const overviewToggle = window.document.getElementById("finance-overview-toggle");
+    const budgetToggle = window.document.getElementById("finance-budget-toggle");
+
+    expect(overviewToggle).not.toBeNull();
+    expect(budgetToggle).not.toBeNull();
+    expect(htmlSource).toContain(".finance-mobile-toggle{display:inline-flex}");
+    expect(htmlSource).toContain(".finance-mobile-collapse-body.mobile-collapsed{display:none}");
+
+    overviewToggle.click();
+    expect(window.document.getElementById("finance-overview-body").classList.contains("mobile-collapsed")).toBe(true);
+    expect(overviewToggle.getAttribute("aria-expanded")).toBe("false");
+
+    budgetToggle.click();
+    expect(window.document.getElementById("finance-budget-body").classList.contains("mobile-collapsed")).toBe(true);
+    expect(budgetToggle.getAttribute("aria-expanded")).toBe("false");
+  });
 });
