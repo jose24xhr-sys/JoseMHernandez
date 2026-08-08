@@ -88,6 +88,13 @@ const experience = [
 
 const projects = [
   {
+    year: "2026",
+    title: "Monobot Studio — Automation Systems",
+    link: "/monobot-studio",
+    body:
+      "A complete multi-page studio website for web design, supervised chatbots, AI agents, content systems, transparent pricing, case studies, and lead generation.",
+  },
+  {
     year: "2025",
     title: "Controlled Environment Training Program — TATA Consultancy Services",
     link: "https://www.linkedin.com/in/miguelhramirez/",

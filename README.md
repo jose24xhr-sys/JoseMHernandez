@@ -38,6 +38,12 @@ Use `npm.cmd run test:watch` while developing to rerun tests after changes.
 - `/` - portfolio
 - `/ops-tracker` - operations tracker
 - `/weekly-report` - weekly report
+- `/monobot-studio` - Monobot Studio website
+- `/monobot-studio/servicios` - services and pricing
+- `/monobot-studio/portafolio` - case studies
+- `/monobot-studio/blog` - Monoblog
+- `/monobot-studio/faq` - frequently asked questions
+- `/monobot-studio/agenda` - meeting page
 
 ## Environment variables
 
