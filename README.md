@@ -1,12 +1,49 @@
-# React + Vite
+# Jose M. Hernandez Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React and Vite portfolio with operations-tracker and weekly-report pages.
 
-Currently, two official plugins are available:
+## Requirements
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Node.js 20.19+ or 22.12+
+- npm
 
-## Expanding the ESLint configuration
+## Install
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```powershell
+npm.cmd ci
+```
+
+On macOS or Linux, use `npm ci` instead.
+
+## Run locally
+
+```powershell
+npm.cmd run dev
+```
+
+Open the local URL printed by Vite, normally `http://localhost:5173`.
+
+## Automated checks
+
+```powershell
+npm.cmd test
+npm.cmd run lint
+npm.cmd run build
+```
+
+Use `npm.cmd run test:watch` while developing to rerun tests after changes.
+
+## Routes
+
+- `/` - portfolio
+- `/ops-tracker` - operations tracker
+- `/weekly-report` - weekly report
+
+## Environment variables
+
+The Supabase client expects these Vite environment variables:
+
+```text
+VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY
+```
