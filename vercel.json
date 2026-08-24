@@ -1,5 +1,7 @@
 {
   "rewrites": [
+    { "source": "/routemize-training", "destination": "/routemize-training/index.html" },
+    { "source": "/routemize-training/", "destination": "/routemize-training/index.html" },
     { "source": "/monobot-studio", "destination": "/monobot-studio/index.html" },
     { "source": "/monobot-studio/servicios", "destination": "/monobot-studio/servicios/index.html" },
     { "source": "/monobot-studio/portafolio", "destination": "/monobot-studio/portafolio/index.html" },
