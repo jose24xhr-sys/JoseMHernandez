@@ -11,6 +11,10 @@ describe("application routes", () => {
       screen.getAllByText("Customer Success & Automation Specialist"),
     ).toHaveLength(2);
     expect(screen.getByRole("heading", { name: "Experience" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Visit Monobot Studio" })).toHaveAttribute(
+      "href",
+      "/monobot-studio/",
+    );
   });
 
   it("renders the operations tracker route", () => {

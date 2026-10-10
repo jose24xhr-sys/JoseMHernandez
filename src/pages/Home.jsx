@@ -415,7 +415,16 @@ export default function App() {
             <a href={profile.social.x} className="inline-flex items-center gap-2 rounded-2xl border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-900"><XIcon className="h-4 w-4" /> Follow</a>
           </div>
 
-          <footer className="mt-16 py-10 text-center text-sm text-neutral-500 dark:text-neutral-400">© {new Date().getFullYear()} {profile.name}</footer>
+          <footer className="mt-16 py-10 text-center text-sm text-neutral-500 dark:text-neutral-400">
+            <span>© {new Date().getFullYear()} {profile.name}</span>
+            <a
+              href="/monobot-studio/"
+              aria-label="Visit Monobot Studio"
+              className="mx-auto mt-4 block w-fit text-[10px] uppercase tracking-[0.28em] opacity-45 transition-opacity hover:opacity-100 focus-visible:opacity-100"
+            >
+              Monobot
+            </a>
+          </footer>
         </section>
       </main>
   );
