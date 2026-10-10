@@ -78,10 +78,31 @@
 
   const siteHeaders = [...document.querySelectorAll(".site-header")];
   if (siteHeaders.length) {
+    const headerSpacers = new Map();
+    siteHeaders.forEach((header) => {
+      const spacer = document.createElement("div");
+      spacer.className = "site-header-spacer";
+      spacer.setAttribute("aria-hidden", "true");
+      header.after(spacer);
+      headerSpacers.set(header, spacer);
+    });
+
     let headerFrame;
     const updateHeaderState = () => {
       const isCompact = window.scrollY > 56;
-      siteHeaders.forEach((header) => header.classList.toggle("is-compact", isCompact));
+      siteHeaders.forEach((header) => {
+        const spacer = headerSpacers.get(header);
+        if (isCompact === header.classList.contains("is-compact")) return;
+        if (isCompact) {
+          const styles = window.getComputedStyle(header);
+          const occupiedHeight = header.offsetHeight + parseFloat(styles.marginTop) + parseFloat(styles.marginBottom);
+          spacer.style.height = `${occupiedHeight}px`;
+          header.classList.add("is-compact");
+        } else {
+          header.classList.remove("is-compact");
+          spacer.style.height = "0px";
+        }
+      });
       headerFrame = undefined;
     };
     const requestHeaderUpdate = () => {
@@ -90,6 +111,7 @@
     };
     updateHeaderState();
     window.addEventListener("scroll", requestHeaderUpdate, { passive: true });
+    window.addEventListener("resize", requestHeaderUpdate, { passive: true });
   }
 
   document.querySelectorAll(".mobile-menu > div").forEach((menu) => {
