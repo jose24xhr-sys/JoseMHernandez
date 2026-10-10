@@ -23,6 +23,70 @@
     },
   ];
 
+  const socialPlatforms = [
+    {
+      name: "Facebook",
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 8h3V4h-3c-3.3 0-5 2-5 5v3H6v4h3v8h4v-8h3l1-4h-4V9c0-.7.3-1 1-1Z"/></svg>',
+    },
+    {
+      name: "X",
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4.2l3.5 4.8L16.8 4H19l-5.3 6.2L20 20h-4.2l-4-5.5L7.2 20H5l5.8-6.9L5 4Zm3.1 1.7 8.5 12.6h1.3L9.4 5.7H8.1Z"/></svg>',
+    },
+    {
+      name: "Instagram",
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.7" r="1.2"/></svg>',
+    },
+    {
+      name: "YouTube",
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="4"/><path d="m10 9 5 3-5 3V9Z" fill="#fff"/></svg>',
+    },
+    {
+      name: "TikTok",
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3v10.7a4.6 4.6 0 1 1-4-4.6v3.2a1.6 1.6 0 1 0 1 1.5V3h3Zm0 2.6c.8 1.6 2 2.5 4 2.7v3.1c-1.5-.1-2.8-.6-4-1.4V5.6Z"/></svg>',
+    },
+  ];
+
+  const createSocialLinks = (placement, showPending = false) => {
+    const block = document.createElement("div");
+    block.className = `social-links-block social-links-${placement}`;
+    const icons = document.createElement("div");
+    icons.className = "social-links";
+    icons.setAttribute("aria-label", "Redes sociales de Monobot Studio, enlaces pendientes");
+    socialPlatforms.forEach((platform) => {
+      const icon = document.createElement("span");
+      icon.className = "social-icon";
+      icon.setAttribute("role", "img");
+      icon.setAttribute("aria-label", `${platform.name} — enlace pendiente`);
+      icon.setAttribute("title", `${platform.name} — enlace pendiente`);
+      icon.innerHTML = platform.icon;
+      icons.appendChild(icon);
+    });
+    block.appendChild(icons);
+    if (showPending) {
+      const pending = document.createElement("small");
+      pending.className = "social-links-pending";
+      pending.textContent = "Pendiente: conectar perfiles oficiales.";
+      block.appendChild(pending);
+    }
+    return block;
+  };
+
+  document.querySelectorAll(".nav").forEach((nav) => {
+    const cta = nav.querySelector(".nav-cta");
+    if (cta) nav.insertBefore(createSocialLinks("header"), cta);
+  });
+
+  document.querySelectorAll(".mobile-menu > div").forEach((menu) => {
+    menu.appendChild(createSocialLinks("mobile"));
+  });
+
+  document.querySelectorAll("footer .footer-main > div:last-child").forEach((column) => {
+    const button = column.querySelector(".footer-agenda-button");
+    const socialBlock = createSocialLinks("footer", true);
+    if (button) column.insertBefore(socialBlock, button);
+    else column.appendChild(socialBlock);
+  });
+
   document.querySelectorAll("[data-social-preview-gallery]").forEach((gallery) => {
     const isHero = gallery.dataset.socialPreviewGallery === "hero";
     socialPreviewAssets.forEach((asset, index) => {
