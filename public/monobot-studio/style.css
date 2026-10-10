@@ -196,3 +196,10 @@ footer{background:#171717}
 @media(max-width:1120px){.social-links-header{display:none}}
 @media(max-width:1000px){.social-links-mobile{display:flex;grid-column:1/-1;justify-content:center;padding-top:12px;margin-top:4px;border-top:1px solid rgba(255,255,255,.1)}.social-links-mobile .social-links{justify-content:center}.social-links-mobile .social-icon{border-color:rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#eee6dc}.mobile-menu[open]{padding-bottom:230px}}
 @media(max-width:700px){.social-links-footer{margin-top:14px}.social-links-footer .social-links{flex-wrap:wrap}.mobile-menu[open]{padding-bottom:274px}}
+
+/* Calendly en vivo: mantiene el calendario contenido y usable en móvil */
+.calendar-shell-live{min-width:0;min-height:0;padding:22px 8px 8px;overflow:hidden;background:#fff;color:var(--ink)}
+.calendar-shell-live .calendar-head{margin-inline:14px;color:var(--ink);border-bottom-color:rgba(23,23,23,.12)}
+.calendar-shell-live .calendly-inline-widget{width:100%;min-width:0!important;height:700px!important}
+.calendar-fallback{display:block;padding:24px;text-align:center;color:var(--orange);font-weight:800}
+@media(max-width:700px){.calendar-shell-live{padding:16px 0 0;border-radius:14px}.calendar-shell-live .calendar-head{margin-inline:16px}.calendar-shell-live .calendly-inline-widget{height:720px!important}}
