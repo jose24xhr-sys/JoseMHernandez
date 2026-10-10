@@ -1,6 +1,55 @@
 (function () {
   const prefix = "/monobot-studio";
 
+  const socialPreviewAssets = [
+    {
+      src: `${prefix}/og.png`,
+      alt: "Monobot Studio: Si no se debe pensar, se debe automatizar",
+      label: "Brand statement",
+      format: "Social preview · 3:2",
+      featured: true,
+    },
+    {
+      src: `${prefix}/brand/monobot-front.png`,
+      alt: "Monobot flotando sobre un fondo cálido",
+      label: "Monobot en acción",
+      format: "Visual de campaña · 1:1",
+    },
+    {
+      src: `${prefix}/brand/monobot-angle.png`,
+      alt: "Monobot señalando",
+      label: "Dirección visual",
+      format: "Asset de apoyo · 4:3",
+    },
+  ];
+
+  document.querySelectorAll("[data-social-preview-gallery]").forEach((gallery) => {
+    const isHero = gallery.dataset.socialPreviewGallery === "hero";
+    socialPreviewAssets.forEach((asset, index) => {
+      const card = document.createElement("figure");
+      card.className = `social-preview-card${asset.featured ? " social-preview-featured" : ""}`;
+
+      const image = document.createElement("img");
+      image.src = asset.src;
+      image.alt = asset.alt;
+      image.decoding = "async";
+      image.loading = isHero && index === 0 ? "eager" : "lazy";
+      image.fetchPriority = isHero && index === 0 ? "high" : "auto";
+      image.sizes = isHero
+        ? "(max-width: 700px) calc(100vw - 64px), (max-width: 1000px) 70vw, 42vw"
+        : "(max-width: 700px) calc(100vw - 32px), 60vw";
+
+      const caption = document.createElement("figcaption");
+      const label = document.createElement("strong");
+      const format = document.createElement("span");
+      label.textContent = asset.label;
+      format.textContent = asset.format;
+      caption.append(label, format);
+      card.append(image, caption);
+      gallery.appendChild(card);
+    });
+  });
+
   document.querySelectorAll(".mobile-menu").forEach((menu) => {
     let previousY = window.scrollY;
     window.addEventListener("scroll", () => {
