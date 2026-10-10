@@ -87,6 +87,17 @@
     else column.appendChild(socialBlock);
   });
 
+  const normalizePath = (path) => path.replace(/\/+$/, "") || "/";
+  const currentPath = normalizePath(window.location.pathname);
+  document.querySelectorAll("[data-nav-link]").forEach((link) => {
+    const linkPath = normalizePath(new URL(link.href, window.location.origin).pathname);
+    const isBlogAdmin = currentPath.startsWith(`${prefix}/admin/blog`) && linkPath === `${prefix}/blog`;
+    if (currentPath === linkPath || isBlogAdmin) {
+      link.classList.add("is-active");
+      link.setAttribute("aria-current", "page");
+    }
+  });
+
   document.querySelectorAll("[data-social-preview-gallery]").forEach((gallery) => {
     const isHero = gallery.dataset.socialPreviewGallery === "hero";
     socialPreviewAssets.forEach((asset, index) => {
