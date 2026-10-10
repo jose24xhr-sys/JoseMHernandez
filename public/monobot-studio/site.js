@@ -76,6 +76,22 @@
     if (cta) nav.insertBefore(createSocialLinks("header"), cta);
   });
 
+  const siteHeaders = [...document.querySelectorAll(".site-header")];
+  if (siteHeaders.length) {
+    let headerFrame;
+    const updateHeaderState = () => {
+      const isCompact = window.scrollY > 56;
+      siteHeaders.forEach((header) => header.classList.toggle("is-compact", isCompact));
+      headerFrame = undefined;
+    };
+    const requestHeaderUpdate = () => {
+      if (headerFrame) return;
+      headerFrame = window.requestAnimationFrame(updateHeaderState);
+    };
+    updateHeaderState();
+    window.addEventListener("scroll", requestHeaderUpdate, { passive: true });
+  }
+
   document.querySelectorAll(".mobile-menu > div").forEach((menu) => {
     menu.appendChild(createSocialLinks("mobile"));
   });
