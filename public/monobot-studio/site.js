@@ -94,7 +94,10 @@
     shell.innerHTML = `
       <section class="chatbot-panel" id="monobot-chatbot-panel" role="dialog" aria-modal="false" aria-labelledby="monobot-chatbot-title" hidden>
         <header class="chatbot-header">
-          <span class="chatbot-heading"><strong id="monobot-chatbot-title">Asistente Monobot</strong><small><i aria-hidden="true"></i> Demo de interfaz</small></span>
+          <span class="chatbot-header-brand">
+            <img class="chatbot-header-logo" src="${prefix}/brand/chatbot-header-logo.png" alt="" width="48" height="32" decoding="async">
+            <span class="chatbot-heading"><strong id="monobot-chatbot-title">Asistente Monobot</strong><small><i aria-hidden="true"></i> Demo de interfaz</small></span>
+          </span>
           ${bookingButton}
           <button class="chatbot-close" type="button" aria-label="Cerrar asistente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
         </header>
