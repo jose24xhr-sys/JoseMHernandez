@@ -87,6 +87,24 @@ function createSlot(date, time) {
   return { start: start.toISOString(), end: end.toISOString() };
 }
 
+export function zoomLocalDateTime(isoDateTime) {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-CA', {
+      timeZone: TIME_ZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hourCycle: 'h23'
+    }).formatToParts(new Date(isoDateTime))
+      .filter(({ type }) => type !== 'literal')
+      .map(({ type, value }) => [type, value])
+  );
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}`;
+}
+
 function isWeekday(date) {
   const day = new Date(`${date}T12:00:00Z`).getUTCDay();
   return day >= 1 && day <= 5;
@@ -224,7 +242,7 @@ async function createZoomMeeting(config, booking) {
     body: JSON.stringify({
       topic: `MonoBot Studio — ${booking.name}`,
       type: 2,
-      start_time: booking.startTime,
+      start_time: zoomLocalDateTime(booking.startTime),
       duration: SLOT_DURATION_MINUTES,
       timezone: TIME_ZONE,
       agenda: booking.notes || 'Llamada de descubrimiento con MonoBot Studio.',
