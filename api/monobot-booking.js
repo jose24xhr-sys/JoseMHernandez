@@ -189,7 +189,7 @@ async function availability(config) {
   return days.map((day) => ({ ...day, slots: day.slots.filter((slot) => !busy.some((range) => overlaps(slot, range))) }));
 }
 
-async function enforceRateLimit(config, email) {
+async function enforceRateLimit(config, email, table = 'monobot_bookings') {
   const since = new Date(Date.now() - 10 * 60_000).toISOString();
   const params = new URLSearchParams({
     select: 'id',
@@ -197,30 +197,37 @@ async function enforceRateLimit(config, email) {
     created_at: `gte.${since}`,
     limit: '4'
   });
-  const recent = await supabaseRequest(config, `monobot_bookings?${params}`);
+  const recent = await supabaseRequest(config, `${table}?${params}`);
   if (recent.length >= 3) {
     throw Object.assign(new Error('Demasiados intentos recientes. Espera diez minutos e inténtalo nuevamente.'), { status: 429 });
   }
 }
 
-function validateBooking(body, availableDays) {
+export function validateContactDetails(body) {
   const name = String(body.name || '').trim();
   const email = String(body.email || '').trim().toLowerCase();
-  const startTime = String(body.startTime || '');
   if (body.website) throw Object.assign(new Error('Solicitud no válida.'), { status: 400 });
   if (Date.now() - Number(body.submittedAt || 0) < 2_000) throw Object.assign(new Error('Espera un momento e inténtalo nuevamente.'), { status: 400 });
   if (name.length < 2 || name.length > 100) throw Object.assign(new Error('Ingresa un nombre válido.'), { status: 400 });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 200) throw Object.assign(new Error('Ingresa un email válido.'), { status: 400 });
-  const slot = availableDays.flatMap((day) => day.slots).find((item) => item.start === startTime);
-  if (!slot) throw Object.assign(new Error('Ese horario ya no está disponible. Selecciona otro.'), { status: 409 });
   return {
     name,
     email,
-    startTime: slot.start,
-    endTime: slot.end,
     company: String(body.company || '').trim().slice(0, 120),
     phone: String(body.phone || '').trim().slice(0, 40),
     notes: String(body.notes || '').trim().slice(0, 1000)
+  };
+}
+
+function validateBooking(body, availableDays) {
+  const contact = validateContactDetails(body);
+  const startTime = String(body.startTime || '');
+  const slot = availableDays.flatMap((day) => day.slots).find((item) => item.start === startTime);
+  if (!slot) throw Object.assign(new Error('Ese horario ya no está disponible. Selecciona otro.'), { status: 409 });
+  return {
+    ...contact,
+    startTime: slot.start,
+    endTime: slot.end
   };
 }
 
@@ -294,6 +301,23 @@ async function reserveBooking(config, booking) {
   return result[0];
 }
 
+async function saveContactRequest(config, contact) {
+  const result = await supabaseRequest(config, 'monobot_contact_requests', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Prefer: 'return=representation' },
+    body: JSON.stringify({
+      name: contact.name,
+      email: contact.email,
+      company: contact.company || null,
+      phone: contact.phone || null,
+      notes: contact.notes || null,
+      status: 'new',
+      source: 'monobot-contact'
+    })
+  });
+  return result[0];
+}
+
 async function updateBooking(config, id, values) {
   await supabaseRequest(config, `monobot_bookings?id=eq.${encodeURIComponent(id)}`, {
     method: 'PATCH',
@@ -323,13 +347,24 @@ export default async function handler(req, res) {
   if (!databaseReady) return json(res, 503, { error: 'La agenda privada todavía requiere configuración del servidor.' });
 
   try {
-    const days = await availability(config);
-    if (req.method === 'GET') return json(res, 200, { days, timezone: TIME_ZONE, duration: SLOT_DURATION_MINUTES });
+    if (req.method === 'GET') {
+      const days = await availability(config);
+      return json(res, 200, { days, timezone: TIME_ZONE, duration: SLOT_DURATION_MINUTES });
+    }
+
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+    if (body.requestType === 'contact') {
+      const contact = validateContactDetails(body);
+      await enforceRateLimit(config, contact.email, 'monobot_contact_requests');
+      await saveContactRequest(config, contact);
+      return json(res, 201, { contactRequest: true });
+    }
+
     if (!config.zoomAccountId || !config.zoomClientId || !config.zoomClientSecret || !config.zoomHost) {
       return json(res, 503, { error: 'La conexión segura con Zoom todavía no está configurada.' });
     }
 
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+    const days = await availability(config);
     const booking = validateBooking(body, days);
     await enforceRateLimit(config, booking.email);
     let record;

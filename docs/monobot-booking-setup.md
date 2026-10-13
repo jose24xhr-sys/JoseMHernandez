@@ -13,6 +13,8 @@ The private prototype is available at `/monobot-studio/agenda-custom` and uses t
 
 The Supabase project is `jose24xhr` (`bqaqfeyqpneurguisjmx`). Never expose a Supabase secret key in browser code or commit it to Git.
 
+Bookings are stored in `public.monobot_bookings`. Requests from visitors who cannot use an available time are stored separately in `public.monobot_contact_requests`; that table is protected with RLS and is accessible only to the server-side `service_role`.
+
 ## Optional Google Calendar integration
 
 Add these variables to check the host calendar for conflicts and send calendar invitations automatically:
@@ -38,5 +40,6 @@ Create a Server-to-Server OAuth app owned by the Zoom account that hosts the mee
 - Availability window: next 14 business days
 - Pending reservation expiry: 15 minutes
 - Form rate limit: 3 attempts per email every 10 minutes
+- Contact requests do not create Zoom meetings or occupy calendar availability
 
 Change these constants in `api/monobot-booking.js` when the business rules are approved.

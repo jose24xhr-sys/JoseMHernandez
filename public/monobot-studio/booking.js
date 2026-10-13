@@ -6,6 +6,7 @@
   const slotsNode = document.querySelector('#booking-slots');
   const statusNode = document.querySelector('#booking-status');
   const startInput = document.querySelector('#booking-start-time');
+  const requestTypeInput = document.querySelector('#booking-request-type');
   const submittedAtInput = document.querySelector('#booking-submitted-at');
   const monthLabel = document.querySelector('#booking-month-label');
   const previousMonthButton = document.querySelector('#booking-month-prev');
@@ -21,10 +22,14 @@
   const timeSummaryKicker = document.querySelector('#booking-time-summary-kicker');
   const slotsPanel = document.querySelector('#booking-slots-panel');
   const timeTitle = document.querySelector('#booking-time-title');
+  const contactChoiceButton = document.querySelector('#booking-contact-choice');
   const submitButton = form.querySelector('[type="submit"]');
   const bookingShell = document.querySelector('.booking-shell');
   const confirmation = document.querySelector('#booking-confirmation');
+  const confirmationTitle = document.querySelector('#booking-confirmation-title');
   const confirmationCopy = document.querySelector('#booking-confirmation-copy');
+  const confirmationDateRow = document.querySelector('#booking-confirmation-date-row');
+  const confirmationTimeRow = document.querySelector('#booking-confirmation-time-row');
   const confirmationDate = document.querySelector('#booking-confirmation-date');
   const confirmationTime = document.querySelector('#booking-confirmation-time');
   const confirmationName = document.querySelector('#booking-confirmation-name');
@@ -42,6 +47,7 @@
   let currentMonth = '';
   let calendarCollapsed = false;
   let timesCollapsed = false;
+  let contactRequested = false;
   const desktopBookingFlow = window.matchMedia('(min-width: 1001px)');
 
   submittedAtInput.value = String(Date.now());
@@ -71,8 +77,11 @@
   }).format(new Date(iso));
 
   const updateSubmit = () => {
-    submitButton.disabled = !selectedStart;
+    submitButton.disabled = !selectedStart && !contactRequested;
     startInput.value = selectedStart;
+    requestTypeInput.value = contactRequested ? 'contact' : 'booking';
+    submitButton.textContent = contactRequested ? 'Enviar mis datos →' : 'Confirmar reunión →';
+    contactChoiceButton.setAttribute('aria-pressed', String(contactRequested));
   };
 
   const syncCalendarDisclosure = () => {
@@ -117,6 +126,7 @@
       button.textContent = formatTime(slot.start);
       button.setAttribute('aria-pressed', String(slot.start === selectedStart));
       button.addEventListener('click', () => {
+        contactRequested = false;
         selectedStart = slot.start;
         timesCollapsed = true;
         if (desktopBookingFlow.matches) calendarCollapsed = true;
@@ -130,6 +140,20 @@
       slotsNode.append(button);
     });
   };
+
+  contactChoiceButton.addEventListener('click', () => {
+    contactRequested = !contactRequested;
+    if (contactRequested) {
+      selectedStart = '';
+      timesCollapsed = false;
+      renderSlots();
+      syncTimeDisclosure();
+      setStatus('Completa tus datos y nos pondremos en contacto contigo.');
+    } else {
+      setStatus('Selecciona un horario disponible.');
+    }
+    updateSubmit();
+  });
 
   const renderDays = () => {
     daysNode.replaceChildren();
@@ -252,9 +276,9 @@
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (!selectedStart || !form.reportValidity()) return;
+    if ((!selectedStart && !contactRequested) || !form.reportValidity()) return;
     submitButton.disabled = true;
-    setStatus('Confirmando tu reunión…');
+    setStatus(contactRequested ? 'Enviando tus datos…' : 'Confirmando tu reunión…');
     const payload = Object.fromEntries(new FormData(form));
     try {
       const response = await fetch('/api/monobot-booking', {
@@ -267,11 +291,16 @@
       form.hidden = true;
       bookingShell.classList.add('is-confirmed');
       confirmation.classList.add('is-visible');
-      confirmationCopy.textContent = data.calendarInviteSent
-        ? 'Te enviamos la invitación de calendario con el enlace de Zoom.'
-        : 'La reunión fue creada. Guarda el enlace de Zoom que aparece abajo.';
-      confirmationDate.textContent = formatDayLong(selectedDate);
-      confirmationTime.textContent = formatTime(selectedStart);
+      confirmationTitle.textContent = data.contactRequest ? 'Gracias por escribirnos.' : 'Tu reunión está confirmada.';
+      confirmationCopy.textContent = data.contactRequest
+        ? 'Tus datos han sido guardados. Nos pondremos en contacto contigo lo antes posible para encontrar un horario que funcione. Gracias por confiar en MonoBot Studio.'
+        : (data.calendarInviteSent
+          ? 'Te enviamos la invitación de calendario con el enlace de Zoom.'
+          : 'La reunión fue creada. Guarda el enlace de Zoom que aparece abajo.');
+      confirmationDateRow.hidden = data.contactRequest;
+      confirmationTimeRow.hidden = data.contactRequest;
+      confirmationDate.textContent = data.contactRequest ? '' : formatDayLong(selectedDate);
+      confirmationTime.textContent = data.contactRequest ? '' : formatTime(selectedStart);
       confirmationName.textContent = payload.name;
       confirmationEmail.textContent = payload.email;
       confirmationCompany.textContent = payload.company || '';
@@ -280,7 +309,8 @@
       confirmationPhoneRow.hidden = !payload.phone;
       confirmationNotes.textContent = payload.notes || '';
       confirmationNotesRow.hidden = !payload.notes;
-      zoomLink.href = data.joinUrl;
+      zoomLink.hidden = data.contactRequest;
+      if (!data.contactRequest) zoomLink.href = data.joinUrl;
       confirmation.focus({ preventScroll: true });
     } catch (error) {
       submitButton.disabled = false;

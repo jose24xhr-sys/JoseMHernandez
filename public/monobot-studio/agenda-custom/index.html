@@ -61,10 +61,12 @@
                   <i aria-hidden="true">›</i>
                 </button>
                 <div class="booking-slots-panel" id="booking-slots-panel">
-                  <div class="booking-slots" id="booking-slots"><p>Elige una fecha disponible en el calendario.</p></div>
-                  <div class="booking-contact-choice">
-                    <span>Ninguno de estos horarios funciona.</span>
-                    <a href="mailto:hola@monobot.studio?subject=Quiero%20ser%20contactado%20por%20MonoBot%20Studio">Quiero ser contactado →</a>
+                  <div class="booking-slots-panel-inner">
+                    <div class="booking-slots" id="booking-slots"><p>Elige una fecha disponible en el calendario.</p></div>
+                    <div class="booking-contact-choice">
+                      <span>Ninguno de estos horarios funciona.</span>
+                      <button type="button" id="booking-contact-choice" aria-pressed="false">Quiero ser contactado →</button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -82,16 +84,17 @@
             </div>
           </section>
           <input type="hidden" name="startTime" id="booking-start-time">
+          <input type="hidden" name="requestType" id="booking-request-type" value="booking">
           <input type="hidden" name="submittedAt" id="booking-submitted-at">
           <button class="button booking-submit" type="submit" disabled>Confirmar reunión →</button>
           <p class="booking-status" id="booking-status" role="status" aria-live="polite">Cargando disponibilidad…</p>
         </form>
         <div class="booking-confirmation" id="booking-confirmation" aria-live="polite" tabindex="-1">
-          <h2>Tu reunión está confirmada.</h2>
+          <h2 id="booking-confirmation-title">Tu reunión está confirmada.</h2>
           <p id="booking-confirmation-copy"></p>
           <div class="booking-confirmation-details" aria-label="Resumen de la reunión">
-            <div><small>Fecha</small><strong id="booking-confirmation-date"></strong></div>
-            <div><small>Hora</small><strong id="booking-confirmation-time"></strong><span>Hora de Ciudad de México</span></div>
+            <div id="booking-confirmation-date-row"><small>Fecha</small><strong id="booking-confirmation-date"></strong></div>
+            <div id="booking-confirmation-time-row"><small>Hora</small><strong id="booking-confirmation-time"></strong><span>Hora de Ciudad de México</span></div>
             <div><small>Nombre</small><strong id="booking-confirmation-name"></strong></div>
             <div><small>Correo</small><strong id="booking-confirmation-email"></strong></div>
             <div id="booking-confirmation-company-row"><small>Empresa</small><strong id="booking-confirmation-company"></strong></div>
