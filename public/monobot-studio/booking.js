@@ -31,6 +31,7 @@
   let currentMonth = '';
   let calendarCollapsed = false;
   let timesCollapsed = false;
+  const desktopBookingFlow = window.matchMedia('(min-width: 1001px)');
 
   submittedAtInput.value = String(Date.now());
 
@@ -106,8 +107,10 @@
       button.addEventListener('click', () => {
         selectedStart = slot.start;
         timesCollapsed = true;
+        if (desktopBookingFlow.matches) calendarCollapsed = true;
         renderSlots();
         updateSubmit();
+        syncCalendarDisclosure();
         syncTimeDisclosure();
         timeSummaryButton.focus({ preventScroll: true });
         setStatus(`Horario seleccionado: ${formatDay(selectedDate)}, ${formatTime(selectedStart)}.`);
@@ -158,7 +161,7 @@
       button.addEventListener('click', () => {
         selectedDate = date;
         selectedStart = '';
-        calendarCollapsed = true;
+        calendarCollapsed = !desktopBookingFlow.matches;
         timesCollapsed = false;
         renderDays();
         renderSlots();
@@ -190,6 +193,13 @@
   timeSummaryButton.addEventListener('click', () => {
     if (!selectedStart) return;
     timesCollapsed = !timesCollapsed;
+    syncTimeDisclosure();
+  });
+  desktopBookingFlow.addEventListener('change', () => {
+    if (!selectedDate) return;
+    calendarCollapsed = selectedStart ? true : !desktopBookingFlow.matches;
+    timesCollapsed = Boolean(selectedStart);
+    syncCalendarDisclosure();
     syncTimeDisclosure();
   });
 
