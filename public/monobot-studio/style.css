@@ -318,6 +318,7 @@ footer{background:#171717}
 .site-header .nav nav a:hover:after,.site-header .nav nav a.is-active:after{right:0}
 .site-header .nav-cta{flex:0 0 auto;min-height:42px;padding:11px 17px;background:#ff6500;color:#fff;border-color:#ff6500;border-radius:10px;font-size:12px;white-space:nowrap;box-shadow:0 8px 22px rgba(255,101,0,.25)}
 .site-header .nav-cta:hover{background:#ff741f;border-color:#ff741f;box-shadow:0 11px 26px rgba(255,101,0,.34)}
+.agenda-custom-page .site-header .nav-cta,.agenda-custom-page .site-header .mobile-menu a[href="/monobot-studio/agenda"]{display:none!important}
 .site-header .social-links-header{margin-left:0}
 .site-header .social-links-header .social-links{gap:5px}
 .site-header .social-links-header .social-icon{width:26px;height:26px;color:#bbb4ad;background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
