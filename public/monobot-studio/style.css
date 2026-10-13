@@ -222,8 +222,11 @@ footer{background:#171717}
   .agenda-custom-page .agenda-hero{align-items:start;gap:32px;padding-block:24px}
   .agenda-custom-page .booking-shell{padding:18px}
   .agenda-custom-page .booking-form{gap:16px;padding-top:16px}
-  .agenda-custom-page .booking-calendar{padding:14px 18px}
-  .agenda-custom-page .booking-calendar-panel-inner{width:min(100%,420px);margin-inline:auto;padding-top:12px}
+  .agenda-custom-page .booking-picker{grid-template-columns:minmax(0,1.2fr) minmax(230px,.8fr);align-items:stretch}
+  .agenda-custom-page .booking-calendar{padding:14px 18px;border-right:1px solid rgba(23,23,23,.1);border-bottom:0}
+  .agenda-custom-page .booking-calendar-panel-inner{width:100%;margin-inline:auto;padding-top:12px}
+  .agenda-custom-page .booking-times,.agenda-custom-page .booking-picker.has-selected-date .booking-times{max-height:none;padding:14px 18px;background:#fff;opacity:1;transform:none;pointer-events:auto}
+  .agenda-custom-page .booking-slots{grid-template-columns:repeat(2,minmax(0,1fr));max-height:270px}
   .agenda-custom-page .booking-calendar-nav{margin-bottom:10px}
   .agenda-custom-page .booking-days,.agenda-custom-page .booking-weekdays{gap:4px}
   .agenda-custom-page .booking-calendar-legend{margin-top:9px}
