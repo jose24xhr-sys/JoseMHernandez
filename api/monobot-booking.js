@@ -26,17 +26,18 @@ function allowedOrigin(req) {
 }
 
 function envConfig() {
+  const env = (name) => process.env[name]?.trim();
   return {
-    supabaseUrl: process.env.SUPABASE_URL,
-    supabaseKey: process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY,
-    zoomAccountId: process.env.ZOOM_ACCOUNT_ID,
-    zoomClientId: process.env.ZOOM_CLIENT_ID,
-    zoomClientSecret: process.env.ZOOM_CLIENT_SECRET,
-    zoomHost: process.env.ZOOM_HOST_EMAIL,
-    googleClientId: process.env.GOOGLE_CLIENT_ID,
-    googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    googleRefreshToken: process.env.GOOGLE_REFRESH_TOKEN,
-    googleCalendarId: process.env.GOOGLE_CALENDAR_ID || 'primary'
+    supabaseUrl: env('SUPABASE_URL'),
+    supabaseKey: env('SUPABASE_SECRET_KEY') || env('SUPABASE_SERVICE_ROLE_KEY'),
+    zoomAccountId: env('ZOOM_ACCOUNT_ID'),
+    zoomClientId: env('ZOOM_CLIENT_ID'),
+    zoomClientSecret: env('ZOOM_CLIENT_SECRET'),
+    zoomHost: env('ZOOM_HOST_EMAIL'),
+    googleClientId: env('GOOGLE_CLIENT_ID'),
+    googleClientSecret: env('GOOGLE_CLIENT_SECRET'),
+    googleRefreshToken: env('GOOGLE_REFRESH_TOKEN'),
+    googleCalendarId: env('GOOGLE_CALENDAR_ID') || 'primary'
   };
 }
 
