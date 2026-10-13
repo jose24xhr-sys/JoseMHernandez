@@ -10,6 +10,12 @@
   const monthLabel = document.querySelector('#booking-month-label');
   const previousMonthButton = document.querySelector('#booking-month-prev');
   const nextMonthButton = document.querySelector('#booking-month-next');
+  const picker = document.querySelector('#booking-picker');
+  const calendar = document.querySelector('.booking-calendar');
+  const calendarPanel = document.querySelector('#booking-calendar-panel');
+  const dateSummaryButton = document.querySelector('#booking-date-summary');
+  const dateSummaryLabel = document.querySelector('#booking-date-summary-label');
+  const timesNode = document.querySelector('.booking-times');
   const timeTitle = document.querySelector('#booking-time-title');
   const submitButton = form.querySelector('[type="submit"]');
   const confirmation = document.querySelector('#booking-confirmation');
@@ -19,6 +25,7 @@
   let selectedDate = '';
   let selectedStart = '';
   let currentMonth = '';
+  let calendarCollapsed = false;
 
   submittedAtInput.value = String(Date.now());
 
@@ -49,6 +56,17 @@
   const updateSubmit = () => {
     submitButton.disabled = !selectedStart;
     startInput.value = selectedStart;
+  };
+
+  const syncCalendarDisclosure = () => {
+    const hasSelectedDate = Boolean(selectedDate);
+    picker.classList.toggle('has-selected-date', hasSelectedDate);
+    calendar.classList.toggle('is-collapsed', hasSelectedDate && calendarCollapsed);
+    dateSummaryButton.disabled = !hasSelectedDate;
+    dateSummaryButton.setAttribute('aria-expanded', String(!calendarCollapsed));
+    dateSummaryLabel.textContent = hasSelectedDate ? formatDayLong(selectedDate) : 'Selecciona una fecha';
+    calendarPanel.setAttribute('aria-hidden', String(hasSelectedDate && calendarCollapsed));
+    timesNode.setAttribute('aria-hidden', String(!hasSelectedDate));
   };
 
   const renderSlots = () => {
@@ -120,9 +138,12 @@
       button.addEventListener('click', () => {
         selectedDate = date;
         selectedStart = '';
+        calendarCollapsed = true;
         renderDays();
         renderSlots();
         updateSubmit();
+        syncCalendarDisclosure();
+        dateSummaryButton.focus({ preventScroll: true });
         setStatus('Selecciona una hora disponible.');
       });
       daysNode.append(button);
@@ -139,6 +160,11 @@
 
   previousMonthButton.addEventListener('click', () => changeMonth(-1));
   nextMonthButton.addEventListener('click', () => changeMonth(1));
+  dateSummaryButton.addEventListener('click', () => {
+    if (!selectedDate) return;
+    calendarCollapsed = !calendarCollapsed;
+    syncCalendarDisclosure();
+  });
 
   const loadAvailability = async () => {
     try {
@@ -146,13 +172,19 @@
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'No pudimos cargar la disponibilidad.');
       availability = data.days || [];
-      selectedDate = availability.find((day) => day.slots.length)?.date || '';
-      currentMonth = selectedDate.slice(0, 7) || availability[0]?.date.slice(0, 7) || '';
+      selectedDate = '';
+      selectedStart = '';
+      calendarCollapsed = false;
+      currentMonth = availability.find((day) => day.slots.length)?.date.slice(0, 7)
+        || availability[0]?.date.slice(0, 7)
+        || '';
       renderDays();
       renderSlots();
+      updateSubmit();
+      syncCalendarDisclosure();
       setStatus(data.preview
         ? 'Vista previa: conecta las credenciales del servidor para confirmar reservas.'
-        : (selectedDate ? 'Selecciona una hora disponible.' : 'No hay horarios disponibles por ahora.'));
+        : (availability.some((day) => day.slots.length) ? 'Selecciona una fecha disponible.' : 'No hay horarios disponibles por ahora.'));
     } catch (error) {
       setStatus(error.message, 'error');
       slotsNode.innerHTML = '<p>La integración todavía no está configurada.</p>';
