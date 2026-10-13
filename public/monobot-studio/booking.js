@@ -68,7 +68,7 @@
     const hasSelectedDate = Boolean(selectedDate);
     picker.classList.toggle('has-selected-date', hasSelectedDate);
     calendar.classList.toggle('is-collapsed', hasSelectedDate && calendarCollapsed);
-    dateSummaryButton.disabled = !hasSelectedDate;
+    dateSummaryButton.disabled = !hasSelectedDate || (desktopBookingFlow.matches && Boolean(selectedStart));
     dateSummaryButton.setAttribute('aria-expanded', String(!calendarCollapsed));
     dateSummaryKicker.textContent = hasSelectedDate ? 'Fecha seleccionada' : 'Fecha';
     dateSummaryLabel.textContent = hasSelectedDate ? formatDayLong(selectedDate) : 'Selecciona una fecha';
@@ -78,6 +78,7 @@
 
   const syncTimeDisclosure = () => {
     const hasSelectedTime = Boolean(selectedStart);
+    picker.classList.toggle('has-selected-time', hasSelectedTime);
     timesNode.classList.toggle('is-collapsed', hasSelectedTime && timesCollapsed);
     timeSummaryButton.disabled = !hasSelectedTime;
     timeSummaryButton.setAttribute('aria-expanded', String(!timesCollapsed));
@@ -192,6 +193,14 @@
   });
   timeSummaryButton.addEventListener('click', () => {
     if (!selectedStart) return;
+    if (desktopBookingFlow.matches) {
+      const shouldCollapse = !(calendarCollapsed && timesCollapsed);
+      calendarCollapsed = shouldCollapse;
+      timesCollapsed = shouldCollapse;
+      syncCalendarDisclosure();
+      syncTimeDisclosure();
+      return;
+    }
     timesCollapsed = !timesCollapsed;
     syncTimeDisclosure();
   });
