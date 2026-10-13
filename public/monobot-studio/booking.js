@@ -22,6 +22,7 @@
   const slotsPanel = document.querySelector('#booking-slots-panel');
   const timeTitle = document.querySelector('#booking-time-title');
   const submitButton = form.querySelector('[type="submit"]');
+  const bookingShell = document.querySelector('.booking-shell');
   const confirmation = document.querySelector('#booking-confirmation');
   const confirmationCopy = document.querySelector('#booking-confirmation-copy');
   const confirmationDate = document.querySelector('#booking-confirmation-date');
@@ -264,6 +265,7 @@
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'No pudimos confirmar la reunión.');
       form.hidden = true;
+      bookingShell.classList.add('is-confirmed');
       confirmation.classList.add('is-visible');
       confirmationCopy.textContent = data.calendarInviteSent
         ? 'Te enviamos la invitación de calendario con el enlace de Zoom.'
