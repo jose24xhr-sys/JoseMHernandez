@@ -291,12 +291,17 @@ footer{background:#171717}
 /* Header compacto durante el desplazamiento */
 .site-header{
   position:relative;
-  transition:min-height .24s ease,padding .24s ease,border-radius .24s ease,background .24s ease,box-shadow .24s ease,transform .24s ease;
+  transition:min-height .24s ease,padding .24s ease,border-radius .24s ease,background .24s ease,box-shadow .24s ease;
 }
 .site-header-spacer{height:0;pointer-events:none}
 .site-header .nav,
 .site-header .nav-secondary{
   transition:min-height .24s ease,padding .24s ease,opacity .18s ease,max-height .24s ease,border-color .24s ease;
+}
+.site-header .nav-secondary{
+  transform:translateY(0);
+  clip-path:inset(0 0 0 0);
+  transition:min-height .22s ease,padding .22s ease,opacity .14s ease,max-height .22s ease,border-color .18s ease,transform .22s ease,clip-path .22s ease;
 }
 .site-header.is-compact{
   position:fixed;
@@ -329,6 +334,8 @@ footer{background:#171717}
   opacity:0;
   overflow:hidden;
   pointer-events:none;
+  transform:translateY(-12px);
+  clip-path:inset(0 0 100% 0);
 }
 .site-header.is-compact .nav nav a{
   padding-block:19px 18px;
