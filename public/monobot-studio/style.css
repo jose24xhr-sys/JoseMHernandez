@@ -201,7 +201,7 @@ footer{background:#171717}
 .calendar-shell-live{min-width:0;min-height:0;padding:22px 8px 8px;overflow:hidden;background:#fff;color:var(--ink)}
 .calendar-shell-live .calendar-head{margin-inline:14px;color:var(--ink);border-bottom-color:rgba(23,23,23,.12)}
 .calendar-shell-live .cal-inline-embed{width:100%;min-width:0;height:590px;overflow:hidden}
-.calendar-shell-live .cal-inline-embed iframe{width:121.96%!important;height:720px!important;min-height:720px!important;border:0!important;transform:scale(.82)!important;transform-origin:top left}
+.calendar-shell-live .cal-inline-embed iframe{width:121.96%!important;max-width:none!important;height:720px!important;min-height:720px!important;border:0!important;transform:scale(.82)!important;transform-origin:top left}
 .calendar-fallback{display:block;padding:24px;text-align:center;color:var(--orange);font-weight:800}
 @media(max-width:1000px){.calendar-shell-live .cal-inline-embed{height:590px}.calendar-shell-live .cal-inline-embed iframe{width:128.21%!important;height:756px!important;min-height:756px!important;transform:scale(.78)!important}}
 @media(max-width:700px){.calendar-shell-live{padding:16px 0 0;border-radius:14px}.calendar-shell-live .calendar-head{margin-inline:16px}.calendar-shell-live .cal-inline-embed{height:590px}.calendar-shell-live .cal-inline-embed iframe{width:138.89%!important;height:820px!important;min-height:820px!important;transform:scale(.72)!important}}
