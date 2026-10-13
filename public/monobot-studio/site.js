@@ -1,7 +1,7 @@
 (function () {
   const prefix = "/monobot-studio";
   const chatbotConfig = Object.freeze({
-    mascotSrc: `${prefix}/brand/monobot-logo-v2.png`,
+    mascotSrc: `${prefix}/brand/monobot-chatbot-avatar.png`,
     mascotAlt: "Mascota de Monobot Studio",
   });
 
