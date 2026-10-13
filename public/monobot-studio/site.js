@@ -82,15 +82,20 @@
   const mountChatbotShell = () => {
     if (window.location.pathname.startsWith(`${prefix}/admin/`) || document.querySelector("[data-monobot-chatbot]")) return;
 
+    const isAgendaPage = window.location.pathname.startsWith(`${prefix}/agenda`);
+    const bookingButton = isAgendaPage
+      ? ""
+      : `<a class="chatbot-book" href="${prefix}/agenda">Agendar llamada</a>`;
+
     const shell = document.createElement("div");
-    shell.className = "monobot-chatbot";
+    shell.className = `monobot-chatbot${isAgendaPage ? " is-agenda" : ""}`;
     shell.dataset.monobotChatbot = "";
     shell.dataset.chatbotState = "closed";
     shell.innerHTML = `
       <section class="chatbot-panel" id="monobot-chatbot-panel" role="dialog" aria-modal="false" aria-labelledby="monobot-chatbot-title" hidden>
         <header class="chatbot-header">
           <span class="chatbot-heading"><strong id="monobot-chatbot-title">Asistente Monobot</strong><small><i aria-hidden="true"></i> Demo de interfaz</small></span>
-          <a class="chatbot-book" href="${prefix}/agenda">Agendar llamada</a>
+          ${bookingButton}
           <button class="chatbot-close" type="button" aria-label="Cerrar asistente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
         </header>
         <div class="chatbot-messages" role="log" aria-live="polite" aria-relevant="additions">
@@ -196,7 +201,13 @@
       }, 260);
     };
 
-    launcher.addEventListener("click", openChatbot);
+    launcher.addEventListener("click", () => {
+      if (shell.classList.contains("is-open")) {
+        closeChatbot();
+        return;
+      }
+      openChatbot();
+    });
     closeButton.addEventListener("click", closeChatbot);
     window.visualViewport?.addEventListener("resize", syncMobileViewport);
     window.addEventListener("orientationchange", syncMobileViewport);
