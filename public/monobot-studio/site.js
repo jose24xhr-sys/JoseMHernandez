@@ -1,7 +1,8 @@
 (function () {
   const prefix = "/monobot-studio";
   const chatbotConfig = Object.freeze({
-    mascotSrc: `${prefix}/brand/monobot-chatbot-avatar.png`,
+    launcherMascotSrc: `${prefix}/brand/monobot-chatbot-avatar.png`,
+    openMascotSrc: `${prefix}/brand/monobot-chatbot-open.png`,
     mascotAlt: "Mascota de Monobot Studio",
   });
 
@@ -120,8 +121,9 @@
     let loadingTimer;
 
     shell.querySelectorAll("img").forEach((image) => {
-      image.src = chatbotConfig.mascotSrc;
-      if (image.closest(".chatbot-launcher")) image.alt = chatbotConfig.mascotAlt;
+      const isLauncherMascot = Boolean(image.closest(".chatbot-launcher"));
+      image.src = isLauncherMascot ? chatbotConfig.launcherMascotSrc : chatbotConfig.openMascotSrc;
+      if (isLauncherMascot) image.alt = chatbotConfig.mascotAlt;
     });
 
     const setState = (state) => {
