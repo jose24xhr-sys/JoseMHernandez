@@ -14,9 +14,11 @@
   const calendar = document.querySelector('.booking-calendar');
   const calendarPanel = document.querySelector('#booking-calendar-panel');
   const dateSummaryButton = document.querySelector('#booking-date-summary');
+  const dateSummaryKicker = document.querySelector('#booking-date-summary-kicker');
   const dateSummaryLabel = document.querySelector('#booking-date-summary-label');
   const timesNode = document.querySelector('.booking-times');
   const timeSummaryButton = document.querySelector('#booking-time-summary');
+  const timeSummaryKicker = document.querySelector('#booking-time-summary-kicker');
   const slotsPanel = document.querySelector('#booking-slots-panel');
   const timeTitle = document.querySelector('#booking-time-title');
   const submitButton = form.querySelector('[type="submit"]');
@@ -67,6 +69,7 @@
     calendar.classList.toggle('is-collapsed', hasSelectedDate && calendarCollapsed);
     dateSummaryButton.disabled = !hasSelectedDate;
     dateSummaryButton.setAttribute('aria-expanded', String(!calendarCollapsed));
+    dateSummaryKicker.textContent = hasSelectedDate ? 'Fecha seleccionada' : 'Fecha';
     dateSummaryLabel.textContent = hasSelectedDate ? formatDayLong(selectedDate) : 'Selecciona una fecha';
     calendarPanel.setAttribute('aria-hidden', String(hasSelectedDate && calendarCollapsed));
     timesNode.setAttribute('aria-hidden', String(!hasSelectedDate));
@@ -78,9 +81,10 @@
     timeSummaryButton.disabled = !hasSelectedTime;
     timeSummaryButton.setAttribute('aria-expanded', String(!timesCollapsed));
     slotsPanel.setAttribute('aria-hidden', String(hasSelectedTime && timesCollapsed));
+    timeSummaryKicker.textContent = hasSelectedTime ? 'Hora seleccionada' : 'Horarios disponibles';
     timeTitle.textContent = hasSelectedTime
-      ? `${formatTime(selectedStart)} · ${formatDay(selectedDate)}`
-      : (selectedDate ? formatDayLong(selectedDate) : 'Selecciona un día');
+      ? formatTime(selectedStart)
+      : (selectedDate ? 'Selecciona una hora' : 'Selecciona un día');
   };
 
   const renderSlots = () => {
