@@ -24,6 +24,16 @@
   const submitButton = form.querySelector('[type="submit"]');
   const confirmation = document.querySelector('#booking-confirmation');
   const confirmationCopy = document.querySelector('#booking-confirmation-copy');
+  const confirmationDate = document.querySelector('#booking-confirmation-date');
+  const confirmationTime = document.querySelector('#booking-confirmation-time');
+  const confirmationName = document.querySelector('#booking-confirmation-name');
+  const confirmationEmail = document.querySelector('#booking-confirmation-email');
+  const confirmationCompany = document.querySelector('#booking-confirmation-company');
+  const confirmationCompanyRow = document.querySelector('#booking-confirmation-company-row');
+  const confirmationPhone = document.querySelector('#booking-confirmation-phone');
+  const confirmationPhoneRow = document.querySelector('#booking-confirmation-phone-row');
+  const confirmationNotes = document.querySelector('#booking-confirmation-notes');
+  const confirmationNotesRow = document.querySelector('#booking-confirmation-notes-row');
   const zoomLink = document.querySelector('#booking-zoom-link');
   let availability = [];
   let selectedDate = '';
@@ -258,7 +268,18 @@
       confirmationCopy.textContent = data.calendarInviteSent
         ? 'Te enviamos la invitación de calendario con el enlace de Zoom.'
         : 'La reunión fue creada. Guarda el enlace de Zoom que aparece abajo.';
+      confirmationDate.textContent = formatDayLong(selectedDate);
+      confirmationTime.textContent = formatTime(selectedStart);
+      confirmationName.textContent = payload.name;
+      confirmationEmail.textContent = payload.email;
+      confirmationCompany.textContent = payload.company || '';
+      confirmationCompanyRow.hidden = !payload.company;
+      confirmationPhone.textContent = payload.phone || '';
+      confirmationPhoneRow.hidden = !payload.phone;
+      confirmationNotes.textContent = payload.notes || '';
+      confirmationNotesRow.hidden = !payload.notes;
       zoomLink.href = data.joinUrl;
+      confirmation.focus({ preventScroll: true });
     } catch (error) {
       submitButton.disabled = false;
       await loadAvailability();

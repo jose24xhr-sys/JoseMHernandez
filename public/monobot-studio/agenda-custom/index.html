@@ -82,9 +82,18 @@
           <button class="button booking-submit" type="submit" disabled>Confirmar reunión →</button>
           <p class="booking-status" id="booking-status" role="status" aria-live="polite">Cargando disponibilidad…</p>
         </form>
-        <div class="booking-confirmation" id="booking-confirmation" aria-live="polite">
+        <div class="booking-confirmation" id="booking-confirmation" aria-live="polite" tabindex="-1">
           <h2>Tu reunión está confirmada.</h2>
           <p id="booking-confirmation-copy"></p>
+          <div class="booking-confirmation-details" aria-label="Resumen de la reunión">
+            <div><small>Fecha</small><strong id="booking-confirmation-date"></strong></div>
+            <div><small>Hora</small><strong id="booking-confirmation-time"></strong><span>Hora de Ciudad de México</span></div>
+            <div><small>Nombre</small><strong id="booking-confirmation-name"></strong></div>
+            <div><small>Correo</small><strong id="booking-confirmation-email"></strong></div>
+            <div id="booking-confirmation-company-row"><small>Empresa</small><strong id="booking-confirmation-company"></strong></div>
+            <div id="booking-confirmation-phone-row"><small>Teléfono</small><strong id="booking-confirmation-phone"></strong></div>
+            <div class="booking-confirmation-wide" id="booking-confirmation-notes-row"><small>Solicitud</small><strong id="booking-confirmation-notes"></strong></div>
+          </div>
           <a class="button button-small" id="booking-zoom-link" href="#" target="_blank" rel="noopener">Abrir Zoom ↗</a>
         </div>
       </aside>
