@@ -393,3 +393,32 @@ footer{background:#171717}
   .site-header .mobile-menu a:nth-last-child(-n+3),
   .site-header .mobile-menu a:nth-last-child(-n+2){border:0}
 }
+
+/* CTA del footer: jerarquía clara y área táctil cómoda */
+footer .footer-main .footer-agenda-button{
+  width:min(100%,290px);
+  min-height:52px;
+  justify-content:space-between;
+  gap:18px;
+  padding:9px 10px 9px 18px;
+  border-radius:12px;
+  font-size:12px;
+  letter-spacing:.01em;
+  box-shadow:0 12px 28px rgba(255,101,0,.2);
+}
+footer .footer-main .footer-agenda-button span{
+  display:grid;
+  width:32px;
+  height:32px;
+  flex:0 0 32px;
+  place-items:center;
+  border-radius:9px;
+  background:rgba(255,255,255,.16);
+  font-size:14px;
+  transition:background-color .2s ease,transform .2s ease;
+}
+footer .footer-main .footer-agenda-button:hover span,
+footer .footer-main .footer-agenda-button:focus-visible span{
+  background:rgba(255,255,255,.24);
+  transform:translate(1px,-1px);
+}
