@@ -282,6 +282,9 @@ footer{background:#171717}
 /* Agenda propia: encuadre compacto de escritorio */
 @media(min-width:1001px){
   .agenda-custom-page .agenda-hero{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:32px;padding-block:24px}
+  .agenda-custom-page .agenda-hero h1{max-width:610px;margin:14px 0 18px;font-size:clamp(48px,4.2vw,64px);line-height:.94}
+  .agenda-custom-page .agenda-hero .lede{max-width:520px;font-size:16px;line-height:1.5}
+  .agenda-custom-page .agenda-hero ul{max-width:520px;margin:16px 0 0}
   .agenda-custom-page .booking-shell{padding:18px}
   .agenda-custom-page .booking-form{gap:16px;padding-top:16px}
   .agenda-custom-page .booking-picker{grid-template-columns:minmax(0,1.2fr) minmax(230px,.8fr);align-items:stretch}
