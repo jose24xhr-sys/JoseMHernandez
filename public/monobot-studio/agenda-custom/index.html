@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" sizes="32x32" href="/monobot-studio/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/monobot-studio/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/monobot-studio/apple-touch-icon.png">
+  <meta name="theme-color" content="#171717">
+  <link rel="stylesheet" href="/monobot-studio/style.css">
+  <title>Agenda propia — Monobot Studio</title>
+  <meta name="description" content="Prototipo privado del sistema de reservas de Monobot Studio.">
+</head>
+<body>
+  <main>
+    <header class="site-header shell">
+      <div class="nav nav-main">
+        <a class="brand brand-text" href="/monobot-studio" aria-label="Monobot Studio, inicio"><span class="nav-logo"><img src="/monobot-studio/brand/monobot-mark.png" alt="" width="38" height="34" loading="eager" fetchpriority="high" decoding="async"></span><strong><span>MONOBOT</span><small>STUDIO</small></strong></a>
+        <nav aria-label="Navegación principal"><a href="/monobot-studio">Inicio</a><a href="/monobot-studio/servicios">Servicios y Costos</a><a href="/monobot-studio/portafolio">Portafolio</a><a href="/monobot-studio/blog">Blog / Recursos</a><a href="/monobot-studio/faq">FAQ</a></nav>
+        <a class="button button-small nav-cta" href="/monobot-studio/agenda">Agenda actual <span aria-hidden="true">→</span></a>
+        <details class="mobile-menu"><summary aria-label="Abrir navegación">Menú <span aria-hidden="true">☰</span></summary><div><a href="/monobot-studio">Inicio</a><a href="/monobot-studio/servicios">Servicios y Costos</a><a href="/monobot-studio/portafolio">Portafolio</a><a href="/monobot-studio/blog">Blog / Recursos</a><a href="/monobot-studio/faq">FAQ</a><a href="/monobot-studio/agenda">Agenda actual →</a></div></details>
+      </div>
+      <div class="nav-secondary" aria-label="Capacidades de MonoBot Studio"><p>Automatización <i>·</i> IA <i>·</i> Websites <i>·</i> Agentes <i>·</i> Resultados</p><p>Tu socio en <strong>automatización digital.</strong></p></div>
+    </header>
+
+    <section class="agenda-hero shell">
+      <div>
+        <p class="eyebrow"><i></i> Prototipo privado · Agenda propia</p>
+        <h1>Agenda sin <em>intermediarios.</em></h1>
+        <p class="lede">Selecciona un horario, comparte tus datos y el sistema creará una reunión única de Zoom. Esta ruta no reemplaza todavía la agenda pública.</p>
+        <ul><li>Horarios controlados por MonoBot</li><li>Bloqueo de reservas duplicadas</li><li>Enlace de Zoom generado automáticamente</li></ul>
+      </div>
+      <aside class="calendar-shell booking-shell">
+        <div class="calendar-head"><span>Agenda Monobot</span><b>30 min · CDMX</b></div>
+        <form class="booking-form" id="booking-form" novalidate>
+          <section class="booking-step" aria-labelledby="booking-date-title">
+            <h2 id="booking-date-title">1. Elige un día</h2>
+            <div class="booking-days" id="booking-days" aria-live="polite"></div>
+          </section>
+          <section class="booking-step" aria-labelledby="booking-time-title">
+            <h2 id="booking-time-title">2. Elige una hora</h2>
+            <div class="booking-slots" id="booking-slots"><p>Selecciona primero un día.</p></div>
+          </section>
+          <section class="booking-step" aria-labelledby="booking-details-title">
+            <h2 id="booking-details-title">3. Tus datos</h2>
+            <div class="booking-fields">
+              <div class="booking-field"><label for="booking-name">Nombre</label><input id="booking-name" name="name" autocomplete="name" required maxlength="100"></div>
+              <div class="booking-field"><label for="booking-email">Email</label><input id="booking-email" name="email" type="email" autocomplete="email" required maxlength="200"></div>
+              <div class="booking-field"><label for="booking-company">Empresa <span aria-hidden="true">(opcional)</span></label><input id="booking-company" name="company" autocomplete="organization" maxlength="120"></div>
+              <div class="booking-field"><label for="booking-phone">Teléfono <span aria-hidden="true">(opcional)</span></label><input id="booking-phone" name="phone" autocomplete="tel" maxlength="40"></div>
+              <div class="booking-field booking-field-wide"><label for="booking-notes">¿Qué quieres automatizar?</label><textarea id="booking-notes" name="notes" maxlength="1000"></textarea></div>
+              <div class="booking-honeypot" aria-hidden="true"><label for="booking-website">Sitio web</label><input id="booking-website" name="website" tabindex="-1" autocomplete="off"></div>
+            </div>
+          </section>
+          <input type="hidden" name="startTime" id="booking-start-time">
+          <input type="hidden" name="submittedAt" id="booking-submitted-at">
+          <button class="button booking-submit" type="submit" disabled>Confirmar reunión →</button>
+          <p class="booking-status" id="booking-status" role="status" aria-live="polite">Cargando disponibilidad…</p>
+        </form>
+        <div class="booking-confirmation" id="booking-confirmation" aria-live="polite">
+          <h2>Tu reunión está confirmada.</h2>
+          <p id="booking-confirmation-copy"></p>
+          <a class="button button-small" id="booking-zoom-link" href="#" target="_blank" rel="noopener">Abrir Zoom ↗</a>
+        </div>
+      </aside>
+    </section>
+
+    <section class="agenda-note shell"><span>01</span><p>El horario queda reservado solamente después de confirmar.</p><span>02</span><p>Las credenciales de Zoom y Calendar permanecen protegidas en el servidor.</p></section>
+    <footer><div class="footer-main footer-main-compact shell"><div class="footer-brand"><a class="brand brand-text" href="/monobot-studio"><span class="nav-logo footer-logo"><img src="/monobot-studio/brand/monobot-mark.png" alt="" width="46" height="46" loading="lazy" decoding="async"></span><strong>Monobot Studio</strong></a><p>Automatizamos procesos repetitivos para que tu negocio avance más rápido.</p></div><div><h4>Explorar</h4><a href="/monobot-studio/servicios">Servicios y Costos</a><a href="/monobot-studio/portafolio">Portafolio</a><a href="/monobot-studio/blog">Monoblog</a><a href="/monobot-studio/faq">Preguntas frecuentes</a></div><div><h4>¿Hablamos?</h4><a href="mailto:hola@monobot.studio">hola@monobot.studio</a><a class="button button-small footer-agenda-button" href="/monobot-studio/agenda">Agenda 30 min <span aria-hidden="true">↗</span></a></div></div><div class="footer-bottom shell"><span>© 2026 Monobot Studio.</span><span>Hecho para trabajar, no para decorar.</span><div><a href="#">Privacidad</a><a href="#">Términos</a></div></div></footer>
+  </main>
+  <script src="/monobot-studio/site.js"></script>
+  <script src="/monobot-studio/booking.js"></script>
+</body>
+</html>
