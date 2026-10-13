@@ -68,7 +68,7 @@
     const hasSelectedDate = Boolean(selectedDate);
     picker.classList.toggle('has-selected-date', hasSelectedDate);
     calendar.classList.toggle('is-collapsed', hasSelectedDate && calendarCollapsed);
-    dateSummaryButton.disabled = !hasSelectedDate || (desktopBookingFlow.matches && Boolean(selectedStart));
+    dateSummaryButton.disabled = !hasSelectedDate || desktopBookingFlow.matches;
     dateSummaryButton.setAttribute('aria-expanded', String(!calendarCollapsed));
     dateSummaryKicker.textContent = hasSelectedDate ? 'Fecha seleccionada' : 'Fecha';
     dateSummaryLabel.textContent = hasSelectedDate ? formatDayLong(selectedDate) : 'Selecciona una fecha';
