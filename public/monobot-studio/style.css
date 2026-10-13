@@ -375,7 +375,9 @@ footer{background:#171717}
 }
 @media(max-width:700px){
   .site-header .mobile-menu>div{width:calc(100% + 32px)}
-  .site-header .nav-secondary p:last-child{display:none}
+  .site-header .nav-secondary{display:flex;align-items:center;justify-content:center;padding-block:9px}
+  .site-header .nav-secondary p:first-child{display:none}
+  .site-header .nav-secondary p:last-child{display:block;padding:0;border:0;text-align:center;white-space:normal}
 }
 @media(prefers-reduced-motion:reduce){
   .site-header .nav-secondary{transition:none}
