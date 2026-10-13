@@ -98,15 +98,20 @@
 
   const syncTimeDisclosure = () => {
     const hasSelectedTime = Boolean(selectedStart);
-    picker.classList.toggle('has-selected-time', hasSelectedTime);
-    timesNode.classList.toggle('is-collapsed', hasSelectedTime && timesCollapsed);
-    timeSummaryButton.disabled = !hasSelectedTime;
+    const hasTimeChoice = hasSelectedTime || contactRequested;
+    picker.classList.toggle('has-selected-time', hasTimeChoice);
+    timesNode.classList.toggle('is-collapsed', hasTimeChoice && timesCollapsed);
+    timeSummaryButton.disabled = !hasTimeChoice;
     timeSummaryButton.setAttribute('aria-expanded', String(!timesCollapsed));
-    slotsPanel.setAttribute('aria-hidden', String(hasSelectedTime && timesCollapsed));
-    timeSummaryKicker.textContent = hasSelectedTime ? 'Hora seleccionada' : 'Horarios disponibles';
-    timeTitle.textContent = hasSelectedTime
-      ? formatTime(selectedStart)
-      : (selectedDate ? 'Selecciona una hora' : 'Selecciona un día');
+    slotsPanel.setAttribute('aria-hidden', String(hasTimeChoice && timesCollapsed));
+    timeSummaryKicker.textContent = contactRequested
+      ? 'Opción seleccionada'
+      : (hasSelectedTime ? 'Hora seleccionada' : 'Horarios disponibles');
+    timeTitle.textContent = contactRequested
+      ? 'Quiero ser contactado'
+      : (hasSelectedTime
+        ? formatTime(selectedStart)
+        : (selectedDate ? 'Selecciona una hora' : 'Selecciona un día'));
   };
 
   const renderSlots = () => {
@@ -145,11 +150,19 @@
     contactRequested = !contactRequested;
     if (contactRequested) {
       selectedStart = '';
-      timesCollapsed = false;
+      timesCollapsed = true;
+      if (desktopBookingFlow.matches) calendarCollapsed = true;
       renderSlots();
+      updateSubmit();
+      syncCalendarDisclosure();
       syncTimeDisclosure();
+      timeSummaryButton.focus({ preventScroll: true });
       setStatus('Completa tus datos y nos pondremos en contacto contigo.');
     } else {
+      timesCollapsed = false;
+      if (desktopBookingFlow.matches) calendarCollapsed = false;
+      syncCalendarDisclosure();
+      syncTimeDisclosure();
       setStatus('Selecciona un horario disponible.');
     }
     updateSubmit();
@@ -197,6 +210,7 @@
       button.addEventListener('click', () => {
         selectedDate = date;
         selectedStart = '';
+        contactRequested = false;
         calendarCollapsed = !desktopBookingFlow.matches;
         timesCollapsed = false;
         renderDays();
@@ -227,7 +241,7 @@
     syncCalendarDisclosure();
   });
   timeSummaryButton.addEventListener('click', () => {
-    if (!selectedStart) return;
+    if (!selectedStart && !contactRequested) return;
     if (desktopBookingFlow.matches) {
       const shouldCollapse = !(calendarCollapsed && timesCollapsed);
       calendarCollapsed = shouldCollapse;
@@ -241,8 +255,9 @@
   });
   desktopBookingFlow.addEventListener('change', () => {
     if (!selectedDate) return;
-    calendarCollapsed = selectedStart ? true : !desktopBookingFlow.matches;
-    timesCollapsed = Boolean(selectedStart);
+    const hasTimeChoice = Boolean(selectedStart || contactRequested);
+    calendarCollapsed = hasTimeChoice ? true : !desktopBookingFlow.matches;
+    timesCollapsed = hasTimeChoice;
     syncCalendarDisclosure();
     syncTimeDisclosure();
   });

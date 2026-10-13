@@ -380,3 +380,15 @@ footer{background:#171717}
 @media(prefers-reduced-motion:reduce){
   .site-header .nav-secondary{transition:none}
 }
+
+/* Navegación y redes: presentación móvil limpia y sin saltos */
+@media(max-width:700px){
+  .footer-main-compact>div:last-child{grid-column:1/-1}
+  .social-links-footer .social-links{flex-wrap:nowrap;gap:7px}
+  .social-links-footer .social-icon{flex:0 0 30px}
+  .site-header .mobile-menu a,
+  .site-header .mobile-menu a:nth-child(3n),
+  .site-header .mobile-menu a:nth-child(2n),
+  .site-header .mobile-menu a:nth-last-child(-n+3),
+  .site-header .mobile-menu a:nth-last-child(-n+2){border:0}
+}
