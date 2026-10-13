@@ -1,5 +1,9 @@
 (function () {
   const prefix = "/monobot-studio";
+  const chatbotConfig = Object.freeze({
+    mascotSrc: `${prefix}/brand/monobot-logo-v2.png`,
+    mascotAlt: "Mascota de Monobot Studio",
+  });
 
   const socialPreviewAssets = [
     {
@@ -73,6 +77,139 @@
     }
     return block;
   };
+
+  const mountChatbotShell = () => {
+    if (window.location.pathname.startsWith(`${prefix}/admin/`) || document.querySelector("[data-monobot-chatbot]")) return;
+
+    const shell = document.createElement("div");
+    shell.className = "monobot-chatbot";
+    shell.dataset.monobotChatbot = "";
+    shell.dataset.chatbotState = "closed";
+    shell.innerHTML = `
+      <section class="chatbot-panel" id="monobot-chatbot-panel" role="dialog" aria-modal="false" aria-labelledby="monobot-chatbot-title" hidden>
+        <header class="chatbot-header">
+          <span class="chatbot-avatar"><img alt="" decoding="async"></span>
+          <span class="chatbot-heading"><strong id="monobot-chatbot-title">Asistente Monobot</strong><small><i aria-hidden="true"></i> Demo de interfaz</small></span>
+          <button class="chatbot-close" type="button" aria-label="Cerrar asistente"><span aria-hidden="true">×</span></button>
+        </header>
+        <div class="chatbot-messages" role="log" aria-live="polite" aria-relevant="additions">
+          <div class="chatbot-message chatbot-message-bot"><span class="chatbot-message-avatar"><img alt="" decoding="async"></span><p>Hola, soy Monobot. Esta es una vista previa del asistente que podrá orientarte sobre servicios y automatización.</p></div>
+        </div>
+        <div class="chatbot-error" role="alert" hidden></div>
+        <form class="chatbot-composer">
+          <label class="chatbot-visually-hidden" for="monobot-chatbot-input">Escribe tu mensaje</label>
+          <input id="monobot-chatbot-input" type="text" maxlength="240" autocomplete="off" placeholder="Escribe tu mensaje…">
+          <button type="submit" aria-label="Enviar mensaje"><span aria-hidden="true">↑</span></button>
+        </form>
+        <p class="chatbot-disclaimer">Interfaz de demostración · Sin automatización activa</p>
+      </section>
+      <button class="chatbot-launcher" type="button" aria-label="Abrir asistente de Monobot" aria-controls="monobot-chatbot-panel" aria-expanded="false">
+        <img alt="" decoding="async">
+        <span>Chat</span>
+      </button>`;
+
+    const panel = shell.querySelector(".chatbot-panel");
+    const launcher = shell.querySelector(".chatbot-launcher");
+    const closeButton = shell.querySelector(".chatbot-close");
+    const form = shell.querySelector(".chatbot-composer");
+    const input = form.querySelector("input");
+    const submitButton = form.querySelector("button");
+    const messages = shell.querySelector(".chatbot-messages");
+    const errorBanner = shell.querySelector(".chatbot-error");
+    let closeTimer;
+    let loadingTimer;
+
+    shell.querySelectorAll("img").forEach((image) => {
+      image.src = chatbotConfig.mascotSrc;
+      if (image.closest(".chatbot-launcher")) image.alt = chatbotConfig.mascotAlt;
+    });
+
+    const setState = (state) => {
+      shell.dataset.chatbotState = state;
+    };
+
+    const addMessage = (text, type) => {
+      const message = document.createElement("div");
+      message.className = `chatbot-message chatbot-message-${type}`;
+      if (type === "loading") {
+        message.setAttribute("role", "status");
+        message.setAttribute("aria-label", "Monobot está preparando una respuesta");
+        message.innerHTML = '<span class="chatbot-loading-dot"></span><span class="chatbot-loading-dot"></span><span class="chatbot-loading-dot"></span>';
+      } else {
+        const paragraph = document.createElement("p");
+        paragraph.textContent = text;
+        message.appendChild(paragraph);
+      }
+      messages.appendChild(message);
+      messages.scrollTop = messages.scrollHeight;
+      return message;
+    };
+
+    const openChatbot = () => {
+      window.clearTimeout(closeTimer);
+      panel.hidden = false;
+      launcher.setAttribute("aria-expanded", "true");
+      launcher.setAttribute("aria-label", "Asistente de Monobot abierto");
+      setState("open");
+      window.requestAnimationFrame(() => {
+        shell.classList.add("is-open");
+        input.focus({ preventScroll: true });
+      });
+    };
+
+    const closeChatbot = () => {
+      shell.classList.remove("is-open");
+      launcher.setAttribute("aria-expanded", "false");
+      launcher.setAttribute("aria-label", "Abrir asistente de Monobot");
+      setState("closed");
+      launcher.focus({ preventScroll: true });
+      closeTimer = window.setTimeout(() => {
+        if (!shell.classList.contains("is-open")) panel.hidden = true;
+      }, 260);
+    };
+
+    launcher.addEventListener("click", openChatbot);
+    closeButton.addEventListener("click", closeChatbot);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && shell.classList.contains("is-open")) closeChatbot();
+    });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const value = input.value.trim();
+      errorBanner.hidden = true;
+      if (!value) {
+        errorBanner.textContent = "Escribe un mensaje para continuar.";
+        errorBanner.hidden = false;
+        setState("error");
+        input.focus();
+        return;
+      }
+
+      window.clearTimeout(loadingTimer);
+      addMessage(value, "user");
+      input.value = "";
+      input.disabled = true;
+      submitButton.disabled = true;
+      setState("loading");
+      const loadingMessage = addMessage("", "loading");
+
+      loadingTimer = window.setTimeout(() => {
+        loadingMessage.remove();
+        addMessage("La conexión todavía no está activa. Este componente muestra únicamente la experiencia visual del chatbot.", "error");
+        errorBanner.textContent = "Sin conexión automática por ahora.";
+        errorBanner.hidden = false;
+        input.disabled = false;
+        submitButton.disabled = false;
+        setState("error");
+        input.focus({ preventScroll: true });
+      }, 1000);
+    });
+
+    document.body.appendChild(shell);
+  };
+
+  mountChatbotShell();
 
   document.querySelectorAll(".nav").forEach((nav) => {
     const cta = nav.querySelector(".nav-cta");
