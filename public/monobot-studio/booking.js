@@ -16,6 +16,8 @@
   const dateSummaryButton = document.querySelector('#booking-date-summary');
   const dateSummaryLabel = document.querySelector('#booking-date-summary-label');
   const timesNode = document.querySelector('.booking-times');
+  const timeSummaryButton = document.querySelector('#booking-time-summary');
+  const slotsPanel = document.querySelector('#booking-slots-panel');
   const timeTitle = document.querySelector('#booking-time-title');
   const submitButton = form.querySelector('[type="submit"]');
   const confirmation = document.querySelector('#booking-confirmation');
@@ -26,6 +28,7 @@
   let selectedStart = '';
   let currentMonth = '';
   let calendarCollapsed = false;
+  let timesCollapsed = false;
 
   submittedAtInput.value = String(Date.now());
 
@@ -69,10 +72,20 @@
     timesNode.setAttribute('aria-hidden', String(!hasSelectedDate));
   };
 
+  const syncTimeDisclosure = () => {
+    const hasSelectedTime = Boolean(selectedStart);
+    timesNode.classList.toggle('is-collapsed', hasSelectedTime && timesCollapsed);
+    timeSummaryButton.disabled = !hasSelectedTime;
+    timeSummaryButton.setAttribute('aria-expanded', String(!timesCollapsed));
+    slotsPanel.setAttribute('aria-hidden', String(hasSelectedTime && timesCollapsed));
+    timeTitle.textContent = hasSelectedTime
+      ? `${formatTime(selectedStart)} · ${formatDay(selectedDate)}`
+      : (selectedDate ? formatDayLong(selectedDate) : 'Selecciona un día');
+  };
+
   const renderSlots = () => {
     slotsNode.replaceChildren();
     const day = availability.find((item) => item.date === selectedDate);
-    timeTitle.textContent = selectedDate ? formatDayLong(selectedDate) : 'Selecciona un día';
     if (!day || !day.slots.length) {
       const empty = document.createElement('p');
       empty.textContent = selectedDate
@@ -88,8 +101,11 @@
       button.setAttribute('aria-pressed', String(slot.start === selectedStart));
       button.addEventListener('click', () => {
         selectedStart = slot.start;
+        timesCollapsed = true;
         renderSlots();
         updateSubmit();
+        syncTimeDisclosure();
+        timeSummaryButton.focus({ preventScroll: true });
         setStatus(`Horario seleccionado: ${formatDay(selectedDate)}, ${formatTime(selectedStart)}.`);
       });
       slotsNode.append(button);
@@ -139,10 +155,12 @@
         selectedDate = date;
         selectedStart = '';
         calendarCollapsed = true;
+        timesCollapsed = false;
         renderDays();
         renderSlots();
         updateSubmit();
         syncCalendarDisclosure();
+        syncTimeDisclosure();
         dateSummaryButton.focus({ preventScroll: true });
         setStatus('Selecciona una hora disponible.');
       });
@@ -165,6 +183,11 @@
     calendarCollapsed = !calendarCollapsed;
     syncCalendarDisclosure();
   });
+  timeSummaryButton.addEventListener('click', () => {
+    if (!selectedStart) return;
+    timesCollapsed = !timesCollapsed;
+    syncTimeDisclosure();
+  });
 
   const loadAvailability = async () => {
     try {
@@ -175,6 +198,7 @@
       selectedDate = '';
       selectedStart = '';
       calendarCollapsed = false;
+      timesCollapsed = false;
       currentMonth = availability.find((day) => day.slots.length)?.date.slice(0, 7)
         || availability[0]?.date.slice(0, 7)
         || '';
@@ -182,6 +206,7 @@
       renderSlots();
       updateSubmit();
       syncCalendarDisclosure();
+      syncTimeDisclosure();
       setStatus(data.preview
         ? 'Vista previa: conecta las credenciales del servidor para confirmar reservas.'
         : (availability.some((day) => day.slots.length) ? 'Selecciona una fecha disponible.' : 'No hay horarios disponibles por ahora.'));

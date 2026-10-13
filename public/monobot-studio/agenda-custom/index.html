@@ -56,9 +56,13 @@
                 </div>
               </div>
               <div class="booking-times" aria-labelledby="booking-time-title" aria-hidden="true">
-                <span class="booking-times-kicker">Horarios disponibles</span>
-                <h3 id="booking-time-title">Selecciona un día</h3>
-                <div class="booking-slots" id="booking-slots"><p>Elige una fecha disponible en el calendario.</p></div>
+                <button type="button" class="booking-time-summary" id="booking-time-summary" aria-expanded="true" aria-controls="booking-slots-panel" disabled>
+                  <span><small>Horarios disponibles</small><strong id="booking-time-title">Selecciona un día</strong></span>
+                  <i aria-hidden="true">›</i>
+                </button>
+                <div class="booking-slots-panel" id="booking-slots-panel">
+                  <div class="booking-slots" id="booking-slots"><p>Elige una fecha disponible en el calendario.</p></div>
+                </div>
               </div>
             </div>
           </section>
