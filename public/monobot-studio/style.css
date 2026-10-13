@@ -160,7 +160,7 @@ footer{background:#171717}
 .chatbot-launcher-line{position:absolute;inset:0;display:grid;place-items:center;padding:6px 9px;opacity:0}
 .chatbot-launcher-intro{animation:chatbot-prompt-intro 6s ease forwards}
 .chatbot-launcher-help{animation:chatbot-prompt-help 6s ease forwards}
-.monobot-chatbot.is-open .chatbot-launcher-prompt{opacity:0;visibility:hidden;animation:none}
+.monobot-chatbot.is-open .chatbot-launcher-prompt,.monobot-chatbot.has-opened .chatbot-launcher-prompt{opacity:0;visibility:hidden;animation:none}
 .chatbot-panel{position:absolute;right:0;bottom:84px;display:grid;grid-template-rows:auto minmax(150px,1fr) auto auto auto;width:min(390px,calc(100vw - 28px));height:min(570px,calc(100dvh - 116px));overflow:hidden;border:1px solid rgba(255,112,20,.24);border-radius:24px;background:#f8f3ec;box-shadow:0 30px 80px rgba(20,14,10,.36);opacity:0;transform:translateY(16px) scale(.97);transform-origin:bottom right;pointer-events:none;transition:opacity .22s ease,transform .26s cubic-bezier(.22,1,.36,1)}
 .chatbot-panel[hidden]{display:none}
 .monobot-chatbot.is-open .chatbot-panel{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
@@ -199,7 +199,7 @@ footer{background:#171717}
 @keyframes chatbot-pulse{0%,80%,100%{transform:translateY(0);opacity:.35}40%{transform:translateY(-4px);opacity:1}}
 @keyframes chatbot-prompt-intro{0%,34%{opacity:1;transform:translateY(0)}43%,100%{opacity:0;transform:translateY(-7px)}}
 @keyframes chatbot-prompt-help{0%,38%{opacity:0;transform:translateY(7px)}47%,84%{opacity:1;transform:translateY(0)}94%,100%{opacity:0;transform:translateY(-7px)}}
-@keyframes chatbot-prompt-dismiss{0%,90%{opacity:1;visibility:visible}100%{opacity:0;visibility:hidden}}
+@keyframes chatbot-prompt-dismiss{0%,84%{opacity:1;visibility:visible}94%{opacity:0;visibility:visible}100%{opacity:0;visibility:hidden}}
 @keyframes chatbot-wave-enter{from{opacity:0;translate:0 6%;scale:.94}to{opacity:1;translate:0 0;scale:1}}
 @keyframes chatbot-wave-sway{0%,100%{rotate:0deg}20%,46%{rotate:-1.6deg}33%,60%{rotate:.8deg}80%{rotate:-.6deg}}
 @keyframes chatbot-wave-arm{0%{rotate:10deg}16%{rotate:-14deg}31%{rotate:5deg}46%{rotate:-14deg}61%{rotate:5deg}76%{rotate:-9deg}89%{rotate:2deg}100%{rotate:0deg}}
@@ -318,7 +318,7 @@ footer{background:#171717}
 .site-header .nav nav a:hover:after,.site-header .nav nav a.is-active:after{right:0}
 .site-header .nav-cta{flex:0 0 auto;min-height:42px;padding:11px 17px;background:#ff6500;color:#fff;border-color:#ff6500;border-radius:10px;font-size:12px;white-space:nowrap;box-shadow:0 8px 22px rgba(255,101,0,.25)}
 .site-header .nav-cta:hover{background:#ff741f;border-color:#ff741f;box-shadow:0 11px 26px rgba(255,101,0,.34)}
-.agenda-custom-page .site-header .nav-cta,.agenda-custom-page .site-header .mobile-menu a[href="/monobot-studio/agenda"]{display:none!important}
+.agenda-custom-page .site-header .nav-cta,.agenda-custom-page .site-header .mobile-menu a[href="/monobot-studio/agenda"],.agenda-custom-page footer .footer-agenda-button{display:none!important}
 .site-header .social-links-header{margin-left:0}
 .site-header .social-links-header .social-links{gap:5px}
 .site-header .social-links-header .social-icon{width:26px;height:26px;color:#bbb4ad;background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}

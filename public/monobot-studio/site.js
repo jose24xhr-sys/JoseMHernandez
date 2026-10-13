@@ -178,6 +178,7 @@
     const openChatbot = () => {
       window.clearTimeout(closeTimer);
       syncMobileViewport();
+      shell.classList.add("has-opened");
       panel.hidden = false;
       if (!greeting.hidden) {
         waveMascot.classList.remove("is-playing");
