@@ -7,6 +7,10 @@
   const statusNode = document.querySelector('#booking-status');
   const startInput = document.querySelector('#booking-start-time');
   const submittedAtInput = document.querySelector('#booking-submitted-at');
+  const monthLabel = document.querySelector('#booking-month-label');
+  const previousMonthButton = document.querySelector('#booking-month-prev');
+  const nextMonthButton = document.querySelector('#booking-month-next');
+  const timeTitle = document.querySelector('#booking-time-title');
   const submitButton = form.querySelector('[type="submit"]');
   const confirmation = document.querySelector('#booking-confirmation');
   const confirmationCopy = document.querySelector('#booking-confirmation-copy');
@@ -14,6 +18,7 @@
   let availability = [];
   let selectedDate = '';
   let selectedStart = '';
+  let currentMonth = '';
 
   submittedAtInput.value = String(Date.now());
 
@@ -25,6 +30,17 @@
   const formatDay = (date) => new Intl.DateTimeFormat('es-MX', {
     timeZone: 'America/Mexico_City', weekday: 'short', day: 'numeric', month: 'short'
   }).format(new Date(`${date}T12:00:00-06:00`));
+
+  const formatDayLong = (date) => new Intl.DateTimeFormat('es-MX', {
+    timeZone: 'America/Mexico_City', weekday: 'long', day: 'numeric', month: 'long'
+  }).format(new Date(`${date}T12:00:00-06:00`));
+
+  const formatMonth = (month) => {
+    const [year, monthNumber] = month.split('-').map(Number);
+    const label = new Intl.DateTimeFormat('es-MX', { month: 'long', year: 'numeric' })
+      .format(new Date(Date.UTC(year, monthNumber - 1, 1)));
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  };
 
   const formatTime = (iso) => new Intl.DateTimeFormat('es-MX', {
     timeZone: 'America/Mexico_City', hour: 'numeric', minute: '2-digit'
@@ -38,9 +54,12 @@
   const renderSlots = () => {
     slotsNode.replaceChildren();
     const day = availability.find((item) => item.date === selectedDate);
+    timeTitle.textContent = selectedDate ? formatDayLong(selectedDate) : 'Selecciona un día';
     if (!day || !day.slots.length) {
       const empty = document.createElement('p');
-      empty.textContent = 'No hay horarios disponibles para este día.';
+      empty.textContent = selectedDate
+        ? 'No hay horarios disponibles para este día.'
+        : 'Elige una fecha disponible en el calendario.';
       slotsNode.append(empty);
       return;
     }
@@ -61,15 +80,45 @@
 
   const renderDays = () => {
     daysNode.replaceChildren();
-    availability.forEach((day) => {
+    const availableMonths = [...new Set(availability.map((day) => day.date.slice(0, 7)))];
+    if (!currentMonth) currentMonth = selectedDate.slice(0, 7) || availableMonths[0] || '';
+    if (!currentMonth) {
+      monthLabel.textContent = 'Sin disponibilidad';
+      previousMonthButton.disabled = true;
+      nextMonthButton.disabled = true;
+      return;
+    }
+
+    monthLabel.textContent = formatMonth(currentMonth);
+    const monthIndex = availableMonths.indexOf(currentMonth);
+    previousMonthButton.disabled = monthIndex <= 0;
+    nextMonthButton.disabled = monthIndex < 0 || monthIndex >= availableMonths.length - 1;
+
+    const [year, month] = currentMonth.split('-').map(Number);
+    const leadingCells = (new Date(Date.UTC(year, month - 1, 1)).getUTCDay() + 6) % 7;
+    const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    for (let index = 0; index < leadingCells; index += 1) {
+      const spacer = document.createElement('span');
+      spacer.className = 'booking-calendar-spacer';
+      spacer.setAttribute('aria-hidden', 'true');
+      daysNode.append(spacer);
+    }
+
+    for (let dayNumber = 1; dayNumber <= daysInMonth; dayNumber += 1) {
+      const date = `${currentMonth}-${String(dayNumber).padStart(2, '0')}`;
+      const day = availability.find((item) => item.date === date);
+      const slotCount = day?.slots.length || 0;
       const button = document.createElement('button');
-      const [weekday, ...rest] = formatDay(day.date).split(' ');
       button.type = 'button';
-      button.disabled = day.slots.length === 0;
-      button.setAttribute('aria-pressed', String(day.date === selectedDate));
-      button.innerHTML = `<small>${weekday}</small><span>${rest.join(' ')}</span>`;
+      button.disabled = !slotCount;
+      button.dataset.available = String(Boolean(slotCount));
+      button.setAttribute('aria-pressed', String(date === selectedDate));
+      button.setAttribute('aria-label', slotCount
+        ? `${formatDayLong(date)}, ${slotCount} horarios disponibles`
+        : `${formatDayLong(date)}, sin disponibilidad`);
+      button.innerHTML = `<span>${dayNumber}</span>${slotCount ? '<i aria-hidden="true"></i>' : ''}`;
       button.addEventListener('click', () => {
-        selectedDate = day.date;
+        selectedDate = date;
         selectedStart = '';
         renderDays();
         renderSlots();
@@ -77,8 +126,19 @@
         setStatus('Selecciona una hora disponible.');
       });
       daysNode.append(button);
-    });
+    }
   };
+
+  const changeMonth = (offset) => {
+    const availableMonths = [...new Set(availability.map((day) => day.date.slice(0, 7)))];
+    const nextIndex = availableMonths.indexOf(currentMonth) + offset;
+    if (nextIndex < 0 || nextIndex >= availableMonths.length) return;
+    currentMonth = availableMonths[nextIndex];
+    renderDays();
+  };
+
+  previousMonthButton.addEventListener('click', () => changeMonth(-1));
+  nextMonthButton.addEventListener('click', () => changeMonth(1));
 
   const loadAvailability = async () => {
     try {
@@ -87,6 +147,7 @@
       if (!response.ok) throw new Error(data.error || 'No pudimos cargar la disponibilidad.');
       availability = data.days || [];
       selectedDate = availability.find((day) => day.slots.length)?.date || '';
+      currentMonth = selectedDate.slice(0, 7) || availability[0]?.date.slice(0, 7) || '';
       renderDays();
       renderSlots();
       setStatus(data.preview

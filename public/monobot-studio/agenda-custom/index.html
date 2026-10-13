@@ -35,15 +35,27 @@
         <div class="calendar-head"><span>Agenda Monobot</span><b>30 min · CDMX</b></div>
         <form class="booking-form" id="booking-form" novalidate>
           <section class="booking-step" aria-labelledby="booking-date-title">
-            <h2 id="booking-date-title">1. Elige un día</h2>
-            <div class="booking-days" id="booking-days" aria-live="polite"></div>
-          </section>
-          <section class="booking-step" aria-labelledby="booking-time-title">
-            <h2 id="booking-time-title">2. Elige una hora</h2>
-            <div class="booking-slots" id="booking-slots"><p>Selecciona primero un día.</p></div>
+            <h2 id="booking-date-title">1. Selecciona fecha y hora</h2>
+            <div class="booking-picker">
+              <div class="booking-calendar" aria-label="Calendario de disponibilidad">
+                <div class="booking-calendar-nav">
+                  <button type="button" class="booking-month-button" id="booking-month-prev" aria-label="Mes anterior">←</button>
+                  <strong id="booking-month-label" aria-live="polite"></strong>
+                  <button type="button" class="booking-month-button" id="booking-month-next" aria-label="Mes siguiente">→</button>
+                </div>
+                <div class="booking-weekdays" aria-hidden="true"><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span></div>
+                <div class="booking-days" id="booking-days" role="grid" aria-live="polite"></div>
+                <p class="booking-calendar-legend"><i></i> Días con disponibilidad</p>
+              </div>
+              <div class="booking-times" aria-labelledby="booking-time-title">
+                <span class="booking-times-kicker">Horarios disponibles</span>
+                <h3 id="booking-time-title">Selecciona un día</h3>
+                <div class="booking-slots" id="booking-slots"><p>Elige una fecha disponible en el calendario.</p></div>
+              </div>
+            </div>
           </section>
           <section class="booking-step" aria-labelledby="booking-details-title">
-            <h2 id="booking-details-title">3. Tus datos</h2>
+            <h2 id="booking-details-title">2. Tus datos</h2>
             <div class="booking-fields">
               <div class="booking-field"><label for="booking-name">Nombre</label><input id="booking-name" name="name" autocomplete="name" required maxlength="100"></div>
               <div class="booking-field"><label for="booking-email">Email</label><input id="booking-email" name="email" type="email" autocomplete="email" required maxlength="200"></div>
