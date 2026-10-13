@@ -383,9 +383,11 @@ footer{background:#171717}
 
 /* Navegación y redes: presentación móvil limpia y sin saltos */
 @media(max-width:700px){
-  .footer-main-compact>div:last-child{grid-column:1/-1}
-  .social-links-footer .social-links{flex-wrap:nowrap;gap:7px}
-  .social-links-footer .social-icon{flex:0 0 30px}
+  .footer-main-compact{grid-template-columns:repeat(2,minmax(0,1fr));gap:35px 20px}
+  .footer-main-compact>div:last-child{grid-column:auto}
+  .social-links-footer .social-links{flex-wrap:nowrap;gap:4px}
+  .social-links-footer .social-icon{width:22px;height:22px;flex:0 0 22px}
+  .social-links-footer .social-icon svg{width:11px;height:11px}
   .site-header .mobile-menu summary{border:0;border-radius:0;background:transparent;box-shadow:none}
   .site-header .mobile-menu a,
   .site-header .mobile-menu a:nth-child(3n),
@@ -418,4 +420,16 @@ footer .footer-main .footer-agenda-button span{
   border-radius:0;
   background:transparent;
   font-size:12px;
+}
+@media(max-width:700px){
+  footer .footer-main .footer-agenda-button{
+    width:100%;
+    min-width:0;
+    min-height:40px;
+    gap:6px;
+    margin:14px 0 0;
+    padding:10px 8px;
+    font-size:10px;
+  }
+  footer .footer-main .footer-agenda-button span{font-size:10px}
 }
