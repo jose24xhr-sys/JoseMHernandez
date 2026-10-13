@@ -89,20 +89,21 @@
     shell.innerHTML = `
       <section class="chatbot-panel" id="monobot-chatbot-panel" role="dialog" aria-modal="false" aria-labelledby="monobot-chatbot-title" hidden>
         <header class="chatbot-header">
-          <span class="chatbot-avatar"><img alt="" decoding="async"></span>
           <span class="chatbot-heading"><strong id="monobot-chatbot-title">Asistente Monobot</strong><small><i aria-hidden="true"></i> Demo de interfaz</small></span>
-          <button class="chatbot-close" type="button" aria-label="Cerrar asistente"><span aria-hidden="true">×</span></button>
+          <button class="chatbot-close" type="button" aria-label="Cerrar asistente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
         </header>
         <div class="chatbot-messages" role="log" aria-live="polite" aria-relevant="additions">
-          <div class="chatbot-wave is-playing" role="img" aria-label="Monobot saludando">
-            <div class="chatbot-wave-rig">
-              <img class="chatbot-wave-body" src="${prefix}/brand/chatbot-wave/body.webp" alt="">
-              <img class="chatbot-wave-arm" src="${prefix}/brand/chatbot-wave/arm.webp" alt="">
-              <img class="chatbot-wave-spark-one" src="${prefix}/brand/chatbot-wave/spark1.webp" alt="">
-              <img class="chatbot-wave-spark-two" src="${prefix}/brand/chatbot-wave/spark2.webp" alt="">
+          <div class="chatbot-greeting">
+            <p class="chatbot-greeting-bubble">Hola, soy Monobot. Puedo orientarte sobre servicios y automatización.</p>
+            <div class="chatbot-wave is-playing" role="img" aria-label="Monobot saludando">
+              <div class="chatbot-wave-rig">
+                <img class="chatbot-wave-body" src="${prefix}/brand/chatbot-wave/body.webp" alt="">
+                <img class="chatbot-wave-arm" src="${prefix}/brand/chatbot-wave/arm.webp" alt="">
+                <img class="chatbot-wave-spark-one" src="${prefix}/brand/chatbot-wave/spark1.webp" alt="">
+                <img class="chatbot-wave-spark-two" src="${prefix}/brand/chatbot-wave/spark2.webp" alt="">
+              </div>
             </div>
           </div>
-          <div class="chatbot-message chatbot-message-bot"><span class="chatbot-message-avatar"><img alt="" decoding="async"></span><p>Hola, soy Monobot. Esta es una vista previa del asistente que podrá orientarte sobre servicios y automatización.</p></div>
         </div>
         <div class="chatbot-error" role="alert" hidden></div>
         <form class="chatbot-composer">
@@ -124,12 +125,13 @@
     const input = form.querySelector("input");
     const submitButton = form.querySelector("button");
     const messages = shell.querySelector(".chatbot-messages");
+    const greeting = shell.querySelector(".chatbot-greeting");
     const waveMascot = shell.querySelector(".chatbot-wave");
     const errorBanner = shell.querySelector(".chatbot-error");
     let closeTimer;
     let loadingTimer;
 
-    shell.querySelectorAll(".chatbot-avatar img, .chatbot-message-avatar img, .chatbot-launcher img").forEach((image) => {
+    shell.querySelectorAll(".chatbot-message-avatar img, .chatbot-launcher img").forEach((image) => {
       const isLauncherMascot = Boolean(image.closest(".chatbot-launcher"));
       image.src = isLauncherMascot ? chatbotConfig.launcherMascotSrc : chatbotConfig.openMascotSrc;
       if (isLauncherMascot) image.alt = chatbotConfig.mascotAlt;
@@ -159,9 +161,11 @@
     const openChatbot = () => {
       window.clearTimeout(closeTimer);
       panel.hidden = false;
-      waveMascot.classList.remove("is-playing");
-      void waveMascot.offsetWidth;
-      waveMascot.classList.add("is-playing");
+      if (!greeting.hidden) {
+        waveMascot.classList.remove("is-playing");
+        void waveMascot.offsetWidth;
+        waveMascot.classList.add("is-playing");
+      }
       launcher.setAttribute("aria-expanded", "true");
       launcher.setAttribute("aria-label", "Asistente de Monobot abierto");
       setState("open");
@@ -201,6 +205,9 @@
       }
 
       window.clearTimeout(loadingTimer);
+      greeting.hidden = true;
+      waveMascot.classList.remove("is-playing");
+      shell.classList.add("has-conversation");
       addMessage(value, "user");
       input.value = "";
       input.disabled = true;
