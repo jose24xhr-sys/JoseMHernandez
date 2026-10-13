@@ -121,7 +121,10 @@
       </section>
       <button class="chatbot-launcher" type="button" aria-label="Abrir asistente de Monobot" aria-controls="monobot-chatbot-panel" aria-expanded="false">
         <img alt="" decoding="async">
-        <span>¿Necesitas ayuda?</span>
+        <span class="chatbot-launcher-prompt" aria-hidden="true">
+          <span class="chatbot-launcher-line chatbot-launcher-intro">Hola, soy Monobot</span>
+          <span class="chatbot-launcher-line chatbot-launcher-help">¿Necesitas ayuda?</span>
+        </span>
       </button>`;
 
     const panel = shell.querySelector(".chatbot-panel");
