@@ -9,7 +9,6 @@ const SLOT_TIMES = [
   '21:00', '21:30', '22:00', '22:30'
 ];
 const SLOT_DURATION_MINUTES = 30;
-const DAYS_TO_SHOW = 14;
 const MEXICO_CITY_OFFSET = '-06:00';
 
 const json = (res, status, body) => res.status(status).json(body);
@@ -77,6 +76,11 @@ function localDatePlusDays(dateString, days) {
   return date.toISOString().slice(0, 10);
 }
 
+function endOfNextMonth(dateString) {
+  const [year, month] = dateString.split('-').map(Number);
+  return new Date(Date.UTC(year, month + 1, 0)).toISOString().slice(0, 10);
+}
+
 function createSlot(date, time) {
   const start = new Date(`${date}T${time}:00${MEXICO_CITY_OFFSET}`);
   const end = new Date(start.getTime() + SLOT_DURATION_MINUTES * 60_000);
@@ -90,11 +94,13 @@ function isWeekday(date) {
 
 function allCandidateSlots() {
   const today = dateInMexicoCity();
+  const finalDate = endOfNextMonth(today);
   const minimumStart = Date.now() + 2 * 60 * 60_000;
   const days = [];
   let offset = 0;
-  while (days.length < DAYS_TO_SHOW && offset < 30) {
+  while (offset < 62) {
     const date = localDatePlusDays(today, offset++);
+    if (date > finalDate) break;
     if (!isWeekday(date)) continue;
     const slots = SLOT_TIMES.map((time) => createSlot(date, time)).filter((slot) => new Date(slot.start).getTime() >= minimumStart);
     days.push({ date, slots });

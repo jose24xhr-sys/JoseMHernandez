@@ -47,7 +47,7 @@
 
   const formatMonth = (month) => {
     const [year, monthNumber] = month.split('-').map(Number);
-    const label = new Intl.DateTimeFormat('es-MX', { month: 'long', year: 'numeric' })
+    const label = new Intl.DateTimeFormat('es-MX', { month: 'long', year: 'numeric', timeZone: 'UTC' })
       .format(new Date(Date.UTC(year, monthNumber - 1, 1)));
     return label.charAt(0).toUpperCase() + label.slice(1);
   };
