@@ -89,7 +89,9 @@
       selectedDate = availability.find((day) => day.slots.length)?.date || '';
       renderDays();
       renderSlots();
-      setStatus(selectedDate ? 'Selecciona una hora disponible.' : 'No hay horarios disponibles por ahora.');
+      setStatus(data.preview
+        ? 'Vista previa: conecta las credenciales del servidor para confirmar reservas.'
+        : (selectedDate ? 'Selecciona una hora disponible.' : 'No hay horarios disponibles por ahora.'));
     } catch (error) {
       setStatus(error.message, 'error');
       slotsNode.innerHTML = '<p>La integración todavía no está configurada.</p>';

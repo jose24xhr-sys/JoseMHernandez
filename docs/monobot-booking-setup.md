@@ -33,7 +33,7 @@ Create a Server-to-Server OAuth app owned by the Zoom account that hosts the mee
 - Duration: 30 minutes
 - Timezone: `America/Mexico_City`
 - Days: Monday through Friday
-- Times: 09:00, 10:30, 12:00, 15:00, 16:30
+- Times: every 30 minutes from 15:00 through 22:30; the final meeting ends at 23:00
 - Minimum notice: 2 hours
 - Availability window: next 14 business days
 - Pending reservation expiry: 15 minutes

@@ -2,7 +2,12 @@ import process from 'node:process';
 import { Buffer } from 'node:buffer';
 
 const TIME_ZONE = 'America/Mexico_City';
-const SLOT_TIMES = ['09:00', '10:30', '12:00', '15:00', '16:30'];
+const SLOT_TIMES = [
+  '15:00', '15:30', '16:00', '16:30',
+  '17:00', '17:30', '18:00', '18:30',
+  '19:00', '19:30', '20:00', '20:30',
+  '21:00', '21:30', '22:00', '22:30'
+];
 const SLOT_DURATION_MINUTES = 30;
 const DAYS_TO_SHOW = 14;
 const MEXICO_CITY_OFFSET = '-06:00';
@@ -281,7 +286,16 @@ export default async function handler(req, res) {
   }
 
   const config = envConfig();
-  if (!config.supabaseUrl || !config.supabaseKey) return json(res, 503, { error: 'La agenda privada todavía requiere configuración del servidor.' });
+  const databaseReady = Boolean(config.supabaseUrl && config.supabaseKey);
+  if (req.method === 'GET' && !databaseReady) {
+    return json(res, 200, {
+      days: allCandidateSlots(),
+      timezone: TIME_ZONE,
+      duration: SLOT_DURATION_MINUTES,
+      preview: true
+    });
+  }
+  if (!databaseReady) return json(res, 503, { error: 'La agenda privada todavía requiere configuración del servidor.' });
 
   try {
     const days = await availability(config);
