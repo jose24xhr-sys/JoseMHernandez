@@ -468,6 +468,7 @@ footer{background:#171717}
 }
 
 /* CTA del footer: versión compacta, simple y centrada */
+.agenda-custom-page footer .footer-brand p{width:max-content;max-width:calc(100% - 66px);margin:10px 0 0 66px;white-space:nowrap}
 footer .footer-main .footer-agenda-button{
   display:flex;
   width:fit-content;
@@ -493,6 +494,7 @@ footer .footer-main .footer-agenda-button span{
   font-size:12px;
 }
 @media(max-width:700px){
+  .agenda-custom-page footer .footer-brand p{max-width:calc(100% - 60px);margin-left:60px}
   footer .footer-main .footer-agenda-button{
     width:100%;
     min-width:0;
