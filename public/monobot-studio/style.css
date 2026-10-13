@@ -317,7 +317,7 @@ footer{background:#171717}
 .site-header .brand-text>strong{display:flex;min-width:82px;flex-direction:column;align-items:center;text-align:center;line-height:1;font-family:var(--sans)}
 .site-header .brand-text>strong>span,.site-header .brand-text>strong>small{width:100%;text-align:center}
 .site-header .brand-text>strong>span{font-size:11px;font-weight:700;letter-spacing:.23em}
-.site-header .brand-text>strong>small{margin-top:5px;color:#c7c0b8;font-size:8px;font-weight:600;letter-spacing:.62em}
+.site-header .brand-text>strong>small{display:block;margin-top:5px;color:#f8f3ed;font-size:8.5px;font-weight:700;letter-spacing:.58em;opacity:1}
 .site-header .nav nav{display:flex;align-items:center;gap:clamp(15px,1.7vw,25px);margin-left:auto;font-size:12px;white-space:nowrap}
 .site-header .nav nav a{position:relative;padding:28px 0 25px;color:#d4cec7;font-weight:600}
 .site-header .nav nav a:hover,.site-header .nav nav a.is-active{color:#fff}
@@ -368,7 +368,7 @@ footer{background:#171717}
   .site-header .nav-logo,.site-header .nav-logo img{width:32px;height:29px}
   .site-header .brand-text>strong{min-width:72px}
   .site-header .brand-text>strong>span{font-size:10px;letter-spacing:.2em}
-  .site-header .brand-text>strong>small{font-size:7px;letter-spacing:.58em}
+  .site-header .brand-text>strong>small{font-size:7.5px;letter-spacing:.54em}
   .site-header .mobile-menu summary{min-width:66px;font-size:10px}
   .site-header .mobile-menu>div{right:-16px;top:50px;width:calc(100vw - 32px);grid-template-columns:repeat(2,minmax(0,1fr));padding:12px;border-radius:12px}
   .site-header .mobile-menu a:nth-child(3n){border-right:1px solid rgba(255,255,255,.1)}
@@ -382,7 +382,7 @@ footer{background:#171717}
 }
 @media(max-width:360px){
   .site-header .brand-text>strong>span{font-size:9px}
-  .site-header .brand-text>strong>small{font-size:6.5px}
+  .site-header .brand-text>strong>small{font-size:7px}
   .site-header .mobile-menu summary{min-width:58px}
   .nav-secondary p{font-size:6.8px}
 }
@@ -468,7 +468,8 @@ footer{background:#171717}
 }
 
 /* CTA del footer: versión compacta, simple y centrada */
-footer .footer-brand p{width:max-content;max-width:calc(100% - 66px);margin:10px 0 0 66px;white-space:nowrap}
+footer .footer-brand{width:fit-content;max-width:100%}
+footer .footer-brand p{width:100%;max-width:none;margin:10px 0 0;text-align:center;white-space:nowrap}
 footer .footer-main .footer-agenda-button{
   display:flex;
   width:fit-content;
@@ -494,7 +495,7 @@ footer .footer-main .footer-agenda-button span{
   font-size:12px;
 }
 @media(max-width:700px){
-  footer .footer-brand p{max-width:calc(100% - 60px);margin-left:60px}
+  footer .footer-brand p{max-width:none;margin-left:0}
   footer .footer-main .footer-agenda-button{
     width:100%;
     min-width:0;
