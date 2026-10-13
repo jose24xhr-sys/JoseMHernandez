@@ -116,7 +116,7 @@
       </section>
       <button class="chatbot-launcher" type="button" aria-label="Abrir asistente de Monobot" aria-controls="monobot-chatbot-panel" aria-expanded="false">
         <img alt="" decoding="async">
-        <span>Chat</span>
+        <span>¿Necesitas ayuda?</span>
       </button>`;
 
     const panel = shell.querySelector(".chatbot-panel");
