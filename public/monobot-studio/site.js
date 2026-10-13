@@ -90,6 +90,7 @@
       <section class="chatbot-panel" id="monobot-chatbot-panel" role="dialog" aria-modal="false" aria-labelledby="monobot-chatbot-title" hidden>
         <header class="chatbot-header">
           <span class="chatbot-heading"><strong id="monobot-chatbot-title">Asistente Monobot</strong><small><i aria-hidden="true"></i> Demo de interfaz</small></span>
+          <a class="chatbot-book" href="${prefix}/agenda">Agendar llamada</a>
           <button class="chatbot-close" type="button" aria-label="Cerrar asistente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
         </header>
         <div class="chatbot-messages" role="log" aria-live="polite" aria-relevant="additions">
@@ -131,6 +132,14 @@
     let closeTimer;
     let loadingTimer;
 
+    const syncMobileViewport = () => {
+      if (!window.visualViewport || window.innerWidth > 700) {
+        shell.style.removeProperty("--chatbot-mobile-height");
+        return;
+      }
+      shell.style.setProperty("--chatbot-mobile-height", `${Math.round(window.visualViewport.height)}px`);
+    };
+
     shell.querySelectorAll(".chatbot-message-avatar img, .chatbot-launcher img").forEach((image) => {
       const isLauncherMascot = Boolean(image.closest(".chatbot-launcher"));
       image.src = isLauncherMascot ? chatbotConfig.launcherMascotSrc : chatbotConfig.openMascotSrc;
@@ -160,6 +169,7 @@
 
     const openChatbot = () => {
       window.clearTimeout(closeTimer);
+      syncMobileViewport();
       panel.hidden = false;
       if (!greeting.hidden) {
         waveMascot.classList.remove("is-playing");
@@ -188,6 +198,8 @@
 
     launcher.addEventListener("click", openChatbot);
     closeButton.addEventListener("click", closeChatbot);
+    window.visualViewport?.addEventListener("resize", syncMobileViewport);
+    window.addEventListener("orientationchange", syncMobileViewport);
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && shell.classList.contains("is-open")) closeChatbot();
     });
