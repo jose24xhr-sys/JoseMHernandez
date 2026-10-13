@@ -92,9 +92,15 @@
 
     let headerFrame;
     const updateHeaderState = () => {
-      const isCompact = window.scrollY > 56;
       siteHeaders.forEach((header) => {
         const spacer = headerSpacers.get(header);
+        const compactByDefault = header.dataset.compactDefault === "true";
+        const isCompact = compactByDefault || window.scrollY > 56;
+        if (compactByDefault && isCompact) {
+          header.classList.add("is-compact");
+          spacer.style.height = `${header.offsetHeight}px`;
+          return;
+        }
         if (isCompact === header.classList.contains("is-compact")) return;
         if (isCompact) {
           const styles = window.getComputedStyle(header);
