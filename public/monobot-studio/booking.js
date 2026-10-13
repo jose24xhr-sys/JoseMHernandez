@@ -107,6 +107,7 @@
     timeSummaryKicker.textContent = contactRequested
       ? 'Opción seleccionada'
       : (hasSelectedTime ? 'Hora seleccionada' : 'Horarios disponibles');
+    timeTitle.classList.toggle('is-contact-request', contactRequested);
     timeTitle.textContent = contactRequested
       ? 'Quiero ser contactado'
       : (hasSelectedTime
