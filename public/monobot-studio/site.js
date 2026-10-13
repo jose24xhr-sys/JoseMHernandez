@@ -52,7 +52,10 @@
     const icons = document.createElement("div");
     icons.className = "social-links";
     icons.setAttribute("aria-label", "Redes sociales de Monobot Studio, enlaces pendientes");
-    socialPlatforms.forEach((platform) => {
+    const visiblePlatforms = placement === "footer"
+      ? socialPlatforms
+      : socialPlatforms.filter((platform) => platform.name !== "YouTube" && platform.name !== "TikTok");
+    visiblePlatforms.forEach((platform) => {
       const icon = document.createElement("span");
       icon.className = "social-icon";
       icon.setAttribute("role", "img");
