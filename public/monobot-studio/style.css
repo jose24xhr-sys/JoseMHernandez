@@ -472,8 +472,8 @@ footer{background:#171717}
 }
 
 /* CTA del footer: versión compacta, simple y centrada */
-footer .footer-brand{display:flex;flex-direction:column;align-items:center;width:fit-content;max-width:100%}
-footer .footer-brand .brand-text{width:min(270px,100%);justify-content:center}
+footer .footer-brand{display:flex;flex-direction:column;align-items:stretch;justify-self:start;width:min(270px,100%);max-width:100%}
+footer .footer-brand .brand-text{width:100%;justify-content:center}
 footer .brand-wordmark-footer{width:100%}
 footer .footer-brand p{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:none;margin:10px 0 0;color:#b8b1a8;font-size:12px;font-weight:600;letter-spacing:.04em;white-space:nowrap}
 footer .footer-brand p i{color:var(--orange);font-style:normal}
