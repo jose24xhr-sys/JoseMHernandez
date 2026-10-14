@@ -457,8 +457,10 @@ footer{background:#171717}
 
 /* Navegación y redes: presentación móvil limpia y sin saltos */
 @media(max-width:700px){
-  .footer-main-compact{grid-template-columns:repeat(2,minmax(0,1fr));gap:35px 20px}
-  .footer-main-compact>div:last-child{grid-column:auto}
+  footer{padding-top:34px}
+  footer .footer-main-compact{display:block;padding-bottom:32px}
+  footer .footer-main-compact>div:not(.footer-brand),footer .footer-bottom{display:none}
+  footer .footer-main-compact .footer-brand{margin-inline:auto}
   .social-links-footer,.social-links-footer .social-links{width:100%}
   .social-links-footer .social-links{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
   .social-links-footer .social-icon{width:clamp(24px,7vw,30px);height:clamp(24px,7vw,30px);justify-self:center}
