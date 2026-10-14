@@ -311,6 +311,8 @@ footer{background:#171717}
 .site-header:after{inset:10px 20px auto auto;width:110px;height:42px;background-image:radial-gradient(rgba(255,101,0,.75) 1px,transparent 1.2px);background-size:12px 12px;mask-image:linear-gradient(270deg,#000,transparent)}
 .site-header .nav{height:auto;min-height:76px;padding:0;gap:20px;color:#f8f3ed}
 .site-header .brand-text{flex:0 0 auto;gap:8px;color:#fff;position:relative;z-index:1}
+.brand-wordmark-image{display:block;max-width:100%;height:auto;object-fit:contain}
+.site-header .brand-wordmark-header{width:220px;max-height:34px}
 .site-header .nav-logo{width:38px;height:34px;display:grid;place-items:center;position:relative;filter:none}
 .site-header .nav-logo:before,.site-header .nav-logo:after{display:none}
 .site-header .nav-logo img{position:relative;z-index:1;width:38px;height:34px;object-fit:contain}
@@ -365,6 +367,7 @@ footer{background:#171717}
   .site-header:before{display:none}
   .site-header .nav{min-height:64px;gap:10px}
   .site-header .brand-text{gap:7px}
+  .site-header .brand-wordmark-header{width:185px;max-height:28px}
   .site-header .nav-logo,.site-header .nav-logo img{width:32px;height:29px}
   .site-header .brand-text>strong{min-width:72px}
   .site-header .brand-text>strong>span{font-size:10px;letter-spacing:.2em}
@@ -381,6 +384,7 @@ footer{background:#171717}
   .nav-secondary p:last-child{padding:0;border:0;white-space:normal}
 }
 @media(max-width:360px){
+  .site-header .brand-wordmark-header{width:160px;max-height:25px}
   .site-header .brand-text>strong>span{font-size:9px}
   .site-header .brand-text>strong>small{font-size:7px}
   .site-header .mobile-menu summary{min-width:58px}
@@ -469,6 +473,7 @@ footer{background:#171717}
 
 /* CTA del footer: versión compacta, simple y centrada */
 footer .footer-brand{width:fit-content;max-width:100%}
+footer .brand-wordmark-footer{width:min(270px,100%)}
 footer .footer-brand p{width:100%;max-width:none;margin:10px 0 0;text-align:center;white-space:nowrap}
 footer .footer-main .footer-agenda-button{
   display:flex;
