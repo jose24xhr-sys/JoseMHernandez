@@ -517,21 +517,65 @@ footer .footer-main .footer-agenda-button span{
   footer .footer-main .footer-agenda-button span{font-size:10px}
 }
 
-/* Ilustración ambiental del footer, reservada para escritorio */
-@media(min-width:701px){
-  footer{position:relative;isolation:isolate;overflow:hidden}
-  footer::before{
+/* Agenda: escenario ilustrado de escritorio */
+.agenda-hero-illustration{display:none}
+@media(min-width:1001px){
+  .agenda-custom-page .agenda-hero{
+    position:relative;
+    isolation:isolate;
+    width:min(1328px,calc(100% - 64px));
+    min-height:840px;
+    grid-template-columns:minmax(0,1fr) minmax(610px,1fr);
+    gap:50px;
+    padding-block:26px 54px;
+  }
+  .agenda-custom-page .agenda-hero::before{
     content:"";
     position:absolute;
-    z-index:0;
-    inset:0;
+    z-index:-2;
+    top:0;
+    bottom:0;
+    left:50%;
+    width:100vw;
+    transform:translateX(-50%);
+    background:#fff8f1 url('/monobot-studio/brand/agenda-waves-background.png') center 145px/cover no-repeat;
     pointer-events:none;
-    background-image:url('/monobot-studio/brand/footer-robot-team.png');
-    background-repeat:no-repeat;
-    background-position:center 4px;
-    background-size:min(1380px,100vw) auto;
-    opacity:.34;
   }
-  footer .footer-main,
-  footer .footer-bottom{position:relative;z-index:1}
+  .agenda-custom-page .agenda-hero-copy{
+    position:relative;
+    align-self:stretch;
+    min-width:0;
+    padding:10px 0 500px;
+  }
+  .agenda-custom-page .agenda-hero h1{
+    max-width:620px;
+    margin:14px 0 20px;
+    font-size:clamp(58px,4.75vw,76px);
+    line-height:.92;
+  }
+  .agenda-custom-page .agenda-hero .lede,
+  .agenda-custom-page .agenda-hero ul{max-width:590px}
+  .agenda-custom-page .agenda-hero .lede{font-size:16px}
+  .agenda-custom-page .agenda-benefits{position:relative;z-index:2}
+  .agenda-custom-page .agenda-hero-illustration{
+    display:block;
+    position:absolute;
+    z-index:1;
+    right:35px;
+    bottom:-35px;
+    width:min(760px,55vw);
+    height:640px;
+    background:url('/monobot-studio/brand/agenda-robot-desk.png') right bottom/contain no-repeat;
+    pointer-events:none;
+  }
+  .agenda-custom-page .booking-shell{
+    position:relative;
+    z-index:2;
+    width:100%;
+    max-width:650px;
+    justify-self:end;
+    background:rgba(255,255,255,.94);
+    box-shadow:0 28px 54px rgba(72,48,30,.2);
+    backdrop-filter:blur(5px);
+  }
 }
