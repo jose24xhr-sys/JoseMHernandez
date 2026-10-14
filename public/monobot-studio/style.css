@@ -516,3 +516,22 @@ footer .footer-main .footer-agenda-button span{
   }
   footer .footer-main .footer-agenda-button span{font-size:10px}
 }
+
+/* Ilustración ambiental del footer, reservada para escritorio */
+@media(min-width:701px){
+  footer{position:relative;isolation:isolate;overflow:hidden}
+  footer::before{
+    content:"";
+    position:absolute;
+    z-index:0;
+    inset:0;
+    pointer-events:none;
+    background-image:url('/monobot-studio/brand/footer-robot-team.png');
+    background-repeat:no-repeat;
+    background-position:center 4px;
+    background-size:min(1380px,100vw) auto;
+    opacity:.34;
+  }
+  footer .footer-main,
+  footer .footer-bottom{position:relative;z-index:1}
+}
