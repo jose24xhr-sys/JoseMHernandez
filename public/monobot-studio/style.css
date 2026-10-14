@@ -475,7 +475,8 @@ footer{background:#171717}
 footer .footer-brand{display:flex;flex-direction:column;align-items:center;width:fit-content;max-width:100%}
 footer .footer-brand .brand-text{width:min(270px,100%);justify-content:center}
 footer .brand-wordmark-footer{width:100%}
-footer .footer-brand p{width:100%;max-width:none;margin:10px 0 0;text-align:center;white-space:nowrap}
+footer .footer-brand p{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:none;margin:10px 0 0;color:#b8b1a8;font-size:12px;font-weight:600;letter-spacing:.04em;white-space:nowrap}
+footer .footer-brand p i{color:var(--orange);font-style:normal}
 footer .footer-main .footer-agenda-button{
   display:flex;
   width:fit-content;
