@@ -755,7 +755,7 @@ footer .footer-main>div:nth-child(2) a.is-active{
   position:relative;
   z-index:3;
   align-self:flex-start;
-  margin-top:20px;
+  margin-top:auto;
   padding-bottom:3px;
   border-bottom:2px solid var(--orange);
 }
@@ -820,7 +820,7 @@ footer .footer-main>div:nth-child(2) a.is-active{
   }
   #servicios .service-card .service-top small{order:1;margin:0;max-width:100%;white-space:normal}
   #servicios .service-card>p{max-width:70%;margin:0;font-size:12px}
-  #servicios .service-card>a{align-self:flex-start;text-align:left;margin-top:18px}
+  #servicios .service-card>a{align-self:flex-start;text-align:left;margin-top:auto}
   #servicios .service-visual-web,
   #servicios .service-visual-ai{right:-16px;bottom:-8px;width:58%;height:48%}
   #servicios .service-visual-chat,
