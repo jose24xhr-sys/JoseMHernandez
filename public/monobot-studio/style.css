@@ -523,6 +523,13 @@ footer .footer-main .footer-agenda-button span{
   background-color:#fbf2e8;
   background-image:none;
 }
+.agenda-custom-page main{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  background:#fbf2e8;
+}
+.agenda-custom-page footer{margin-top:auto}
 .agenda-custom-page .site-header{
   box-shadow:none;
 }
@@ -578,7 +585,8 @@ footer .footer-main .footer-agenda-button span{
 }
 .agenda-custom-page .agenda-benefits span{
   padding-top:2px;
-  font-size:20px;
+  font:700 13px/1 var(--sans);
+  letter-spacing:.14em;
 }
 .agenda-custom-page .agenda-benefits strong{
   display:block;
