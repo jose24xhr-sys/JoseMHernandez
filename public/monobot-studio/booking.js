@@ -211,7 +211,7 @@
       button.addEventListener('click', () => {
         selectedDate = date;
         selectedStart = '';
-        calendarCollapsed = !desktopBookingFlow.matches;
+        calendarCollapsed = contactRequested || !desktopBookingFlow.matches;
         timesCollapsed = contactRequested;
         renderDays();
         renderSlots();
