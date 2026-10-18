@@ -545,7 +545,7 @@ footer .footer-main .footer-agenda-button span{
   left:50%;
   width:100vw;
   transform:translateX(-50%);
-  background:#fbf2e8;
+  background:#fbf2e8 url('/monobot-studio/brand/agenda-waves-background.png') center 145px/cover no-repeat;
   pointer-events:none;
 }
 .agenda-custom-page .agenda-hero-copy{
