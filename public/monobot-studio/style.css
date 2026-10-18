@@ -696,3 +696,133 @@ footer .footer-main>div:nth-child(2) a.is-active{
   .hero-feature-icon{width:44px;height:44px}
   .hero-feature-icon svg{width:27px;height:27px}
 }
+
+/* Services bento layout */
+#servicios .service-bento-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.08fr) minmax(0,1fr);
+  grid-template-rows:repeat(2,250px);
+  grid-template-areas:"web chat ai" "web workflow ai";
+  gap:14px;
+  border:0;
+  background:transparent;
+}
+#servicios .service-card{
+  min-height:0;
+  padding:24px 26px;
+  border:1px solid rgba(75,61,50,.13)!important;
+  border-radius:14px;
+  background:linear-gradient(145deg,rgba(255,255,255,.54),rgba(247,241,234,.78));
+  box-shadow:0 16px 40px rgba(77,54,37,.055);
+  overflow:hidden;
+  isolation:isolate;
+}
+#servicios .service-card:hover{
+  background:linear-gradient(145deg,rgba(255,255,255,.7),rgba(249,242,235,.9));
+  box-shadow:0 20px 48px rgba(77,54,37,.1);
+}
+#servicios .service-card-web{grid-area:web}
+#servicios .service-card-chat{grid-area:chat}
+#servicios .service-card-workflow{grid-area:workflow}
+#servicios .service-card-ai{grid-area:ai}
+#servicios .service-card .service-top{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:flex-start;
+  gap:0;
+  position:relative;
+  z-index:2;
+}
+#servicios .service-card .service-top small{order:1;margin:0;max-width:100%;white-space:normal}
+#servicios .service-card .service-top h3{
+  order:2;
+  flex:0 0 100%;
+  margin:20px 0 12px;
+  min-height:0;
+  font-size:clamp(25px,2vw,31px);
+  line-height:.98;
+}
+#servicios .service-card>p{
+  position:relative;
+  z-index:2;
+  max-width:90%;
+  margin:0;
+  font-size:12px;
+  line-height:1.55;
+}
+#servicios .service-card>a{
+  position:relative;
+  z-index:3;
+  align-self:flex-start;
+  margin-top:20px;
+  padding-bottom:3px;
+  border-bottom:2px solid var(--orange);
+}
+#servicios .service-visual{
+  position:absolute;
+  z-index:1;
+  pointer-events:none;
+}
+#servicios .service-visual svg{display:block;width:100%;height:100%;overflow:visible}
+#servicios .service-visual-web{right:-10px;bottom:-8px;width:88%;height:48%}
+#servicios .service-visual-ai{right:-8px;bottom:-8px;width:82%;height:47%}
+#servicios .service-card-chat .service-top,
+#servicios .service-card-chat>p,
+#servicios .service-card-chat>a,
+#servicios .service-card-workflow .service-top,
+#servicios .service-card-workflow>p,
+#servicios .service-card-workflow>a{max-width:62%}
+#servicios .service-card-chat .service-top h3,
+#servicios .service-card-workflow .service-top h3{font-size:25px;margin-top:14px}
+#servicios .service-card-chat>p,
+#servicios .service-card-workflow>p{font-size:10.5px;line-height:1.45}
+#servicios .service-card-chat>a,
+#servicios .service-card-workflow>a{margin-top:auto}
+#servicios .service-visual-chat{right:5px;bottom:10px;width:42%;height:72%}
+#servicios .service-visual-workflow{right:2px;bottom:8px;width:43%;height:76%}
+
+@media(max-width:1000px){
+  #servicios .service-bento-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-rows:none;
+    grid-template-areas:"web chat" "workflow ai";
+  }
+  #servicios .service-card{min-height:360px}
+  #servicios .service-card-chat .service-top,
+  #servicios .service-card-chat>p,
+  #servicios .service-card-chat>a,
+  #servicios .service-card-workflow .service-top,
+  #servicios .service-card-workflow>p,
+  #servicios .service-card-workflow>a{max-width:100%}
+  #servicios .service-card-chat .service-top h3,
+  #servicios .service-card-workflow .service-top h3{font-size:clamp(25px,3vw,31px);margin-top:20px}
+  #servicios .service-card-chat>p,
+  #servicios .service-card-workflow>p{max-width:72%;font-size:12px;line-height:1.55}
+  #servicios .service-visual-chat,
+  #servicios .service-visual-workflow{right:-2px;bottom:0;width:48%;height:52%}
+  #servicios .service-visual-web,
+  #servicios .service-visual-ai{width:58%;height:48%}
+}
+@media(max-width:700px){
+  #servicios .service-bento-grid{
+    grid-template-columns:1fr;
+    grid-template-areas:"web" "chat" "workflow" "ai";
+    gap:12px;
+  }
+  #servicios .service-card{min-height:330px;padding:22px}
+  #servicios .service-card .service-top{display:flex;align-items:center}
+  #servicios .service-card .service-top h3{
+    order:2;
+    flex:0 0 100%;
+    margin:18px 0 10px;
+    font-size:clamp(25px,8vw,31px);
+  }
+  #servicios .service-card .service-top small{order:1;margin:0;max-width:100%;white-space:normal}
+  #servicios .service-card>p{max-width:70%;margin:0;font-size:12px}
+  #servicios .service-card>a{align-self:flex-start;text-align:left;margin-top:18px}
+  #servicios .service-visual-web,
+  #servicios .service-visual-ai{right:-16px;bottom:-8px;width:58%;height:48%}
+  #servicios .service-visual-chat,
+  #servicios .service-visual-workflow{right:-8px;bottom:0;width:50%;height:52%}
+}
