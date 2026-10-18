@@ -1,10 +1,31 @@
 (function () {
   const prefix = "/monobot-studio";
   const chatbotConfig = Object.freeze({
-    launcherMascotSrc: `${prefix}/brand/monobot-chatbot-launcher.png`,
+    launcherMascotSrc: `${prefix}/brand/monobot-chatbot-static.png`,
     openMascotSrc: `${prefix}/brand/monobot-chatbot-open.png`,
     mascotAlt: "Mascota de Monobot Studio",
   });
+
+  const ensureRoboPeek = () => {
+    if (window.customElements?.get("robo-peek")) return Promise.resolve();
+
+    const existingScript = document.querySelector("script[data-monobot-robo-peek]");
+    if (existingScript) {
+      return new Promise((resolve) => {
+        existingScript.addEventListener("load", resolve, { once: true });
+        existingScript.addEventListener("error", resolve, { once: true });
+      });
+    }
+
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = `${prefix}/robo-peek.js`;
+      script.dataset.monobotRoboPeek = "";
+      script.addEventListener("load", resolve, { once: true });
+      script.addEventListener("error", resolve, { once: true });
+      document.head.appendChild(script);
+    });
+  };
 
   const socialPreviewAssets = [
     {
@@ -123,7 +144,8 @@
         <p class="chatbot-disclaimer">Interfaz de demostración · Sin automatización activa</p>
       </section>
       <button class="chatbot-launcher" type="button" aria-label="Abrir asistente de Monobot" aria-controls="monobot-chatbot-panel" aria-expanded="false">
-        <img alt="" decoding="async">
+        <img class="chatbot-launcher-static" alt="" decoding="async">
+        <robo-peek class="chatbot-launcher-peek" range="120" label="Monobot atento" aria-hidden="true" style="width:100%"></robo-peek>
         <span class="chatbot-launcher-prompt" aria-hidden="true">
           <span class="chatbot-launcher-line chatbot-launcher-intro">Hola, soy Monobot</span>
           <span class="chatbot-launcher-line chatbot-launcher-help">¿Necesitas ayuda?</span>
@@ -139,6 +161,7 @@
     const messages = shell.querySelector(".chatbot-messages");
     const greeting = shell.querySelector(".chatbot-greeting");
     const waveMascot = shell.querySelector(".chatbot-wave");
+    const peekMascot = shell.querySelector(".chatbot-launcher-peek");
     const errorBanner = shell.querySelector(".chatbot-error");
     let closeTimer;
     let loadingTimer;
@@ -161,6 +184,25 @@
       shell.dataset.chatbotState = state;
     };
 
+    const resetLauncherVisual = () => {
+      shell.classList.remove("is-peeking");
+      peekMascot?.removeAttribute("awake");
+      peekMascot?.removeAttribute("blink");
+    };
+
+    peekMascot?.addEventListener("robo-wake", () => {
+      if (!shell.classList.contains("is-open")) shell.classList.add("is-peeking");
+    });
+    peekMascot?.addEventListener("robo-sleep", () => shell.classList.remove("is-peeking"));
+    launcher.addEventListener("focus", () => {
+      if (shell.classList.contains("is-open")) return;
+      peekMascot?.setAttribute("awake", "");
+      shell.classList.add("is-peeking");
+    });
+    launcher.addEventListener("blur", () => {
+      if (!shell.classList.contains("is-open")) resetLauncherVisual();
+    });
+
     const addMessage = (text, type) => {
       const message = document.createElement("div");
       message.className = `chatbot-message chatbot-message-${type}`;
@@ -180,6 +222,7 @@
 
     const openChatbot = () => {
       window.clearTimeout(closeTimer);
+      resetLauncherVisual();
       syncMobileViewport();
       shell.classList.add("has-opened");
       panel.hidden = false;
@@ -209,6 +252,7 @@
     };
 
     launcher.addEventListener("click", () => {
+      resetLauncherVisual();
       if (shell.classList.contains("is-open")) {
         closeChatbot();
         return;
@@ -260,7 +304,7 @@
     document.body.appendChild(shell);
   };
 
-  mountChatbotShell();
+  ensureRoboPeek().finally(mountChatbotShell);
 
   document.querySelectorAll(".nav").forEach((nav) => {
     const cta = nav.querySelector(".nav-cta");
