@@ -322,12 +322,22 @@
     else column.appendChild(socialBlock);
   });
 
+  document.querySelectorAll(".footer-bottom > span:nth-child(2)").forEach((tagline) => tagline.remove());
+
   const normalizePath = (path) => path.replace(/\/+$/, "") || "/";
   const currentPath = normalizePath(window.location.pathname);
   document.querySelectorAll("[data-nav-link]").forEach((link) => {
     const linkPath = normalizePath(new URL(link.href, window.location.origin).pathname);
     const isBlogAdmin = currentPath.startsWith(`${prefix}/admin/blog`) && linkPath === `${prefix}/blog`;
     if (currentPath === linkPath || isBlogAdmin) {
+      link.classList.add("is-active");
+      link.setAttribute("aria-current", "page");
+    }
+  });
+
+  document.querySelectorAll("footer .footer-main > div:nth-child(2) a").forEach((link) => {
+    const linkPath = normalizePath(new URL(link.href, window.location.origin).pathname);
+    if (currentPath === linkPath) {
       link.classList.add("is-active");
       link.setAttribute("aria-current", "page");
     }
