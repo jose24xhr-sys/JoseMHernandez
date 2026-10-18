@@ -519,6 +519,13 @@ footer .footer-main .footer-agenda-button span{
 }
 
 /* Agenda: recupera el escenario cálido y el encabezado oscuro original */
+.agenda-custom-page{
+  background-color:#fbf2e8;
+  background-image:none;
+}
+.agenda-custom-page .site-header{
+  box-shadow:none;
+}
 .agenda-custom-page .agenda-hero{
   position:relative;
   isolation:isolate;
@@ -538,7 +545,7 @@ footer .footer-main .footer-agenda-button span{
   left:50%;
   width:100vw;
   transform:translateX(-50%);
-  background:#fff8f1 url('/monobot-studio/brand/agenda-waves-background.png') center 145px/cover no-repeat;
+  background:#fbf2e8;
   pointer-events:none;
 }
 .agenda-custom-page .agenda-hero-copy{
