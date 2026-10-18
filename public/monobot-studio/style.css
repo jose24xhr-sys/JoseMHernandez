@@ -563,6 +563,8 @@ footer .footer-main .footer-agenda-button span{
   margin-bottom:26px;
   font-size:16px;
 }
+.agenda-custom-page .agenda-hero .lede span{display:block}
+.agenda-custom-page .agenda-hero .lede span+span{margin-top:14px}
 .agenda-custom-page .agenda-benefits{
   max-width:590px;
   margin:0;
@@ -599,6 +601,9 @@ footer .footer-main .footer-agenda-button span{
   background:rgba(255,255,255,.94);
   box-shadow:0 28px 54px rgba(72,48,30,.2);
   backdrop-filter:blur(5px);
+}
+.agenda-custom-page .booking-confirmation h2{
+  text-align:center;
 }
 
 /* Enlaces del pie: texto sencillo, sin indicadores ni negritas */

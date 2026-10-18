@@ -211,16 +211,17 @@
       button.addEventListener('click', () => {
         selectedDate = date;
         selectedStart = '';
-        contactRequested = false;
         calendarCollapsed = !desktopBookingFlow.matches;
-        timesCollapsed = false;
+        timesCollapsed = contactRequested;
         renderDays();
         renderSlots();
         updateSubmit();
         syncCalendarDisclosure();
         syncTimeDisclosure();
         dateSummaryButton.focus({ preventScroll: true });
-        setStatus('Selecciona una hora disponible.');
+        setStatus(contactRequested
+          ? 'Completa tus datos y nos pondremos en contacto contigo.'
+          : 'Selecciona una hora disponible.');
       });
       daysNode.append(button);
     }
