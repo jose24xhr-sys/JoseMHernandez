@@ -774,7 +774,7 @@ footer .footer-main>div:nth-child(2) a.is-active{
 #servicios .service-visual-chat{right:5px;bottom:10px;width:42%;height:72%}
 #servicios .service-visual-workflow{right:2px;bottom:8px;width:43%;height:76%}
 
-@media(max-width:1000px){
+@media(max-width:1239px){
   #servicios .service-bento-grid{
     grid-template-columns:repeat(2,minmax(0,1fr));
     grid-template-rows:none;
@@ -996,3 +996,96 @@ main .partner .button:focus-visible{outline:3px solid var(--orange);outline-offs
    the page background and pushing the page 5px wider on phones)
    ========================================================================== */
 #recursos .rx-card{overflow:hidden;isolation:isolate}
+
+/* ==========================================================================
+   Text scale (WEB-01 follow-up) — every piece of running text uses one of
+   five levels, so nothing reads tiny next to its neighbours.
+     lead   section subtitles and hero intro
+     body   paragraphs and card descriptions
+     small  notes, meta lines, text links
+     label  uppercase eyebrows, tags and table heads
+     card   card / step titles
+   font-size carries !important because this file has many older per-page
+   overrides (several ID-scoped); this block is the single source of truth.
+   ========================================================================== */
+:root{
+  --fs-lead:clamp(17px,calc(.35vw + 14px),19px);
+  --fs-body:16px;
+  --fs-small:14px;
+  --fs-label:12px;
+  --fs-card:clamp(22px,calc(.75vw + 15px),28px);
+  --fs-button:15px;
+}
+@media(max-width:700px){:root{--fs-body:15px;--fs-small:13px;--fs-label:11px}}
+
+/* lead */
+main .hero-copy .lede,main .page-hero .lede,main .agenda-hero .lede,main .agenda-hero .lede span,
+main .section-intro > p,main .rx-head > p:not(.kicker),main .pricing-heading > p:not(.kicker),main .solution-heading > p:not(.kicker),
+#servicios .service-bento-heading p{
+  font-size:var(--fs-lead)!important;line-height:1.55!important
+}
+
+/* body */
+main .hero-feature strong{font-size:calc(var(--fs-body) + 1px)!important;line-height:1.25!important}
+main .hero-feature small{font-size:var(--fs-body)!important;line-height:1.45!important;margin-top:4px!important}
+main .service-card > p,#servicios .service-card > p,#servicios .service-card-workflow > p,
+main .rx-card > p,main #proceso .ptext,main .solution-grid article > p,main .faq-item > p,main .case-copy dd,
+main .cta-copy > p,main .final-cta-copy > p,main .sub-cta p:not(.kicker),main .partner > p:not(.kicker),
+main .library-intro > p:not(.kicker),main .newsletter > div > p:not(.kicker),main .featured-post p:not(.kicker),
+main .post-entry > summary > p,main .agenda-steps li p,main li > div > p{
+  font-size:var(--fs-body)!important;line-height:1.6!important
+}
+main .trust strong{font-size:calc(var(--fs-body) + 2px)!important}
+
+/* small */
+main .hero-copy .note,main .trust-guarantee,main .trust small,
+main .pricing-solution small,main .pricing-investment small,
+main .service-card > a,main .rx-card > a,main .solution-grid article > a,main .post-entry summary small,
+main .post-body a,main .featured-entry summary,main .newsletter-form > small,main .booking-calendar-legend,
+main .social-preview-card figcaption strong{
+  font-size:var(--fs-small)!important;line-height:1.5!important
+}
+.site-header .nav nav a,.site-header .nav-secondary p,.site-header .nav-secondary p strong,
+footer .footer-main a:not(.button),footer .footer-bottom,footer .footer-bottom a,footer .social-links-pending{
+  font-size:var(--fs-small)!important
+}
+
+/* label */
+main :is(.eyebrow,.kicker),main .service-card .service-top small,main .rx-label,main .rx-tag,main .guarantee-label,
+main .hero-social-heading span,main .social-preview-card figcaption span,main .pricing-table-head,main .pricing-table-head span,
+main .pricing-table-head small,main .pricing-table-head strong,main .pricing-chart .feature-cell small,main .pricing-solution b,
+main .post-meta,main .post-meta span,main .post-meta b,main .case-copy dt,main .newsletter-form > label,
+main .booking-field label,main .booking-date-summary small,main .calendar-head span,main .calendar-head b,
+footer h4,footer .footer-brand p span{
+  font-size:var(--fs-label)!important;line-height:1.35!important
+}
+
+/* card titles */
+main .service-card h3,#servicios .service-card-workflow .service-top h3,main .rx-card h3,main #proceso .ptitle,
+main .post-entry h2,main .faq-side h2,main .solution-grid h3,main .pricing-solution strong{
+  font-size:var(--fs-card)!important;line-height:1.12!important
+}
+
+/* buttons */
+main .button,main .newsletter-form button,footer .button{font-size:var(--fs-button)!important}
+.site-header .button{font-size:var(--fs-small)!important}
+
+/* Text scale — desktop bento and preview-mock adjustments.
+   In the two half-height service cards the text shares the row with the
+   animation, so descriptions use 15px there and the column is a little wider;
+   the AI card's animation sits slightly lower so the 3-line text clears it. */
+@media(min-width:1240px){
+  #servicios .service-card > p{font-size:15px!important;line-height:1.5!important}
+  #servicios .service-card-chat > p,#servicios .service-card-workflow > p{max-width:calc(100% - 176px)!important}
+  /* rows grow with their text instead of clipping it */
+  #servicios .service-bento-grid{grid-template-rows:repeat(2,minmax(310px,auto))!important}
+  #servicios .service-visual-ai{height:340px!important}
+}
+
+/* captions inside the social-preview mock are part of the illustration */
+main .social-preview-card figcaption strong{font-size:13px!important;line-height:1.25!important}
+main .social-preview-card figcaption span{font-size:10px!important;letter-spacing:.08em}
+/* list items with a bold title over a description (Agenda steps) — title one step above its text */
+main li > div > strong{font-size:calc(var(--fs-body) + 1px)!important;line-height:1.3!important}
+/* mobile menu links read like body text */
+.site-header .mobile-menu > div > a{font-size:var(--fs-body)!important}
