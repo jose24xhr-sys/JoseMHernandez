@@ -4,6 +4,8 @@
 #servicios .service-bento-heading h2 span{color:var(--orange)}
 #servicios .service-bento-heading p{max-width:none;margin:14px auto 0;color:#514b45;font-size:clamp(14px,1.35vw,19px);line-height:1.45}
 #servicios [data-service-anim]{cursor:pointer}
+#servicios .service-card>a{position:static}
+#servicios .service-card>a:before{content:"";position:absolute;inset:0;z-index:4}
 #servicios .service-card{transition:transform .28s ease,box-shadow .28s ease,background .28s ease}
 #servicios .service-card:hover{transform:translateY(-3px)}
 #servicios .service-visual{overflow:visible}
