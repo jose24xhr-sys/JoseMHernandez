@@ -1089,3 +1089,21 @@ main li > div > strong{font-size:calc(var(--fs-body) + 1px)!important;line-heigh
   main .hero-copy .actions .button{font-size:var(--fs-small)!important}
   main .hero-copy .note{font-size:13px!important}
 }
+
+/* Guarantee bar: each title and description on one line.
+   Tighter icon/padding gives the text the room; 4 columns from 1230px,
+   2×2 between 1001 and 1229px (the 4 columns get too narrow there). */
+main .trust strong{font-size:16px!important}
+main .trust small{font-size:13px!important}
+@media(min-width:1001px){
+  main .trust{padding:22px 20px}
+  main .trust > div{padding:0 16px;gap:12px}
+  main .trust span{width:26px;flex:none}
+  main .trust p{flex:1;min-width:0;max-width:none}
+}
+@media(min-width:1001px) and (max-width:1229px){
+  main .trust{grid-template-columns:1fr 1fr;row-gap:0}
+  main .trust > div:nth-child(n){padding:14px 16px}
+  main .trust > div:nth-child(2n){border-right:0}
+  main .trust > div:nth-child(-n+2){border-bottom:1px solid rgba(255,255,255,.16)}
+}
