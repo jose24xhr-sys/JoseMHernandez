@@ -998,25 +998,24 @@ main .partner .button:focus-visible{outline:3px solid var(--orange);outline-offs
 #recursos .rx-card{overflow:hidden;isolation:isolate}
 
 /* ==========================================================================
-   Text scale (WEB-01 follow-up) — every piece of running text uses one of
-   five levels, so nothing reads tiny next to its neighbours.
-     lead   section subtitles and hero intro
-     body   paragraphs and card descriptions
-     small  notes, meta lines, text links
-     label  uppercase eyebrows, tags and table heads
-     card   card / step titles
+   Text scale (WEB-01 follow-up). Headings use three levels (display,
+   section, card); running text uses four:
+     lead   section subtitles and hero intro      18 / 17px
+     body   paragraphs, card descriptions, buttons 16 / 15px
+     small  notes, meta lines, text links         14 / 13px
+     label  uppercase eyebrows, tags, table heads 12 / 11px
+   The site header and footer keep their own original sizes.
    font-size carries !important because this file has many older per-page
    overrides (several ID-scoped); this block is the single source of truth.
    ========================================================================== */
 :root{
-  --fs-lead:clamp(17px,calc(.35vw + 14px),19px);
+  --fs-lead:18px;
   --fs-body:16px;
   --fs-small:14px;
   --fs-label:12px;
-  --fs-card:clamp(22px,calc(.75vw + 15px),28px);
-  --fs-button:15px;
+  --fs-card:clamp(22px,calc(.75vw + 15px),28px); /* 3rd heading level */
 }
-@media(max-width:700px){:root{--fs-body:15px;--fs-small:13px;--fs-label:11px}}
+@media(max-width:700px){:root{--fs-lead:17px;--fs-body:15px;--fs-small:13px;--fs-label:11px}}
 
 /* lead */
 main .hero-copy .lede,main .page-hero .lede,main .agenda-hero .lede,main .agenda-hero .lede span,
@@ -1045,18 +1044,13 @@ main .post-body a,main .featured-entry summary,main .newsletter-form > small,mai
 main .social-preview-card figcaption strong{
   font-size:var(--fs-small)!important;line-height:1.5!important
 }
-.site-header .nav nav a,.site-header .nav-secondary p,.site-header .nav-secondary p strong,
-footer .footer-main a:not(.button),footer .footer-bottom,footer .footer-bottom a,footer .social-links-pending{
-  font-size:var(--fs-small)!important
-}
 
 /* label */
 main :is(.eyebrow,.kicker),main .service-card .service-top small,main .rx-label,main .rx-tag,main .guarantee-label,
 main .hero-social-heading span,main .social-preview-card figcaption span,main .pricing-table-head,main .pricing-table-head span,
 main .pricing-table-head small,main .pricing-table-head strong,main .pricing-chart .feature-cell small,main .pricing-solution b,
 main .post-meta,main .post-meta span,main .post-meta b,main .case-copy dt,main .newsletter-form > label,
-main .booking-field label,main .booking-date-summary small,main .calendar-head span,main .calendar-head b,
-footer h4,footer .footer-brand p span{
+main .booking-field label,main .booking-date-summary small,main .calendar-head span,main .calendar-head b{
   font-size:var(--fs-label)!important;line-height:1.35!important
 }
 
@@ -1067,8 +1061,7 @@ main .post-entry h2,main .faq-side h2,main .solution-grid h3,main .pricing-solut
 }
 
 /* buttons */
-main .button,main .newsletter-form button,footer .button{font-size:var(--fs-button)!important}
-.site-header .button{font-size:var(--fs-small)!important}
+main .button:not(.site-header *,footer *),main .newsletter-form button{font-size:var(--fs-body)!important}
 
 /* Text scale — desktop bento and preview-mock adjustments.
    In the two half-height service cards the text shares the row with the
@@ -1087,5 +1080,3 @@ main .social-preview-card figcaption strong{font-size:13px!important;line-height
 main .social-preview-card figcaption span{font-size:10px!important;letter-spacing:.08em}
 /* list items with a bold title over a description (Agenda steps) — title one step above its text */
 main li > div > strong{font-size:calc(var(--fs-body) + 1px)!important;line-height:1.3!important}
-/* mobile menu links read like body text */
-.site-header .mobile-menu > div > a{font-size:var(--fs-body)!important}
