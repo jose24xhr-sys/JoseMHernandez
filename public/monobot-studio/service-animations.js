@@ -71,7 +71,8 @@
   if ('IntersectionObserver' in window) {
     const seen = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
+        // The first report can arrive with only an edge on screen; wait until the card is really in view.
+        if (!entry.isIntersecting || entry.intersectionRatio < 0.45) return;
         seen.unobserve(entry.target);
         animationOf(entry.target)?.play();
       });
