@@ -4,10 +4,10 @@
 #recursos { --rx-card: rgba(255, 255, 255, .5); --rx-tile: #f6f1eb; --rx-tile-2: #efe7de; --rx-edge: #e5dacf; --rx-bar: #d9cfc5;
   --rx-soft: #fcd9c2; --rx-wash: #fdeee3; }
 
-#recursos .rx-head { display: grid; gap: 12px; margin-bottom: 40px; max-width: 760px; }
+#recursos .rx-head { display: grid; gap: 0; margin-bottom: 40px; max-width: 760px; }
 #recursos .rx-head .kicker { margin: 0; }
-#recursos .rx-head h2 { margin: 0; font: 400 clamp(42px, 5.4vw, 76px)/1 var(--serif); letter-spacing: -.035em; }
-#recursos .rx-head > p:not(.kicker) { margin: 4px 0 0; max-width: 56ch; color: var(--muted); font-size: clamp(15px, 1.45vw, 19px); line-height: 1.5; }
+#recursos .rx-head h2 { margin: 0; font: 400 var(--fs-section)/var(--lh-section) var(--serif); letter-spacing: var(--ls-heading); }
+#recursos .rx-head > p:not(.kicker) { margin: var(--gap-sub) 0 0; max-width: 56ch; color: var(--muted); font-size: clamp(15px, 1.45vw, 19px); line-height: 1.5; }
 
 #recursos .rx-grid { display: grid; gap: 14px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 @media (max-width: 1099px) { #recursos .rx-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

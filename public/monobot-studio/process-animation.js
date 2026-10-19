@@ -18,7 +18,8 @@
   const TAIL = 600;      // ms for the final arrow (row layout)
   const BAND_TOP = .2;   // the row counts as "in view" while it overlaps this band of the viewport…
   const BAND_BOTTOM = .72;
-  const READ_LINE = .62; // vertical timeline: the line is drawn down to this point of the viewport
+  const READ_LINE = .8;  // vertical timeline: the line is drawn down to this point of the viewport
+                         // (low enough that each step lights up while it is comfortably on screen)
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   document.querySelectorAll('[data-process]').forEach(setup);
@@ -48,7 +49,8 @@
     const ease = (t) => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
     const clamp = (v) => Math.min(1, Math.max(0, v));
     const place = (c, pt, o) => { c.setAttribute('cx', pt.x); c.setAttribute('cy', pt.y); c.style.opacity = o; };
-    const vh = () => window.innerHeight || document.documentElement.clientHeight;
+    // Phones: the visual viewport tracks the browser bars appearing/disappearing, innerHeight can lag behind.
+    const vh = () => (window.visualViewport && window.visualViewport.height) || window.innerHeight || document.documentElement.clientHeight;
 
     /* ---------- geometry ---------- */
     function layout() {
@@ -186,7 +188,10 @@
         const pt = active.s.fill.getPointAtLength(active.s.len * active.k);
         place(glow, pt, .55); place(head, pt, 1);
       } else { glow.style.opacity = 0; head.style.opacity = 0; }
-      if (reached >= segs[segs.length - 1].y1) finish();
+      // Finish once the end of the timeline is read, or once the visitor can see the whole list
+      // (or can't scroll any further) — otherwise the last step could stay dimmed on screen.
+      const atBottom = window.scrollY + vh() >= document.documentElement.scrollHeight - 2;
+      if (reached >= segs[segs.length - 1].y1 || b.bottom <= vh() || atBottom) finish();
     }
 
     /* ---------- the spark that keeps travelling after it's done ---------- */
@@ -236,6 +241,7 @@
     else { arm(); onScroll(); }
 
     window.addEventListener('scroll', onScroll, { passive: true });
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', onScroll);
     let pending = 0;
     new ResizeObserver(() => {
       cancelAnimationFrame(pending);

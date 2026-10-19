@@ -48,6 +48,13 @@
       }
     }
 
+    // Stop and rewind (used when the art leaves the screen before its run has finished).
+    reset() {
+      this._busyUntil = 0;
+      this.removeAttribute('data-play-pending');
+      this._animationCard?.classList.remove('is-playing');
+    }
+
     play({ force = false } = {}) {
       if (!this._animationCard) {
         this.setAttribute('data-play-pending', '');
@@ -67,17 +74,34 @@
   const cards = [...document.querySelectorAll('[data-service-anim]')];
   const animationOf = (card) => card.querySelector('monobot-service-animation');
 
-  // Play each card once as it comes into view, so phone visitors (who can't hover) see it too.
+  // Play each animation as its artwork comes into view, so phone visitors (who can't hover) see it too.
+  // We watch the artwork itself, not the whole card: on phones the cards are tall and the old card-level
+  // trigger started the run while the artwork was still below the screen. If the visitor scrolls the
+  // artwork away before the run ends, it rewinds and plays again the next time it comes into view.
   if ('IntersectionObserver' in window) {
-    const seen = new IntersectionObserver((entries) => {
+    const VISIBLE = 0.85;
+    // Mostly on screen — or, on very short screens, filling most of the visible area.
+    const inView = (e) => e.isIntersecting && (e.intersectionRatio >= VISIBLE || (e.rootBounds && e.intersectionRect.height >= e.rootBounds.height * 0.7));
+    const watch = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        // The first report can arrive with only an edge on screen; wait until the card is really in view.
-        if (!entry.isIntersecting || entry.intersectionRatio < 0.45) return;
-        seen.unobserve(entry.target);
-        animationOf(entry.target)?.play();
+        const anim = entry.target;
+        if (inView(entry)) {
+          if (anim._watchState) return;              // already running or finished
+          anim._watchState = 'running';
+          anim.play({ force: true });
+          clearTimeout(anim._watchTimer);
+          anim._watchTimer = setTimeout(() => {
+            anim._watchState = 'done';
+            watch.unobserve(anim);
+          }, DURATION[anim.getAttribute('kind')] || 4500);
+        } else if (!entry.isIntersecting && anim._watchState === 'running') {
+          clearTimeout(anim._watchTimer);
+          anim._watchState = null;
+          anim.reset();
+        }
       });
-    }, { threshold: 0.45 });
-    cards.forEach((card) => seen.observe(card));
+    }, { threshold: [0, 0.25, 0.5, 0.7, VISIBLE, 1], rootMargin: '0px 0px -6% 0px' });
+    cards.forEach((card) => { const anim = animationOf(card); if (anim) watch.observe(anim); });
   } else {
     cards.forEach((card) => animationOf(card)?.play());
   }

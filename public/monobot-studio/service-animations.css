@@ -1,8 +1,8 @@
 /* Hosts and positions the four isolated animation packages inside the services bento grid. */
 #servicios .service-bento-heading{margin-bottom:34px}
-#servicios .service-bento-heading h2{font-size:clamp(42px,5.2vw,76px);line-height:.98}
+#servicios .service-bento-heading h2{font-size:var(--fs-section);line-height:var(--lh-section)}
 #servicios .service-bento-heading h2 span{color:var(--orange)}
-#servicios .service-bento-heading p{max-width:none;margin:14px auto 0;color:#514b45;font-size:clamp(14px,1.35vw,19px);line-height:1.45}
+#servicios .service-bento-heading p{max-width:none;margin:var(--gap-sub) auto 0;color:#514b45;font-size:clamp(14px,1.35vw,19px);line-height:1.45}
 #servicios [data-service-anim]{cursor:pointer}
 #servicios .service-card>a{position:static}
 #servicios .service-card>a:before{content:"";position:absolute;inset:0;z-index:4}
@@ -29,7 +29,7 @@
 }
 @media(max-width:700px){
   #servicios .service-bento-heading{margin-bottom:26px}
-  #servicios .service-bento-heading h2{font-size:clamp(39px,12vw,58px)}
+  #servicios .service-bento-heading h2{font-size:var(--fs-section)}
   #servicios .service-bento-heading p{font-size:14px}
   #servicios .service-card{min-height:0;padding:22px;overflow:hidden}
   #servicios .service-card-web,#servicios .service-card-ai{min-height:610px}

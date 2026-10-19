@@ -930,3 +930,69 @@ footer .footer-main>div:nth-child(2) a.is-active{
   .final-cta .cta-actions .button{width:100%;min-width:0}
   .final-cta-visual{min-height:290px}
 }
+
+/* ==========================================================================
+   Type & spacing system (WEB-01, WEB-05) — one scale for every page.
+   Display = page title (h1). Section = section headings (h2).
+   Card-level headings (blog posts, FAQ groups, case studies) keep their own
+   smaller sizes on purpose.
+   ========================================================================== */
+:root{
+  --fs-display:clamp(40px,calc(3.4vw + 24px),72px);
+  --fs-section:clamp(32px,calc(2.6vw + 22px),58px);
+  --lh-display:.98;
+  --lh-section:1.04;
+  --ls-heading:-.035em;
+  --gap-kicker:20px;   /* eyebrow/kicker → heading */
+  --gap-sub:18px;      /* heading → subtitle */
+}
+@media(max-width:700px){:root{--gap-kicker:16px;--gap-sub:14px}}
+
+/* Display */
+main .hero-copy h1,main .page-hero h1,main .agenda-hero h1,.agenda-custom-page .agenda-hero h1{
+  font-size:var(--fs-display);line-height:var(--lh-display);letter-spacing:var(--ls-heading);font-weight:400;
+  margin-top:0;margin-bottom:calc(var(--gap-sub) + 6px)
+}
+/* Section */
+main .section-intro h2,main .process-title h2,main .rx-head h2,main .resources-head h2,main .final-cta h2,
+main .pricing-heading h2,main .solution-heading h2,main .partner h2,main .sub-cta h2,main .newsletter h2,main .library-intro h2{
+  font-family:var(--serif);font-size:var(--fs-section);line-height:var(--lh-section);letter-spacing:var(--ls-heading);font-weight:400;
+  margin-top:0;margin-bottom:0
+}
+/* Eyebrow / kicker → heading (WEB-05) */
+/* !important: several older page-specific rules (some ID-scoped) set their own kicker margins */
+main :is(.kicker,.eyebrow):has(+ :is(h1,h2)){margin-bottom:0!important}
+main :is(.kicker,.eyebrow) + :is(h1,h2){margin-top:var(--gap-kicker)!important}
+/* Heading → subtitle */
+main :is(.section-intro,.process-title,.rx-head,.resources-head,.pricing-heading,.solution-heading,.sub-cta,.newsletter,.library-intro,.final-cta-copy) h2 + p,
+main .partner h2 + p{margin-top:var(--gap-sub)!important}
+/* Containers that spaced these with grid/flex gaps now rely on the margins above */
+main .section-intro,main .process-title,main .rx-head,main .solution-heading,main .partner{row-gap:0}
+main .rx-head > p:not(.kicker){margin-bottom:0}
+main .partner > p:not(.kicker){margin-bottom:0}
+main .partner .button{margin-top:28px}
+@media(min-width:701px){main .partner > p:not(.kicker){margin-top:var(--gap-kicker)}}
+
+/* ==========================================================================
+   WEB-06 — pricing cards on phones: separate cards with a consistent gap
+   ========================================================================== */
+@media(max-width:700px){
+  main .pricing-chart{display:grid;gap:16px;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible}
+  main .pricing-chart article{border:1px solid var(--line);border-radius:16px;background:rgba(239,233,224,.45);box-shadow:0 12px 26px rgba(45,37,31,.07)}
+  main .pricing-chart article:last-child{border-bottom:1px solid var(--line)}
+  main .pricing-chart article.featured-price{background:rgba(255,101,0,.055);border-color:rgba(255,101,0,.35);box-shadow:inset 4px 0 var(--orange),0 12px 26px rgba(45,37,31,.07)}
+}
+
+/* ==========================================================================
+   WEB-07 — "Hablemos de una alianza": solid black CTA
+   ========================================================================== */
+main .partner .button{background:#111;color:#fff;border-color:#111;box-shadow:0 10px 24px rgba(17,17,17,.18)}
+main .partner .button:hover{background:#000;border-color:#000;color:#fff;transform:translateY(-2px);box-shadow:0 14px 28px rgba(17,17,17,.26)}
+main .partner .button:active{transform:none;box-shadow:0 6px 14px rgba(17,17,17,.2)}
+main .partner .button:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+
+/* ==========================================================================
+   WEB-02 — resource-card glows stay inside their card (they were bleeding onto
+   the page background and pushing the page 5px wider on phones)
+   ========================================================================== */
+#recursos .rx-card{overflow:hidden;isolation:isolate}
