@@ -1,0 +1,109 @@
+/* "Profundiza a tu ritmo" (#recursos) — four resource cards with drawn illustrations.
+   Layout: header left-aligned; 4 columns ≥1100px, 2 columns ≥700px, 1 column below.
+   Uses the site's tokens (--orange, --ink, --muted, --serif, --line). Hover plays a small motion per card. */
+#recursos { --rx-card: rgba(255, 255, 255, .5); --rx-tile: #f6f1eb; --rx-tile-2: #efe7de; --rx-edge: #e5dacf; --rx-bar: #d9cfc5;
+  --rx-soft: #fcd9c2; --rx-wash: #fdeee3; }
+
+#recursos .rx-head { display: grid; gap: 12px; margin-bottom: 40px; max-width: 760px; }
+#recursos .rx-head .kicker { margin: 0; }
+#recursos .rx-head h2 { margin: 0; font: 400 clamp(42px, 5.4vw, 76px)/1 var(--serif); letter-spacing: -.035em; }
+#recursos .rx-head > p:not(.kicker) { margin: 4px 0 0; max-width: 56ch; color: var(--muted); font-size: clamp(15px, 1.45vw, 19px); line-height: 1.5; }
+
+#recursos .rx-grid { display: grid; gap: 14px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 1099px) { #recursos .rx-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 699px) { #recursos .rx-grid { grid-template-columns: minmax(0, 1fr); } }
+
+#recursos .rx-card { position: relative; min-width: 0; display: flex; flex-direction: column; padding: 26px 24px 24px;
+  border: 1px solid var(--line); border-radius: 16px; background: var(--rx-card);
+  box-shadow: 0 14px 30px -22px rgba(53, 40, 28, .35); transition: transform .28s ease, box-shadow .28s ease; }
+#recursos .rx-card:hover, #recursos .rx-card:focus-within { transform: translateY(-3px); box-shadow: 0 20px 36px -22px rgba(53, 40, 28, .45); }
+
+#recursos .rx-label { display: flex; align-items: center; gap: 14px; min-height: 40px; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+#recursos .rx-ico { width: 40px; height: 40px; border-radius: 10px; background: var(--rx-wash); display: grid; place-items: center; flex: none; }
+#recursos .rx-ico svg { width: 22px; height: 22px; fill: none; stroke: var(--orange); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+#recursos .rx-tag { display: inline-block; padding: 8px 14px; border-radius: 4px; background: #e6ded5; }
+
+#recursos .rx-card h3 { margin: 22px 0 12px; font: 400 clamp(23px, 1.85vw, 28px)/1.14 var(--serif); letter-spacing: -.015em; text-wrap: balance; }
+#recursos .rx-card p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.6; max-width: 30ch; }
+
+#recursos .rx-card > a { align-self: flex-start; margin-top: 18px; padding-bottom: 6px; border-bottom: 2px solid var(--orange);
+  font-size: 15px; font-weight: 700; color: var(--ink); }
+#recursos .rx-card > a::before { content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: 2; }
+#recursos .rx-card > a:hover { color: var(--orange); }
+#recursos .rx-card > a:focus-visible { outline: 0; }
+#recursos .rx-card:has(> a:focus-visible) { outline: 3px solid rgba(255, 101, 0, .35); outline-offset: 3px; }
+
+/* ---------- illustrations: each drawn in a 240 × 170 stage anchored to the card's right edge ---------- */
+#recursos .rx-art { position: relative; height: 176px; margin-top: auto; padding-top: 18px; pointer-events: none; }
+#recursos .rx-stage { position: absolute; right: -6px; bottom: 0; width: 240px; height: 170px; }
+#recursos .rx-stage span, #recursos .rx-stage i { display: block; position: absolute; }
+#recursos .rx-panel { border-radius: 12px; border: 1px solid var(--rx-edge); background: linear-gradient(180deg, #fbf8f4, #f1eae2);
+  box-shadow: 0 14px 26px -18px rgba(80, 50, 20, .45); transition: transform .45s cubic-bezier(.3, 1.4, .5, 1); }
+#recursos .rx-front { background: linear-gradient(180deg, #fffefd, #f8f3ee); overflow: hidden; }
+#recursos .rx-line { height: 7px; border-radius: 4px; background: var(--rx-bar); transform-origin: left; transition: transform .4s ease; }
+#recursos .rx-glow { border-radius: 50%; background: radial-gradient(circle, rgba(255, 101, 0, .32), rgba(255, 101, 0, .08) 55%, transparent 72%); }
+
+/* 1) Guías — stacked pages with a rising chart */
+#recursos .rx-guide .p3 { left: 104px; top: 0; width: 136px; height: 120px; }
+#recursos .rx-guide .p2 { left: 58px; top: 22px; width: 150px; height: 120px; }
+#recursos .rx-guide .p1 { left: 0; top: 44px; width: 180px; height: 132px; }
+#recursos .rx-guide .dot { left: 16px; top: 16px; width: 10px; height: 10px; border-radius: 50%; background: var(--orange); }
+#recursos .rx-guide .l1 { left: 16px; top: 42px; width: 92px; }
+#recursos .rx-guide .l2 { left: 16px; top: 58px; width: 62px; background: #e4dbd2; }
+#recursos .rx-guide .l3 { left: 16px; top: 72px; width: 44px; background: #e9e1d9; }
+#recursos .rx-guide svg { position: absolute; right: -60px; bottom: -6px; width: 170px; height: 90px; overflow: visible; transition: transform .5s ease; transform-origin: bottom; }
+#recursos .rx-guide .glow { right: -70px; bottom: -40px; width: 140px; height: 140px; }
+#recursos .rx-card:hover .rx-guide .p3 { transform: translate(8px, -8px); }
+#recursos .rx-card:hover .rx-guide .p2 { transform: translate(4px, -4px); }
+#recursos .rx-card:hover .rx-guide svg { transform: scaleY(1.18); }
+#recursos .rx-card:hover .rx-guide .l1 { transform: scaleX(1.1); }
+
+/* 2) Casos prácticos — a player with a pulsing play button and a progress bar */
+#recursos .rx-video .back { left: 120px; top: 0; width: 120px; height: 110px; }
+#recursos .rx-video .front { left: 10px; top: 34px; width: 210px; height: 128px; border-radius: 16px; background: #fffdfb; border: 1px solid #efe6dd;
+  box-shadow: 0 18px 30px -18px rgba(80, 50, 20, .5); }
+#recursos .rx-video .screen { left: 20px; top: 20px; right: 20px; bottom: 26px; border-radius: 10px; background: linear-gradient(180deg, #f1ebe4, #e7dfd6); }
+#recursos .rx-video .play { left: 50%; top: 50%; width: 0; height: 0; margin: -16px 0 0 -10px; border-style: solid; border-width: 16px 0 16px 26px;
+  border-color: transparent transparent transparent var(--orange); transition: transform .35s cubic-bezier(.3, 1.6, .5, 1); }
+#recursos .rx-video .track { left: 20px; right: 20px; bottom: 12px; height: 4px; border-radius: 2px; background: #eee6de; overflow: hidden; }
+#recursos .rx-video .track i { left: 0; top: 0; bottom: 0; width: 100%; background: var(--orange); transform: scaleX(.18); transform-origin: left; transition: transform 1.6s ease-out; }
+#recursos .rx-video .glow { right: -40px; top: 40px; width: 120px; height: 120px; }
+#recursos .rx-card:hover .rx-video .play { transform: scale(1.18); }
+#recursos .rx-card:hover .rx-video .track i { transform: scaleX(.85); }
+#recursos .rx-card:hover .rx-video .back { transform: translate(6px, -6px); }
+
+/* 3) Precios — bars that grow and a floating price card */
+#recursos .rx-price .bar { bottom: 8px; width: 46px; border-radius: 6px; transform-origin: bottom; transition: transform .45s cubic-bezier(.3, 1.4, .5, 1); }
+#recursos .rx-price .b1 { left: 0; height: 50px; background: linear-gradient(180deg, #f2ece6, #e7ded5); border: 1px solid var(--rx-edge); }
+#recursos .rx-price .b2 { left: 60px; height: 82px; background: linear-gradient(180deg, #fbe1cf, #f5c3a1); }
+#recursos .rx-price .b3 { left: 120px; height: 122px; background: linear-gradient(180deg, #ff9b5c, var(--orange)); box-shadow: 0 12px 24px -12px rgba(255, 101, 0, .6); }
+#recursos .rx-price .tag { left: 98px; top: 0; width: 140px; height: 84px; border-radius: 14px; background: #fffdfb; border: 1px solid #efe6dd;
+  box-shadow: 0 18px 30px -18px rgba(80, 50, 20, .5); transition: transform .45s cubic-bezier(.3, 1.4, .5, 1); }
+#recursos .rx-price .tag .rx-line { left: 20px; }
+#recursos .rx-price .tag .t1 { top: 26px; width: 96px; }
+#recursos .rx-price .tag .t2 { top: 46px; width: 54px; background: #e4dbd2; }
+#recursos .rx-card:hover .rx-price .b1 { transform: scaleY(1.12); }
+#recursos .rx-card:hover .rx-price .b2 { transform: scaleY(1.18); transition-delay: .05s; }
+#recursos .rx-card:hover .rx-price .b3 { transform: scaleY(1.1); transition-delay: .1s; }
+#recursos .rx-card:hover .rx-price .tag { transform: translateY(-6px); }
+
+/* 4) Pregunta frecuente — chat bubbles; the dots bounce on hover */
+#recursos .rx-chat .back { left: 120px; top: 0; width: 118px; height: 96px; border-radius: 16px; }
+#recursos .rx-chat .back::after { content: ""; position: absolute; right: 26px; bottom: -9px; width: 16px; height: 16px; background: #f1eae2;
+  border-right: 1px solid var(--rx-edge); border-bottom: 1px solid var(--rx-edge); transform: rotate(45deg); }
+#recursos .rx-chat .front { left: 30px; top: 50px; width: 146px; height: 98px; border-radius: 18px; background: #fffdfb; border: 1px solid #efe6dd;
+  box-shadow: 0 18px 30px -16px rgba(255, 101, 0, .4); display: flex !important; align-items: center; justify-content: center; gap: 12px; }
+#recursos .rx-chat .front::after { content: ""; position: absolute; left: 30px; bottom: -11px; width: 20px; height: 20px; background: #fffdfb;
+  border-right: 1px solid #efe6dd; border-bottom: 1px solid #efe6dd; transform: rotate(45deg); }
+#recursos .rx-chat .front i { position: static; width: 13px; height: 13px; border-radius: 50%; background: var(--orange); }
+#recursos .rx-chat .glow { left: 10px; top: 40px; width: 150px; height: 150px; }
+@keyframes rx-bounce { 0%, 100% { transform: none; } 40% { transform: translateY(-5px); } }
+#recursos .rx-card:hover .rx-chat .front i { animation: rx-bounce .7s ease-in-out infinite; }
+#recursos .rx-card:hover .rx-chat .front i:nth-child(2) { animation-delay: .12s; }
+#recursos .rx-card:hover .rx-chat .front i:nth-child(3) { animation-delay: .24s; }
+
+@media (max-width: 380px) { #recursos .rx-stage { transform: scale(.88); transform-origin: right bottom; } }
+@media (prefers-reduced-motion: reduce) {
+  #recursos .rx-card, #recursos .rx-panel, #recursos .rx-line, #recursos .rx-stage *, #recursos .rx-guide svg { transition: none !important; animation: none !important; }
+  #recursos .rx-card:hover { transform: none; }
+}
