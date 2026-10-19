@@ -29,7 +29,8 @@
               background:transparent!important;box-shadow:none!important;overflow:visible!important
             }
             .${config.art}{
-              position:relative!important;inset:auto!important;margin:0!important;pointer-events:none!important
+              position:relative!important;inset:auto!important;width:100%!important;height:100%!important;
+              min-height:0!important;margin:0!important;transform:none!important;pointer-events:none!important
             }
           </style>
           <div class="${config.card}">${config.markup}</div>`;

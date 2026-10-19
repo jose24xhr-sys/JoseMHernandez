@@ -18,7 +18,11 @@
 #servicios .service-visual-chat monobot-service-animation,
 #servicios .service-visual-workflow monobot-service-animation{width:176px;height:212px;margin-left:auto}
 #servicios .service-visual-ai monobot-service-animation{width:100%;height:100%}
+@media(min-width:1001px){
+  #servicios .service-bento-grid{grid-template-rows:repeat(2,280px)}
+}
 @media(max-width:1000px){
+  #servicios .service-card{min-height:520px}
   #servicios .service-visual-web{right:0;width:310px}
   #servicios .service-visual-chat,#servicios .service-visual-workflow{right:10px}
   #servicios .service-visual-ai{height:280px}
@@ -27,9 +31,31 @@
   #servicios .service-bento-heading{margin-bottom:26px}
   #servicios .service-bento-heading h2{font-size:clamp(39px,12vw,58px)}
   #servicios .service-bento-heading p{font-size:14px}
-  #servicios .service-visual-web{right:-28px;bottom:-18px;transform:scale(.88);transform-origin:right bottom}
-  #servicios .service-visual-chat,#servicios .service-visual-workflow{right:2px;bottom:2px;transform:scale(.82);transform-origin:right bottom}
-  #servicios .service-visual-ai{right:12px;bottom:2px;width:calc(100% - 24px);height:230px}
+  #servicios .service-card{min-height:0;padding:22px;overflow:hidden}
+  #servicios .service-card-web,#servicios .service-card-ai{min-height:610px}
+  #servicios .service-card-chat,#servicios .service-card-workflow{min-height:505px}
+  #servicios .service-card .service-top{order:1}
+  #servicios .service-card>p{order:2;max-width:100%;font-size:12px}
+  #servicios .service-card>.service-visual{order:3;position:relative;right:auto;bottom:auto;align-self:stretch;margin:20px 0 0}
+  #servicios .service-card>a{order:4;align-self:flex-start;margin-top:auto}
+  #servicios .service-visual-web{width:100%;height:300px;display:grid;place-items:start center}
+  #servicios .service-visual-web monobot-service-animation{width:310px;height:300px;margin:0}
+  #servicios .service-visual-chat,#servicios .service-visual-workflow{width:100%;height:212px;display:grid;place-items:start center}
+  #servicios .service-visual-chat monobot-service-animation,#servicios .service-visual-workflow monobot-service-animation{margin:0}
+  #servicios .service-visual-ai{width:100%;height:285px}
+}
+@media(max-width:400px){
+  #servicios .service-card-web{min-height:580px}
+  #servicios .service-visual-web{height:270px}
+  #servicios .service-visual-web monobot-service-animation{transform:scale(.9);transform-origin:top center}
+  #servicios .service-card-ai{min-height:590px}
+  #servicios .service-visual-ai{height:265px}
+}
+@media(max-width:340px){
+  #servicios .service-card-web{min-height:540px}
+  #servicios .service-visual-web{height:230px}
+  #servicios .service-visual-web monobot-service-animation{transform:scale(.76)}
+  #servicios .service-card-chat,#servicios .service-card-workflow{min-height:485px}
 }
 @media(prefers-reduced-motion:reduce){
   #servicios .service-card{transition:none}
