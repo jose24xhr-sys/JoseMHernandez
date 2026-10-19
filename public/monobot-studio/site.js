@@ -387,8 +387,7 @@
     }
   });
 
-  document.querySelectorAll("[data-social-preview-gallery]").forEach((gallery) => {
-    const isHero = gallery.dataset.socialPreviewGallery === "hero";
+  document.querySelectorAll('[data-social-preview-gallery="hero"]').forEach((gallery) => {
     socialPreviewAssets.forEach((asset, index) => {
       const card = document.createElement("figure");
       card.className = `social-preview-card${asset.featured ? " social-preview-featured" : ""}`;
@@ -397,11 +396,9 @@
       image.src = asset.src;
       image.alt = asset.alt;
       image.decoding = "async";
-      image.loading = isHero && index === 0 ? "eager" : "lazy";
-      image.fetchPriority = isHero && index === 0 ? "high" : "auto";
-      image.sizes = isHero
-        ? "(max-width: 700px) calc(100vw - 64px), (max-width: 1000px) 70vw, 42vw"
-        : "(max-width: 700px) calc(100vw - 32px), 60vw";
+      image.loading = index === 0 ? "eager" : "lazy";
+      image.fetchPriority = index === 0 ? "high" : "auto";
+      image.sizes = "(max-width: 700px) calc(100vw - 64px), (max-width: 1000px) 70vw, 42vw";
 
       const caption = document.createElement("figcaption");
       const label = document.createElement("strong");
