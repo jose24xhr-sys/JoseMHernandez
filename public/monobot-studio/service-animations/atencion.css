@@ -1,0 +1,140 @@
+/* Atención inteligente card — click to watch the assistant handle a customer from question to booked visit.
+   Layout: wide, short card like the original (title across, copy left, chat on the right; stacks under 480px). */
+:root {
+  --paper: #f3efea;
+  --card-top: #fcfbf9;
+  --card-bottom: #f7f2ec;
+  --edge: #e8e0d7;
+  --ink: #1c1916;
+  --muted: #5d5650;
+  --faint: #a2968c;
+  --tile-edge: #e2d8cd;
+  --user-bubble: #ece5dd;
+  --accent: #f26b1d;
+  --accent-soft: #fcd9c2;
+  --accent-wash: #fdf0e6;
+  --pill: #ebe6e0;
+  --robot-bg: #0b0b0b;
+  --white: #ffffff;
+  --serif: Georgia, "Gelasio", "Times New Roman", serif;
+  --sans: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  color-scheme: light;
+}
+
+/* ---------- card shell ---------- */
+.at-card {
+  position: relative; overflow: hidden; min-width: 0; cursor: pointer; box-sizing: border-box;
+  background: linear-gradient(160deg, var(--card-top), var(--card-bottom));
+  border: 1px solid var(--edge); border-radius: 16px; padding: 24px 22px 22px 26px;
+  box-shadow: 0 8px 24px -18px rgba(70, 45, 20, .35);
+  display: grid; grid-template-columns: minmax(0, 1fr) 176px; column-gap: 16px; align-items: start;
+  grid-template-areas: "pill pill" "title title" "text art" "cta art";
+  font-family: var(--sans); color: var(--ink);
+}
+.at-pill { grid-area: pill; justify-self: start; display: inline-flex; align-items: center; gap: 9px; background: var(--pill); border-radius: 3px;
+  padding: 6px 10px 6px 6px; font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; }
+.at-pill__ico { width: 24px; height: 24px; border-radius: 6px; background: var(--accent-wash); display: grid; place-items: center; }
+.at-pill__ico svg { width: 15px; height: 15px; fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.at-card h2 { grid-area: title; font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.12; margin: 20px 0 10px; }
+.at-card p { grid-area: text; margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--muted); max-width: 40ch; }
+.at-cta { grid-area: cta; justify-self: start; align-self: end; margin-top: 22px; padding-bottom: 6px; border-bottom: 2px solid var(--accent);
+  color: var(--ink); font-weight: 700; font-size: 13px; text-decoration: none; }
+.at-cta:hover { color: var(--accent); }
+.at-cta:focus-visible, .at-art:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 8px; }
+
+/* ---------- the scene: 176 × 212 ---------- */
+.at-art { all: unset; grid-area: art; position: relative; display: block; width: 176px; height: 212px; cursor: pointer; transition: transform .3s ease; }
+.at-card:hover .at-art { transform: translateY(-3px); }
+.at-art span, .at-art i, .at-art b { display: block; }
+
+/* resting illustration (matches the static card) */
+.rb { position: absolute; border-radius: 12px; }
+.rb--back { left: 72px; top: 52px; width: 78px; height: 60px; border: 1px solid var(--tile-edge);
+  background: linear-gradient(180deg, #fdfbf9, #f1ebe4); box-shadow: 0 10px 20px -14px rgba(80, 50, 20, .45); }
+.rb--front { left: 16px; top: 88px; width: 88px; height: 58px; background: var(--white); border: 1.5px solid var(--accent);
+  display: flex !important; align-items: center; justify-content: center; box-shadow: 0 10px 22px -14px rgba(242, 107, 29, .6); }
+.rb--front::after { content: ""; position: absolute; left: 13px; bottom: -7px; width: 11px; height: 11px; background: var(--white);
+  border-right: 1.5px solid var(--accent); border-bottom: 1.5px solid var(--accent); transform: rotate(45deg); }
+.dots { display: flex !important; gap: 5px; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.rb .dots i:nth-child(2) { opacity: .75; } .rb .dots i:nth-child(3) { opacity: .5; }
+
+/* chat window */
+.chat { position: absolute; inset: 0; border-radius: 14px; background: var(--white); border: 1px solid var(--tile-edge);
+  box-shadow: 0 16px 30px -20px rgba(70, 45, 20, .6); overflow: hidden; opacity: 0; transform-origin: 30% 80%; }
+.c-head { position: absolute; left: 0; right: 0; top: 0; height: 34px; display: flex !important; align-items: center; gap: 7px;
+  padding: 0 9px; box-sizing: border-box; border-bottom: 1px solid #f0e9e2; background: #fdfbf9; }
+.c-head svg.bot { width: 20px; height: 20px; flex: none; }
+.c-name { font-size: 10.5px; font-weight: 700; line-height: 1.1; }
+.c-status { position: relative; height: 11px; font-size: 8.5px; color: var(--muted); }
+.c-status .s { position: absolute; left: 0; top: 0; white-space: nowrap; display: flex !important; align-items: center; gap: 4px; }
+.c-status .s i { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+.c-status .s--done { opacity: 0; color: var(--accent); font-weight: 600; }
+
+.feed { position: absolute; left: 8px; right: 8px; top: 42px; bottom: 8px; }
+.msg { position: absolute; font-size: 10px; line-height: 1.35; padding: 6px 9px; box-sizing: border-box; opacity: 0; }
+.msg--user { right: 0; background: var(--user-bubble); border-radius: 11px 11px 3px 11px; max-width: 118px; transform-origin: right bottom; }
+.msg--bot { left: 0; background: var(--white); border: 1.2px solid var(--accent); border-radius: 11px 11px 11px 3px; max-width: 132px; transform-origin: left bottom; }
+.msg--typing { left: 0; padding: 8px 10px; }
+.msg--typing .dots i { width: 5px; height: 5px; }
+.m1 { top: 0; } .t1, .m2 { top: 44px; } .quick, .m3 { top: 91px; } .t2, .m4 { top: 118px; }
+
+.quick { position: absolute; left: 0; display: flex !important; gap: 5px; }
+.qr { position: relative; font-size: 9.5px; line-height: 1; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--accent);
+  color: var(--accent); background: var(--white); white-space: nowrap; opacity: 0; overflow: hidden; }
+.qr .tap { position: absolute; left: 50%; top: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%;
+  background: rgba(255, 255, 255, .55); opacity: 0; }
+
+.m4 { left: 0; width: 148px; padding: 7px; display: flex !important; align-items: center; gap: 8px; border-radius: 10px;
+  background: var(--white); border: 1px solid var(--tile-edge); box-shadow: 0 8px 16px -12px rgba(70, 45, 20, .55); transform-origin: left center; }
+.m4 .cal { width: 28px; height: 28px; border-radius: 7px; background: var(--accent-wash); display: grid !important; place-items: center; flex: none; }
+.m4 .cal svg { width: 15px; height: 15px; fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.m4 b { font-size: 10px; line-height: 1.25; }
+.m4 small { display: block; font-size: 8.5px; color: var(--muted); }
+.m4 .tick { position: absolute; right: -5px; top: -5px; }
+.tick { width: 16px; height: 16px; border-radius: 50%; background: var(--accent); display: grid !important; place-items: center; flex: none; opacity: 0; }
+.tick svg { width: 9px; height: 9px; fill: none; stroke: var(--white); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+
+@media (max-width: 480px) {
+  .at-card { grid-template-columns: minmax(0, 1fr); grid-template-areas: "pill" "title" "text" "cta" "art"; }
+  .at-art { justify-self: center; margin-top: 24px; }
+}
+
+/* ---------- keyframes ---------- */
+@keyframes out { to { opacity: 0; transform: scale(.85); } }
+@keyframes window-in { 0% { opacity: 0; transform: scale(.7); } 70% { opacity: 1; transform: scale(1.03); } 100% { opacity: 1; transform: none; } }
+@keyframes pop { 0% { opacity: 0; transform: scale(.4); } 70% { opacity: 1; transform: scale(1.08); } 100% { opacity: 1; transform: none; } }
+@keyframes typing { 0% { opacity: 0; transform: scale(.5); } 15% { opacity: 1; transform: none; } 85% { opacity: 1; } 100% { opacity: 0; transform: scale(.8); } }
+@keyframes bounce { from { transform: translateY(1.5px); } to { transform: translateY(-2.5px); } }
+@keyframes chip-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes press { 0% { transform: none; } 40% { transform: scale(.88); background: var(--accent); color: var(--white); } 100% { transform: none; background: var(--accent); color: var(--white); } }
+@keyframes ripple { from { opacity: 1; transform: scale(.2); } to { opacity: 0; transform: scale(2); } }
+@keyframes gone { to { opacity: 0; transform: translateY(-4px); } }
+@keyframes in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- timeline ----------
+   0.0 bubbles fold · 0.15 chat opens · 0.6 question · 1.0 typing · 1.8 answer + quick replies
+   2.7 customer taps "Sí, mañana" · 3.3 typing · 3.9 visit booked · 4.4 "Resuelta en 12 s"      */
+.at-card.is-playing .rb       { animation: out .25s ease forwards; }
+.at-card.is-playing .chat     { animation: window-in .45s cubic-bezier(.2,.8,.3,1) .15s both; }
+.at-card.is-playing .m1       { animation: pop .4s cubic-bezier(.3,1.5,.5,1) .6s both; }
+.at-card.is-playing .t1       { animation: typing .8s ease 1.0s both; }
+.at-card.is-playing .t1 i, .at-card.is-playing .t2 i { animation: bounce .3s ease-in-out infinite alternate; }
+.at-card.is-playing .t1 i:nth-child(2), .at-card.is-playing .t2 i:nth-child(2) { animation-delay: .1s; }
+.at-card.is-playing .t1 i:nth-child(3), .at-card.is-playing .t2 i:nth-child(3) { animation-delay: .2s; }
+.at-card.is-playing .m2       { animation: pop .4s cubic-bezier(.3,1.5,.5,1) 1.8s both; }
+.at-card.is-playing .qr:nth-child(1) { animation: chip-in .3s ease-out 2.1s both, press .35s ease 2.7s forwards; }
+.at-card.is-playing .qr:nth-child(2) { animation: chip-in .3s ease-out 2.2s both; }
+.at-card.is-playing .qr .tap  { animation: ripple .5s ease-out 2.7s both; }
+.at-card.is-playing .quick    { animation: gone .2s ease 3.05s forwards; }
+.at-card.is-playing .m3       { animation: pop .4s cubic-bezier(.3,1.5,.5,1) 3.1s both; }
+.at-card.is-playing .t2       { animation: typing .6s ease 3.35s both; }
+.at-card.is-playing .m4       { animation: pop .45s cubic-bezier(.3,1.5,.5,1) 3.95s both; }
+.at-card.is-playing .m4 .tick { animation: pop .35s cubic-bezier(.3,1.6,.5,1) 4.25s both; }
+.at-card.is-playing .s--live  { animation: out .2s ease 4.45s forwards; }
+.at-card.is-playing .s--done  { animation: in .3s ease 4.55s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .at-card.is-playing * { animation-duration: 1ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; }
+  .at-art { transition: none; }
+}

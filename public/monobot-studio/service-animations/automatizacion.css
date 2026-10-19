@@ -1,0 +1,170 @@
+/* Automatización de procesos card — click to watch a workflow get built, then run end to end.
+   Layout: wide, short card like the original (title across, copy left, flow on the right; stacks under 480px). */
+:root {
+  --paper: #f3efea;
+  --card-top: #fcfbf9;
+  --card-bottom: #f7f2ec;
+  --edge: #e8e0d7;
+  --ink: #1c1916;
+  --muted: #5d5650;
+  --faint: #a2968c;
+  --tile-edge: #e2d8cd;
+  --wire: #d9cec3;
+  --accent: #f26b1d;
+  --accent-soft: #fcd9c2;
+  --accent-wash: #fdf0e6;
+  --pill: #ebe6e0;
+  --white: #ffffff;
+  --serif: Georgia, "Gelasio", "Times New Roman", serif;
+  --sans: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  color-scheme: light;
+}
+
+/* ---------- card shell ---------- */
+.au-card {
+  position: relative; overflow: hidden; min-width: 0; cursor: pointer; box-sizing: border-box;
+  background: linear-gradient(160deg, var(--card-top), var(--card-bottom));
+  border: 1px solid var(--edge); border-radius: 16px; padding: 24px 22px 22px 26px;
+  box-shadow: 0 8px 24px -18px rgba(70, 45, 20, .35);
+  display: grid; grid-template-columns: minmax(0, 1fr) 176px; column-gap: 16px; align-items: start;
+  grid-template-areas: "pill pill" "title title" "text art" "cta art";
+  font-family: var(--sans); color: var(--ink);
+}
+.au-pill { grid-area: pill; justify-self: start; display: inline-flex; align-items: center; gap: 9px; background: var(--pill); border-radius: 3px;
+  padding: 6px 10px 6px 6px; font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; }
+.au-pill__ico { width: 24px; height: 24px; border-radius: 6px; background: var(--accent-wash); display: grid; place-items: center; }
+.au-pill__ico svg { width: 15px; height: 15px; fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.au-card h2 { grid-area: title; font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.12; margin: 20px 0 10px; text-wrap: balance; }
+.au-card p { grid-area: text; margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--muted); max-width: 40ch; }
+.au-cta { grid-area: cta; justify-self: start; align-self: end; margin-top: 22px; padding-bottom: 6px; border-bottom: 2px solid var(--accent);
+  color: var(--ink); font-weight: 700; font-size: 13px; text-decoration: none; }
+.au-cta:hover { color: var(--accent); }
+.au-cta:focus-visible, .au-art:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 8px; }
+
+/* ---------- the scene: 176 × 212 ---------- */
+.au-art { all: unset; grid-area: art; position: relative; display: block; width: 176px; height: 212px; cursor: pointer; transition: transform .3s ease; }
+.au-card:hover .au-art { transform: translateY(-3px); }
+.au-art span, .au-art i, .au-art b { display: block; }
+@media (max-width: 480px) {
+  .au-card { grid-template-columns: minmax(0, 1fr); grid-template-areas: "pill" "title" "text" "cta" "art"; }
+  .au-art { justify-self: center; margin-top: 24px; }
+}
+
+/* resting illustration (matches the static card) */
+.rest { position: absolute; left: 13px; top: 46px; width: 150px; height: 120px; }
+.rest svg { position: absolute; inset: 0; width: 150px; height: 120px; overflow: visible; }
+.rest path { fill: none; stroke: var(--accent); stroke-width: 2; }
+.rest .t { position: absolute; border-radius: 9px; border: 1px solid var(--tile-edge); background: linear-gradient(180deg, #fefcfa, #f1ebe4);
+  box-shadow: 0 10px 18px -12px rgba(80, 50, 20, .45); }
+.rest .src { left: 0; top: 41px; width: 40px; height: 38px; border: 1.5px solid var(--accent); background: var(--white); display: grid !important; place-items: center; }
+.rest .src i { width: 12px; height: 12px; border-radius: 50%; background: var(--accent-soft); }
+.rest .a { left: 92px; top: 4px; width: 54px; height: 38px; }
+.rest .b { left: 92px; top: 79px; width: 54px; height: 38px; }
+
+/* connectors */
+.wires { position: absolute; inset: 0; width: 176px; height: 212px; overflow: visible; }
+.wires path { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-dasharray: 1; }
+.wires .w { stroke: var(--wire); stroke-dashoffset: 1; }
+.wires .run { stroke: var(--accent); stroke-dashoffset: 1; }
+.wires .pkt { fill: var(--accent); opacity: 0; }
+
+/* nodes */
+.node { position: absolute; display: flex !important; align-items: center; gap: 7px; box-sizing: border-box; padding: 0 8px 0 6px;
+  background: var(--white); border: 1px solid var(--tile-edge); border-radius: 9px; box-shadow: 0 10px 18px -12px rgba(80, 50, 20, .45); opacity: 0; }
+.n1 { left: 13px; top: 0; width: 150px; height: 36px; }
+.n2 { left: 13px; top: 56px; width: 150px; height: 36px; }
+.n3 { left: 0; top: 118px; width: 84px; height: 46px; padding: 0 6px; }
+.n4 { left: 92px; top: 118px; width: 84px; height: 46px; padding: 0 6px; }
+.ico { width: 24px; height: 24px; border-radius: 7px; background: var(--accent-wash); display: grid !important; place-items: center; flex: none; }
+.ico svg { width: 14px; height: 14px; fill: none; stroke: var(--accent); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.n3 .ico, .n4 .ico { width: 20px; height: 20px; border-radius: 6px; }
+.n3 .ico svg, .n4 .ico svg { width: 12px; height: 12px; }
+.lbl { min-width: 0; }
+.lbl b { font-size: 10px; font-weight: 700; line-height: 1.2; white-space: nowrap; }
+.sub { position: relative; height: 11px; font-size: 8.5px; line-height: 11px; white-space: nowrap; }
+.sub .k, .sub .v { position: absolute; left: 0; top: 0; }
+.sub .k { color: var(--faint); }
+.sub .v { color: var(--accent); font-weight: 600; opacity: 0; }
+
+/* step state badge: spinner → check */
+.state { position: absolute; right: -6px; top: -6px; width: 16px; height: 16px; }
+.spin { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent-soft); border-top-color: var(--accent);
+  box-sizing: border-box; background: var(--white); opacity: 0; }
+.ok { position: absolute; inset: 0; border-radius: 50%; background: var(--accent); display: grid !important; place-items: center; opacity: 0; }
+.ok svg { width: 9px; height: 9px; fill: none; stroke: var(--white); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+
+/* incoming form */
+.form { position: absolute; left: 20px; top: 6px; width: 20px; height: 24px; border-radius: 3px; background: var(--white);
+  border: 1.2px solid var(--accent); box-sizing: border-box; opacity: 0; z-index: 2; }
+.form i { position: absolute; left: 3px; right: 3px; height: 2px; border-radius: 1px; background: var(--accent-soft); }
+.form i:nth-child(1) { top: 5px; } .form i:nth-child(2) { top: 10px; } .form i:nth-child(3) { top: 15px; right: 7px; }
+
+.chip { position: absolute; left: 0; top: 180px; display: inline-flex !important; align-items: center; gap: 6px; white-space: nowrap;
+  background: var(--white); border: 1px solid var(--tile-edge); border-radius: 999px; padding: 4px 11px 4px 4px; font-size: 11px; font-weight: 600;
+  box-shadow: 0 6px 14px -10px rgba(70, 45, 20, .5); opacity: 0; transform-origin: left center; }
+.chip .tick { width: 17px; height: 17px; border-radius: 50%; background: var(--accent); display: grid !important; place-items: center; }
+.chip .tick svg { width: 10px; height: 10px; fill: none; stroke: var(--white); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.chip small { font-weight: 400; color: var(--muted); font-size: 10.5px; }
+
+/* ---------- keyframes ---------- */
+@keyframes out { to { opacity: 0; transform: scale(.9); } }
+@keyframes drop { from { opacity: 0; transform: translateY(-8px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes form-in { 0% { opacity: 0; transform: translate(-34px, -4px) rotate(-12deg); } 25% { opacity: 1; }
+  80% { opacity: 1; transform: translate(-4px, 2px) rotate(0); } 100% { opacity: 0; transform: translate(-2px, 2px) scale(.6); } }
+@keyframes spin-life { 0% { opacity: 0; transform: rotate(0); } 10% { opacity: 1; } 90% { opacity: 1; } 100% { opacity: 0; transform: rotate(540deg); } }
+@keyframes pop { 0% { opacity: 0; transform: scale(.4); } 70% { opacity: 1; transform: scale(1.15); } 100% { opacity: 1; transform: none; } }
+@keyframes lit { to { border-color: var(--accent); } }
+@keyframes swap-out { to { opacity: 0; transform: translateY(-4px); } }
+@keyframes swap-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes pkt1 { 0% { opacity: 1; transform: translate(88px, 36px); } 90% { opacity: 1; transform: translate(88px, 56px); } 100% { opacity: 0; transform: translate(88px, 56px); } }
+@keyframes pkt-l { 0% { opacity: 1; transform: translate(88px, 92px); } 25% { transform: translate(88px, 105px); }
+  75% { transform: translate(42px, 105px); } 92% { opacity: 1; transform: translate(42px, 118px); } 100% { opacity: 0; transform: translate(42px, 118px); } }
+@keyframes pkt-r { 0% { opacity: 1; transform: translate(88px, 92px); } 25% { transform: translate(88px, 105px); }
+  75% { transform: translate(134px, 105px); } 92% { opacity: 1; transform: translate(134px, 118px); } 100% { opacity: 0; transform: translate(134px, 118px); } }
+@keyframes chip-in { from { opacity: 0; transform: translateY(8px) scale(.9); } to { opacity: 1; transform: none; } }
+
+/* ---------- timeline ----------
+   BUILD  0.2 trigger · 0.4 wire · 0.55 CRM step · 0.75 split · 0.9/1.0 calendar + email
+   RUN    1.35 form arrives · 1.7 trigger ✓ · 2.25 contact created ✓ · 3.15/3.25 visit + email ✓
+   DONE   3.6 "Flujo completado · 4 pasos · 0,8 s"                                          */
+.au-card.is-playing .rest { animation: out .25s ease forwards; }
+
+.au-card.is-playing .n1 { animation: drop .3s ease-out .2s both, lit .25s ease 1.65s forwards; }
+.au-card.is-playing .w1 { animation: draw .2s linear .4s both; }
+.au-card.is-playing .n2 { animation: drop .3s ease-out .55s both, lit .25s ease 2.2s forwards; }
+.au-card.is-playing .w2, .au-card.is-playing .w3 { animation: draw .25s linear .75s both; }
+.au-card.is-playing .n3 { animation: drop .3s ease-out .9s both, lit .25s ease 3.1s forwards; }
+.au-card.is-playing .n4 { animation: drop .3s ease-out 1.0s both, lit .25s ease 3.2s forwards; }
+
+.au-card.is-playing .form { animation: form-in .45s ease-out 1.3s both; }
+.au-card.is-playing .n1 .spin { animation: spin-life .25s linear 1.5s both; }
+.au-card.is-playing .n1 .ok   { animation: pop .3s cubic-bezier(.3,1.6,.5,1) 1.7s both; }
+.au-card.is-playing .n1 .k    { animation: swap-out .15s ease 1.7s forwards; }
+.au-card.is-playing .n1 .v    { animation: swap-in .2s ease 1.75s both; }
+
+.au-card.is-playing .r1   { animation: draw .3s linear 1.8s both; }
+.au-card.is-playing .p1   { animation: pkt1 .3s linear 1.8s both; }
+.au-card.is-playing .n2 .spin { animation: spin-life .4s linear 2.05s both; }
+.au-card.is-playing .n2 .ok   { animation: pop .3s cubic-bezier(.3,1.6,.5,1) 2.25s both; }
+.au-card.is-playing .n2 .k    { animation: swap-out .15s ease 2.25s forwards; }
+.au-card.is-playing .n2 .v    { animation: swap-in .2s ease 2.3s both; }
+
+.au-card.is-playing .r2, .au-card.is-playing .r3 { animation: draw .55s linear 2.4s both; }
+.au-card.is-playing .p2   { animation: pkt-l .55s linear 2.4s both; }
+.au-card.is-playing .p3   { animation: pkt-r .55s linear 2.4s both; }
+.au-card.is-playing .n3 .spin { animation: spin-life .3s linear 2.9s both; }
+.au-card.is-playing .n4 .spin { animation: spin-life .4s linear 2.9s both; }
+.au-card.is-playing .n3 .ok   { animation: pop .3s cubic-bezier(.3,1.6,.5,1) 3.15s both; }
+.au-card.is-playing .n4 .ok   { animation: pop .3s cubic-bezier(.3,1.6,.5,1) 3.25s both; }
+.au-card.is-playing .n3 .k    { animation: swap-out .15s ease 3.15s forwards; }
+.au-card.is-playing .n3 .v    { animation: swap-in .2s ease 3.2s both; }
+.au-card.is-playing .n4 .k    { animation: swap-out .15s ease 3.25s forwards; }
+.au-card.is-playing .n4 .v    { animation: swap-in .2s ease 3.3s both; }
+
+.au-card.is-playing .chip { animation: chip-in .35s ease-out 3.6s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .au-card.is-playing * { animation-duration: 1ms !important; animation-delay: 0ms !important; }
+  .au-art { transition: none; }
+}
