@@ -57,6 +57,26 @@
   #servicios .service-visual-web monobot-service-animation{transform:scale(.76)}
   #servicios .service-card-chat,#servicios .service-card-workflow{min-height:485px}
 }
+/* Layout fixes: give each scene room for its finished state so nothing lands on the text or the link. */
+@media(min-width:1001px){
+  #servicios .service-visual-web{bottom:58px}
+  #servicios .service-card-chat>p,#servicios .service-card-workflow>p{max-width:calc(100% - 196px)}
+  #servicios .service-visual-ai{height:384px}
+}
+@media(max-width:1000px) and (min-width:701px){
+  #servicios .service-card-web{min-height:580px}
+  #servicios .service-visual-web{bottom:58px}
+  #servicios .service-card-ai{min-height:640px}
+  #servicios .service-visual-ai{height:384px}
+}
+@media(max-width:700px){
+  #servicios .service-card-ai{min-height:720px}
+  #servicios .service-visual-ai{height:384px}
+}
+@media(max-width:400px){
+  #servicios .service-card-ai{min-height:690px}
+  #servicios .service-visual-ai{height:360px}
+}
 @media(prefers-reduced-motion:reduce){
   #servicios .service-card{transition:none}
 }
