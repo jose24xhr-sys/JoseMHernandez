@@ -429,6 +429,26 @@
     }));
   });
 
+  // Monoblog: only one article open at a time. Opening a card closes any other
+  // open card (including the featured entry) and brings the new one into view.
+  // "toggle" doesn't bubble, so listen in the capture phase; this also covers
+  // cards injected later from the local editor.
+  const blogEntrySelector = ".post-entry, .featured-entry";
+  document.addEventListener("toggle", (event) => {
+    const entry = event.target;
+    if (!(entry instanceof HTMLDetailsElement) || !entry.matches(blogEntrySelector) || !entry.open) return;
+    document.querySelectorAll(blogEntrySelector).forEach((other) => {
+      if (other !== entry && other.open) other.open = false;
+    });
+    requestAnimationFrame(() => {
+      const top = entry.getBoundingClientRect().top;
+      if (top < 0 || top > window.innerHeight * 0.6) {
+        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        entry.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+      }
+    });
+  }, true);
+
   const storageKey = "monobot-blog-drafts";
   const readDrafts = () => {
     try { return JSON.parse(localStorage.getItem(storageKey) || "[]"); }
