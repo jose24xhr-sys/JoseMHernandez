@@ -1067,7 +1067,10 @@ main .button:not(.site-header *,footer *),main .newsletter-form button{font-size
    animation, so descriptions use 15px there and the column is a little wider;
    the AI card's animation sits slightly lower so the 3-line text clears it. */
 @media(min-width:1240px){
-  #servicios .service-card > p{font-size:15px!important;line-height:1.5!important}
+  #servicios .service-card > p{font-size:var(--fs-small)!important;line-height:1.5!important}
+  /* titles stay in the text column too, so the animation never covers them */
+  #servicios .service-card-chat .service-top,#servicios .service-card-workflow .service-top{max-width:none!important}
+  #servicios .service-card-chat .service-top h3,#servicios .service-card-workflow .service-top h3{flex-basis:auto;max-width:calc(100% - 176px);font-size:24px!important}
   #servicios .service-card-chat > p,#servicios .service-card-workflow > p{max-width:calc(100% - 176px)!important}
   /* rows grow with their text instead of clipping it */
   #servicios .service-bento-grid{grid-template-rows:repeat(2,minmax(310px,auto))!important}
@@ -1107,3 +1110,8 @@ main .trust small{font-size:13px!important}
   main .trust > div:nth-child(2n){border-right:0}
   main .trust > div:nth-child(-n+2){border-bottom:1px solid rgba(255,255,255,.16)}
 }
+
+/* Service cards: tags one step smaller so they stay on one line; descriptions
+   use the small step on tablet/desktop (phones keep 15px). */
+#servicios .service-card .service-top small{font-size:11px!important;letter-spacing:.12em}
+@media(min-width:701px){#servicios .service-card > p{font-size:var(--fs-small)!important}}
