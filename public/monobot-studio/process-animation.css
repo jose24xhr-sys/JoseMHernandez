@@ -1,0 +1,93 @@
+/* "Así trabajamos" — four steps joined by an animated connector (driven by process-animation.js).
+   Uses the site's own tokens (--orange, --ink, --muted, --serif) and keeps the existing .process-wrap shell. */
+#proceso { --flow: horizontal; --proc-dim: #cbc1b6; --proc-sep: #d9c6b7; }
+#proceso .process-title-centered { margin-bottom: 0; }
+#proceso .proc-lede { margin: 16px auto 0; max-width: 52ch; text-align: center; color: var(--muted);
+  font-size: clamp(15px, 1.5vw, 18px); line-height: 1.55; text-wrap: balance; }
+
+#proceso .psteps { position: relative; list-style: none; margin: 52px 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 44px; }
+#proceso .pwire { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 0; }
+#proceso .pwire .base { fill: none; stroke: var(--orange); stroke-opacity: .2; stroke-width: 1.6; stroke-linecap: round; }
+#proceso .pwire .fill { fill: none; stroke: url(#pwGrad); stroke-width: 2.2; stroke-linecap: round; }
+#proceso .pwire .arrow { fill: none; stroke: var(--orange); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+#proceso .pwire .glow { fill: var(--orange); opacity: 0; filter: blur(5px); }
+#proceso .pwire .head { fill: #fff; stroke: var(--orange); stroke-width: 2.5; opacity: 0; }
+#proceso .pwire .spark { fill: #ff8a3d; opacity: 0; filter: blur(.6px); }
+
+#proceso .pstep { position: relative; z-index: 1; display: grid; align-content: start; gap: 16px; min-width: 0; text-align: left; }
+#proceso .ptile-row { display: flex; align-items: center; gap: 22px; height: 74px; padding-left: 10px; }
+#proceso .ptile { position: relative; isolation: isolate; width: 60px; height: 60px; flex: none; border-radius: 17px; display: grid; place-items: center; }
+#proceso .ptile::before, #proceso .ptile::after { content: ""; position: absolute; border-radius: inherit; width: 100%; height: 100%; }
+#proceso .ptile::before { z-index: -2; left: -11px; top: 11px;
+  background: linear-gradient(160deg, #fde6d6, #f9c9a8); box-shadow: 0 10px 26px -10px rgba(255, 101, 0, .5); }
+#proceso .ptile::after { z-index: -1; left: 0; top: 0;
+  background: linear-gradient(160deg, #ffffff, #fff6f0); box-shadow: 0 14px 30px -14px rgba(255, 101, 0, .55), 0 0 0 1px rgba(255, 101, 0, .06); }
+#proceso .ptile svg { position: relative; width: 26px; height: 26px; fill: none; stroke: var(--orange); stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+#proceso .pdot { position: relative; width: 11px; height: 11px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 4px rgba(255, 101, 0, .14); flex: none; }
+#proceso .pdot::after { content: ""; position: absolute; inset: -2px; border-radius: 50%; border: 2px solid var(--orange); opacity: 0; }
+
+#proceso .phead { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; }
+#proceso .pnum { font: clamp(30px, 3vw, 40px)/1 var(--serif); color: var(--orange); }
+#proceso .psep { width: 1.5px; height: 30px; background: var(--proc-sep); }
+#proceso .ptitle { margin: 0; font: 400 clamp(20px, 1.95vw, 27px)/1.1 var(--serif); color: var(--ink); }
+#proceso .ptext { margin: 0; max-width: 32ch; font-size: 15px; line-height: 1.6; color: var(--muted); }
+#proceso .process-action { margin-top: 46px; }
+
+/* vertical timeline below 1080px */
+@media (max-width: 1079px) {
+  #proceso { --flow: vertical; }
+  #proceso .psteps { grid-template-columns: minmax(0, 1fr); row-gap: 44px; max-width: 560px; margin-inline: auto; }
+  #proceso .pstep { grid-template-columns: 70px minmax(0, 1fr); grid-template-areas: "tile head" "tile text"; column-gap: 18px; row-gap: 8px; }
+  #proceso .ptile-row { grid-area: tile; height: auto; align-self: start; }
+  #proceso .pdot { display: none; }
+  #proceso .phead { grid-area: head; padding-top: 8px; }
+  #proceso .ptext { grid-area: text; }
+}
+@media (max-width: 420px) {
+  #proceso .pstep { grid-template-columns: 64px minmax(0, 1fr); column-gap: 12px; }
+  #proceso .ptile { width: 52px; height: 52px; border-radius: 15px; }
+  #proceso .ptile::before { left: -8px; top: 8px; }
+}
+
+/* animation states (set by process-animation.js) */
+#proceso .pstep .ptile, #proceso .pstep .pnum, #proceso .pstep .ptitle, #proceso .pstep .ptext, #proceso .pstep .psep, #proceso .pstep .pdot {
+  transition: opacity .5s ease, transform .55s cubic-bezier(.3, 1.5, .5, 1), filter .5s ease, color .4s ease; }
+#proceso.is-armed .pstep:not(.is-on) .ptile { opacity: .5; transform: scale(.88); filter: saturate(0) brightness(1.04); }
+#proceso.is-armed .pstep:not(.is-on) .pdot { transform: scale(.4); opacity: .35; }
+#proceso.is-armed .pstep:not(.is-on) .pnum { color: var(--proc-dim); }
+#proceso.is-armed .pstep:not(.is-on) .psep { opacity: .4; }
+#proceso.is-armed .pstep:not(.is-on) .ptitle, #proceso.is-armed .pstep:not(.is-on) .ptext { opacity: .35; transform: translateY(6px); }
+
+@keyframes proc-tile-pop { 0% { transform: scale(.88); } 55% { transform: scale(1.12) translateY(-4px); } 100% { transform: none; } }
+@keyframes proc-ripple { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(3.2); } }
+@keyframes proc-scan { 0%, 100% { transform: none; } 30% { transform: translate(-2px, -1.5px); } 65% { transform: translate(2px, 1px); } }
+@keyframes proc-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes proc-turn { from { transform: rotate(-120deg); } to { transform: rotate(0); } }
+@keyframes proc-rise { from { transform: scaleY(.15); } to { transform: scaleY(1); } }
+@keyframes proc-cta-glow { 0% { box-shadow: 0 8px 24px rgba(255, 101, 0, .2); }
+  40% { box-shadow: 0 8px 24px rgba(255, 101, 0, .3), 0 0 0 10px rgba(255, 101, 0, .16); transform: translateY(-2px); }
+  100% { box-shadow: 0 8px 24px rgba(255, 101, 0, .2), 0 0 0 0 rgba(255, 101, 0, 0); } }
+
+#proceso.is-armed .pstep.is-on .ptile { animation: proc-tile-pop .6s cubic-bezier(.3, 1.4, .5, 1); }
+#proceso.is-armed .pstep.is-on .pdot::after { animation: proc-ripple .7s ease-out .1s; }
+#proceso.is-armed .pstep.is-on .ico-scan { animation: proc-scan .9s ease-in-out .1s; }
+#proceso.is-armed .pstep.is-on .ico-draw { stroke-dasharray: 1; animation: proc-draw .7s ease-out .15s both; }
+#proceso .ico-turn, #proceso .ico-bar { transform-box: fill-box; transform-origin: center; }
+#proceso .ico-bar { transform-origin: 50% 100%; }
+#proceso.is-armed .pstep.is-on .ico-turn { animation: proc-turn .8s cubic-bezier(.3, 1.3, .5, 1) .1s both; }
+#proceso.is-armed .pstep.is-on .ico-bar { animation: proc-rise .45s cubic-bezier(.3, 1.4, .5, 1) both; }
+#proceso.is-armed .pstep.is-on .ico-bar:nth-child(1) { animation-delay: .10s; }
+#proceso.is-armed .pstep.is-on .ico-bar:nth-child(2) { animation-delay: .18s; }
+#proceso.is-armed .pstep.is-on .ico-bar:nth-child(3) { animation-delay: .26s; }
+#proceso.is-armed .pstep.is-on .ico-bar:nth-child(4) { animation-delay: .34s; }
+#proceso.is-armed.is-done .process-action .button { animation: proc-cta-glow 1.2s ease-out; }
+
+@media (hover: hover) {
+  #proceso.is-done .pstep:hover .ptile { transform: translateY(-4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #proceso .pstep .ptile, #proceso .pstep .pnum, #proceso .pstep .ptitle, #proceso .pstep .ptext, #proceso .pstep .psep, #proceso .pstep .pdot,
+  #proceso .process-action .button { transition: none; animation: none !important; }
+}
