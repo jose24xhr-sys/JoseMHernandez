@@ -23,7 +23,11 @@
 #recursos .rx-ico svg { width: 22px; height: 22px; fill: none; stroke: var(--orange); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 #recursos .rx-tag { display: inline-block; padding: 8px 14px; border-radius: 4px; background: #e6ded5; }
 
-#recursos .rx-card h3 { margin: 22px 0 12px; font: 400 clamp(23px, 1.85vw, 28px)/1.14 var(--serif); letter-spacing: -.015em; text-wrap: balance; }
+/* Card titles: one style shared with the service cards (#servicios, see service-animations.css) — keep both in sync.
+   !important because style.css applies the site-wide --fs-card size to these titles with !important. */
+#recursos .rx-card h3 { margin: 22px 0 12px; font: 400 clamp(20px, 1.55vw, 22px)/1.12 var(--serif); font-size: clamp(20px, 1.55vw, 22px) !important;
+  letter-spacing: -.015em; color: #171717; text-wrap: balance; }
+@media (max-width: 700px) { #recursos .rx-card h3 { font-size: 20px !important; } }
 #recursos .rx-card p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.6; max-width: 30ch; }
 
 #recursos .rx-card > a { align-self: flex-start; margin-top: 18px; padding-bottom: 6px; border-bottom: 2px solid var(--orange);
