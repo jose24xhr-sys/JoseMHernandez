@@ -74,11 +74,17 @@
   const cards = [...document.querySelectorAll('[data-service-anim]')];
   const animationOf = (card) => card.querySelector('monobot-service-animation');
 
-  // Play each animation as its artwork comes into view, so phone visitors (who can't hover) see it too.
+  // Desktop (a mouse that can hover): no autoplay on scroll — all four cards are on screen together, so they all
+  // started at once. There, an animation plays only when the pointer reaches its card, one card at a time.
+  const DESKTOP = matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  // Phones/touch: play each animation as its artwork comes into view, since visitors can't hover.
   // We watch the artwork itself, not the whole card: on phones the cards are tall and the old card-level
   // trigger started the run while the artwork was still below the screen. If the visitor scrolls the
   // artwork away before the run ends, it rewinds and plays again the next time it comes into view.
-  if ('IntersectionObserver' in window) {
+  if (DESKTOP) {
+    // nothing to start on scroll; see the hover handlers below
+  } else if ('IntersectionObserver' in window) {
     const VISIBLE = 0.85;
     // Mostly on screen — or, on very short screens, filling most of the visible area.
     const inView = (e) => e.isIntersecting && (e.intersectionRatio >= VISIBLE || (e.rootBounds && e.intersectionRect.height >= e.rootBounds.height * 0.7));
@@ -106,11 +112,16 @@
     cards.forEach((card) => animationOf(card)?.play());
   }
 
-  // On devices with a mouse, hovering or focusing a card replays it once the previous run has finished.
+  // Desktop: the card under the mouse (or with keyboard focus) plays; the others go back to rest, so only one
+  // animation shows at a time. Re-entering a card that is still playing doesn't restart it.
+  const playOnly = (animation) => {
+    cards.forEach((other) => { const a = animationOf(other); if (a && a !== animation) a.reset(); });
+    animation.play();
+  };
   cards.forEach((card) => {
     const animation = animationOf(card);
     if (!animation) return;
-    card.addEventListener('pointerenter', (event) => { if (event.pointerType === 'mouse') animation.play(); });
-    card.addEventListener('focusin', () => animation.play());
+    card.addEventListener('pointerenter', (event) => { if (event.pointerType === 'mouse') playOnly(animation); });
+    card.addEventListener('focusin', () => playOnly(animation));
   });
 })();
