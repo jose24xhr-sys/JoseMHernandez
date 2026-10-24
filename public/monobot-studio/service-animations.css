@@ -80,3 +80,9 @@
 @media(prefers-reduced-motion:reduce){
   #servicios .service-card{transition:none}
 }
+/* Smaller service card titles ("Diseño Web Estratégico", "Chatbots y Agentes de Voz", …), the same on all four cards.
+   Higher specificity than the earlier per-card !important sizes in style.css/this file, so this one wins. */
+#servicios .service-grid .service-card .service-top h3 { font-size: 21px !important; line-height: 1.12; }
+@media (max-width: 700px) {
+  #servicios .service-grid .service-card .service-top h3 { font-size: 19px !important; }
+}
