@@ -45,6 +45,15 @@
   #proceso .phead { grid-area: head; padding-top: 8px; }
   #proceso .ptext { grid-area: text; }
 }
+/* WEB-02 (phones/tablets): no translucent halos. The stacked tiles keep crisp edges, the blurred light that
+   leads the line is hidden (it sat still as a smudge whenever scrolling paused), and steps not reached yet
+   fade with opacity only (the grey filter turned the tile shadows into grey haze). */
+@media (max-width: 1079px) {
+  #proceso .ptile::before { box-shadow: none; }
+  #proceso .ptile::after { box-shadow: 0 6px 14px -10px rgba(60, 40, 20, .35), 0 0 0 1px rgba(255, 101, 0, .08); }
+  #proceso .pwire .glow { display: none; }
+  #proceso.is-armed .pstep:not(.is-on) .ptile { filter: none; opacity: .55; }
+}
 @media (max-width: 420px) {
   #proceso .pstep { grid-template-columns: 64px minmax(0, 1fr); column-gap: 12px; }
   #proceso .ptile { width: 52px; height: 52px; border-radius: 15px; }
