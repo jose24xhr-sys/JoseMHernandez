@@ -195,10 +195,8 @@
     }
 
     /* ---------- the spark that keeps travelling after it's done ---------- */
-    // WEB-02: the looping spark was the section's only continuous background animation; it is off everywhere.
-    const AMBIENT = false;
     function startAmbient() {
-      if (reduce || !AMBIENT) return;
+      if (reduce) return;
       cancelAnimationFrame(ambient);
       const total = segs.reduce((a, s) => a + s.len, 0);
       const LAP = Math.max(3200, total * 4.2), REST = 1400;
@@ -230,7 +228,7 @@
       requestAnimationFrame(() => {
         ticking = false;
         if (state === 'done') return;
-        if (vertical) { finish({ silent: true }); return; }   // WEB-02: static timeline on phones/tablets
+        if (vertical) { follow(); return; }
         if (state === 'armed' && inBand()) play();
         else if (state === 'playing' && !onScreen()) arm();   // left before it finished: start over next time
       });
@@ -238,7 +236,7 @@
 
     /* ---------- start ---------- */
     layout();
-    if (reduce || vertical) finish({ silent: true });   // WEB-02: phones/tablets get the finished, still timeline
+    if (reduce) finish({ silent: true });
     else if (box.getBoundingClientRect().bottom < vh() * BAND_TOP) finish({ silent: true }); // page opened past it
     else { arm(); onScroll(); }
 
@@ -254,13 +252,12 @@
         lastW = w;
         const wasPlaying = state === 'playing';
         layout();
-        if (vertical) { finish({ silent: true }); return; }
         if (wasPlaying) { arm(); onScroll(); }
         else if (state !== 'done') onScroll();
       });
     }).observe(box);
     if (document.fonts) document.fonts.ready.then(() => { layout(); onScroll(); });
 
-    root.replay = () => { if (vertical) { finish({ silent: true }); return; } arm(); if (inBand()) play(); };
+    root.replay = () => { arm(); if (vertical) follow(); else if (inBand()) play(); };
   }
 })();
