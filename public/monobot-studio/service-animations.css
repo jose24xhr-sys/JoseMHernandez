@@ -80,9 +80,11 @@
 @media(prefers-reduced-motion:reduce){
   #servicios .service-card{transition:none}
 }
-/* Smaller service card titles ("Diseño Web Estratégico", "Chatbots y Agentes de Voz", …), the same on all four cards.
-   Higher specificity than the earlier per-card !important sizes in style.css/this file, so this one wins. */
-#servicios .service-grid .service-card .service-top h3 { font-size: 21px !important; line-height: 1.12; }
+/* Card titles: the same style as the "Profundiza a tu ritmo" cards (#recursos .rx-card h3 in resources.css) — keep both in sync.
+   Higher specificity than the earlier per-card !important rules in style.css/this file, so this one wins. */
+#servicios .service-grid .service-card .service-top h3 { font: 400 clamp(20px, 1.55vw, 22px)/1.12 var(--serif) !important;
+  letter-spacing: -.015em; color: #171717 !important; }
 @media (max-width: 700px) {
-  #servicios .service-grid .service-card .service-top h3 { font-size: 19px !important; }
+  #servicios .service-grid .service-card .service-top h3 { font-size: 20px !important; }
 }
+
