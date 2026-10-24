@@ -53,9 +53,9 @@
   #proceso .ptile::after { box-shadow: 0 6px 14px -10px rgba(60, 40, 20, .35), 0 0 0 1px rgba(255, 101, 0, .08); }
   #proceso .pwire .glow { display: none; }
   #proceso.is-armed .pstep:not(.is-on) .ptile { filter: none; opacity: .55; }
-  /* WEB-02 flicker: solid section background (same tone and dot pattern) instead of a translucent layer over the
+  /* WEB-02 flicker: solid section background (#e5dcd3, the tone the section shows when it renders correctly, with the same dot pattern) instead of a translucent layer over the
      page, so the phone doesn't recombine two layers while scrolling; and no transitions on the steps. */
-  #proceso.process-wrap { background-color: #e0d8cd; background-image: radial-gradient(rgba(37, 37, 37, .075) .65px, transparent .65px); background-size: 8px 8px; }
+  #proceso.process-wrap { background-color: #e5dcd3; background-image: radial-gradient(rgba(37, 37, 37, .075) .65px, transparent .65px); background-size: 8px 8px; }
   #proceso .pstep .ptile, #proceso .pstep .pnum, #proceso .pstep .ptitle, #proceso .pstep .ptext, #proceso .pstep .psep, #proceso .pstep .pdot { transition: none; }
 }
 @media (max-width: 420px) {
