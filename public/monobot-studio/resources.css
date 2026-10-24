@@ -108,11 +108,9 @@
   #recursos .rx-card:hover { transform: none; }
 }
 
-/* ---------- Phones: reveal each card as it scrolls into view, then play its illustration once ----------
-   The class .rx-reveal is added by resources-reveal.js only on phones (and never with reduced motion),
-   so without JavaScript the cards are simply visible. */
-#recursos.rx-reveal .rx-card { opacity: 0; transform: translateY(28px); transition: opacity .6s ease, transform .65s cubic-bezier(.2, .8, .3, 1); }
-#recursos.rx-reveal .rx-card.is-in { opacity: 1; transform: none; }
+/* ---------- Phones: the cards stay in place; each card's illustration plays once when the card comes into view
+   (same behaviour as the service cards). The class .rx-reveal is added by resources-reveal.js only on phones and
+   never with reduced motion, so without JavaScript the illustrations simply show at rest. */
 
 @keyframes rx-in-p3 { from { opacity: 0; transform: translate(-104px, 44px); } }
 @keyframes rx-in-p2 { from { opacity: 0; transform: translate(-58px, 22px); } }
@@ -142,3 +140,13 @@
 #recursos.rx-reveal .rx-card.is-in .rx-chat .front i { animation: rx-bounce .7s ease-in-out 1s 3; }
 #recursos.rx-reveal .rx-card.is-in .rx-chat .front i:nth-child(2) { animation-delay: 1.12s; }
 #recursos.rx-reveal .rx-card.is-in .rx-chat .front i:nth-child(3) { animation-delay: 1.24s; }
+/* Until its card comes into view, each illustration waits in the first frame of its animation (no jump when it starts). */
+#recursos.rx-reveal .rx-card:not(.is-in) .rx-guide .p3 { opacity: 0; transform: translate(-104px, 44px); }
+#recursos.rx-reveal .rx-card:not(.is-in) .rx-guide .p2 { opacity: 0; transform: translate(-58px, 22px); }
+#recursos.rx-reveal .rx-card:not(.is-in) .rx-guide svg { transform: scaleY(0); }
+#recursos.rx-reveal .rx-card:not(.is-in) .rx-video .front,
+#recursos.rx-reveal .rx-card:not(.is-in) .rx-chat .back,
+#recursos.rx-reveal .rx-card:not(.is-in) .rx-chat .front { opacity: 0; transform: scale(.4); }
+#recursos.rx-reveal .rx-card:not(.is-in) .rx-video .track i { transform: scaleX(.05); }
+#recursos.rx-reveal .rx-card:not(.is-in) .rx-price .bar { transform: scaleY(0); }
+#recursos.rx-reveal .rx-card:not(.is-in) .rx-price .tag { opacity: 0; transform: translateY(-16px); }
