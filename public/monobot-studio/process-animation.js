@@ -18,8 +18,9 @@
   const TAIL = 600;      // ms for the final arrow (row layout)
   const BAND_TOP = .2;   // the row counts as "in view" while it overlaps this band of the viewport…
   const BAND_BOTTOM = .72;
-  const READ_LINE = .8;  // vertical timeline: the line is drawn down to this point of the viewport
-                         // (low enough that each step lights up while it is comfortably on screen)
+  const READ_LINE = .55; // vertical timeline: a step lights up when it reaches the middle of the screen
+  const CHASE_MAX = 9;   // vertical timeline: the line catches up with the scroll at most this many px per frame,
+                         // so even a fast flick reveals the steps one after another (~0.4 s per step)
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   document.querySelectorAll('[data-process]').forEach(setup);
@@ -119,9 +120,9 @@
 
     /* ---------- states ---------- */
     function arm() {
-      cancelAnimationFrame(raf); cancelAnimationFrame(ambient);
+      cancelAnimationFrame(raf); cancelAnimationFrame(ambient); cancelAnimationFrame(chase); chase = 0;
       state = 'armed';
-      reached = -Infinity;
+      reached = -Infinity; target = -Infinity;
       root.classList.remove('is-done');
       root.classList.add('is-armed');
       steps.forEach((s) => s.classList.remove('is-on'));
@@ -173,10 +174,22 @@
     }
 
     // Vertical timeline: draw down to the reading line (never undraws while scrolling back up).
+    // Vertical timeline: the scroll sets a target; the line eases toward it frame by frame (never undraws).
+    let target = -Infinity, chase = 0;
     function follow() {
       if (state === 'done') return;
-      const b = box.getBoundingClientRect();
-      reached = Math.max(reached, vh() * READ_LINE - b.top);
+      const b = box.getBoundingClientRect(), end = segs[segs.length - 1].y1;
+      // at the very bottom of the page the reading line can't go further: draw the rest out
+      const atBottom = window.scrollY + vh() >= document.documentElement.scrollHeight - 2;
+      target = Math.max(target, atBottom ? end + 1 : vh() * READ_LINE - b.top);
+      if (!chase) chase = requestAnimationFrame(advance);
+    }
+    function advance() {
+      chase = 0;
+      if (state === 'done') return;
+      if (reached === -Infinity) reached = -40;   // start just above the first step, wherever the page is
+      const d = target - reached;
+      if (d > 0) reached += Math.min(d, Math.max(1.5, d * .12), CHASE_MAX);
       steps.forEach((s, i) => s.classList.toggle('is-on', reached >= stepY[i]));
       let active = null;
       segs.forEach((s) => {
@@ -188,10 +201,8 @@
         const pt = active.s.fill.getPointAtLength(active.s.len * active.k);
         place(glow, pt, .55); place(head, pt, 1);
       } else { glow.style.opacity = 0; head.style.opacity = 0; }
-      // Finish once the end of the timeline is read, or once the visitor can see the whole list
-      // (or can't scroll any further) — otherwise the last step could stay dimmed on screen.
-      const atBottom = window.scrollY + vh() >= document.documentElement.scrollHeight - 2;
-      if (reached >= segs[segs.length - 1].y1 || b.bottom <= vh() || atBottom) finish();
+      if (reached >= segs[segs.length - 1].y1) { finish(); return; }
+      if (target - reached > .5) chase = requestAnimationFrame(advance);
     }
 
     /* ---------- the spark that keeps travelling after it's done ---------- */
@@ -242,14 +253,15 @@
 
     window.addEventListener('scroll', onScroll, { passive: true });
     if (window.visualViewport) window.visualViewport.addEventListener('resize', onScroll);
-    let pending = 0, lastW = box.getBoundingClientRect().width;
+    let pending = 0, lastW = box.getBoundingClientRect().width, lastH = box.getBoundingClientRect().height;
     new ResizeObserver(() => {
       cancelAnimationFrame(pending);
       pending = requestAnimationFrame(() => {
-        // WEB-02: phones resize the viewport while scrolling (browser bars); rebuilding the line then made it blink.
-        const w = box.getBoundingClientRect().width;
-        if (Math.abs(w - lastW) < 1) return;
-        lastW = w;
+        // WEB-02: only rebuild when the steps' own box really changes size (fonts, wrapping, rotation) —
+        // not for every resize notification while scrolling, which made the line blink.
+        const r = box.getBoundingClientRect();
+        if (Math.abs(r.width - lastW) < 1 && Math.abs(r.height - lastH) < 1) return;
+        lastW = r.width; lastH = r.height;
         const wasPlaying = state === 'playing';
         layout();
         if (wasPlaying) { arm(); onScroll(); }

@@ -107,3 +107,38 @@
   #recursos .rx-card, #recursos .rx-panel, #recursos .rx-line, #recursos .rx-stage *, #recursos .rx-guide svg { transition: none !important; animation: none !important; }
   #recursos .rx-card:hover { transform: none; }
 }
+
+/* ---------- Phones: reveal each card as it scrolls into view, then play its illustration once ----------
+   The class .rx-reveal is added by resources-reveal.js only on phones (and never with reduced motion),
+   so without JavaScript the cards are simply visible. */
+#recursos.rx-reveal .rx-card { opacity: 0; transform: translateY(28px); transition: opacity .6s ease, transform .65s cubic-bezier(.2, .8, .3, 1); }
+#recursos.rx-reveal .rx-card.is-in { opacity: 1; transform: none; }
+
+@keyframes rx-in-p3 { from { opacity: 0; transform: translate(-104px, 44px); } }
+@keyframes rx-in-p2 { from { opacity: 0; transform: translate(-58px, 22px); } }
+@keyframes rx-in-chart { from { transform: scaleY(0); } }
+@keyframes rx-in-pop { 0% { opacity: 0; transform: scale(.4); } 70% { opacity: 1; transform: scale(1.12); } 100% { opacity: 1; transform: none; } }
+@keyframes rx-in-play { 0% { transform: scale(.3); } 55% { transform: scale(1.25); } 100% { transform: none; } }
+@keyframes rx-in-track { from { transform: scaleX(.05); } to { transform: scaleX(.85); } }
+@keyframes rx-in-bar { from { transform: scaleY(0); } }
+@keyframes rx-in-drop { from { opacity: 0; transform: translateY(-16px); } }
+
+/* 1) Guías: the pages fan out, then the chart rises */
+#recursos.rx-reveal .rx-card.is-in .rx-guide .p3 { animation: rx-in-p3 .6s cubic-bezier(.2, .8, .3, 1) .35s backwards; }
+#recursos.rx-reveal .rx-card.is-in .rx-guide .p2 { animation: rx-in-p2 .6s cubic-bezier(.2, .8, .3, 1) .45s backwards; }
+#recursos.rx-reveal .rx-card.is-in .rx-guide svg { animation: rx-in-chart .7s ease-out .75s backwards; }
+/* 2) Casos prácticos: the player pops in, the play button pulses and the progress fills */
+#recursos.rx-reveal .rx-card.is-in .rx-video .front { animation: rx-in-pop .5s cubic-bezier(.3, 1.4, .5, 1) .35s backwards; }
+#recursos.rx-reveal .rx-card.is-in .rx-video .play { animation: rx-in-play .6s cubic-bezier(.3, 1.6, .5, 1) .75s backwards; }
+#recursos.rx-reveal .rx-card.is-in .rx-video .track i { animation: rx-in-track 1.4s ease-out .9s both; }
+/* 3) Precios: the bars grow one after another, then the price card drops in */
+#recursos.rx-reveal .rx-card.is-in .rx-price .b1 { animation: rx-in-bar .5s cubic-bezier(.3, 1.3, .5, 1) .35s backwards; }
+#recursos.rx-reveal .rx-card.is-in .rx-price .b2 { animation: rx-in-bar .5s cubic-bezier(.3, 1.3, .5, 1) .5s backwards; }
+#recursos.rx-reveal .rx-card.is-in .rx-price .b3 { animation: rx-in-bar .5s cubic-bezier(.3, 1.3, .5, 1) .65s backwards; }
+#recursos.rx-reveal .rx-card.is-in .rx-price .tag { animation: rx-in-drop .5s cubic-bezier(.2, .8, .3, 1.2) .9s backwards; }
+/* 4) Pregunta frecuente: the bubbles pop in and the dots bounce a few times */
+#recursos.rx-reveal .rx-card.is-in .rx-chat .back { animation: rx-in-pop .45s cubic-bezier(.3, 1.4, .5, 1) .35s backwards; }
+#recursos.rx-reveal .rx-card.is-in .rx-chat .front { animation: rx-in-pop .5s cubic-bezier(.3, 1.4, .5, 1) .55s backwards; }
+#recursos.rx-reveal .rx-card.is-in .rx-chat .front i { animation: rx-bounce .7s ease-in-out 1s 3; }
+#recursos.rx-reveal .rx-card.is-in .rx-chat .front i:nth-child(2) { animation-delay: 1.12s; }
+#recursos.rx-reveal .rx-card.is-in .rx-chat .front i:nth-child(3) { animation-delay: 1.24s; }
