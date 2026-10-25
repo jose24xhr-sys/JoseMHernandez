@@ -57,10 +57,10 @@
 #recursos .rx-guide .l3 { left: 16px; top: 72px; width: 44px; background: #e9e1d9; }
 #recursos .rx-guide svg { position: absolute; right: -60px; bottom: -6px; width: 170px; height: 90px; overflow: visible; transition: transform .5s ease; transform-origin: bottom; }
 #recursos .rx-guide .glow { right: -70px; bottom: -40px; width: 140px; height: 140px; }
-#recursos .rx-card:hover .rx-guide .p3 { transform: translate(8px, -8px); }
-#recursos .rx-card:hover .rx-guide .p2 { transform: translate(4px, -4px); }
-#recursos .rx-card:hover .rx-guide svg { transform: scaleY(1.18); }
-#recursos .rx-card:hover .rx-guide .l1 { transform: scaleX(1.1); }
+#recursos .rx-card:is(:hover, .is-playing) .rx-guide .p3 { transform: translate(8px, -8px); }
+#recursos .rx-card:is(:hover, .is-playing) .rx-guide .p2 { transform: translate(4px, -4px); }
+#recursos .rx-card:is(:hover, .is-playing) .rx-guide svg { transform: scaleY(1.18); }
+#recursos .rx-card:is(:hover, .is-playing) .rx-guide .l1 { transform: scaleX(1.1); }
 
 /* 2) Casos prácticos — a player with a pulsing play button and a progress bar */
 #recursos .rx-video .back { left: 120px; top: 0; width: 120px; height: 110px; }
@@ -72,9 +72,9 @@
 #recursos .rx-video .track { left: 20px; right: 20px; bottom: 12px; height: 4px; border-radius: 2px; background: #eee6de; overflow: hidden; }
 #recursos .rx-video .track i { left: 0; top: 0; bottom: 0; width: 100%; background: var(--orange); transform: scaleX(.18); transform-origin: left; transition: transform 1.6s ease-out; }
 #recursos .rx-video .glow { right: -40px; top: 40px; width: 120px; height: 120px; }
-#recursos .rx-card:hover .rx-video .play { transform: scale(1.18); }
-#recursos .rx-card:hover .rx-video .track i { transform: scaleX(.85); }
-#recursos .rx-card:hover .rx-video .back { transform: translate(6px, -6px); }
+#recursos .rx-card:is(:hover, .is-playing) .rx-video .play { transform: scale(1.18); }
+#recursos .rx-card:is(:hover, .is-playing) .rx-video .track i { transform: scaleX(.85); }
+#recursos .rx-card:is(:hover, .is-playing) .rx-video .back { transform: translate(6px, -6px); }
 
 /* 3) Precios — bars that grow and a floating price card */
 #recursos .rx-price .bar { bottom: 8px; width: 46px; border-radius: 6px; transform-origin: bottom; transition: transform .45s cubic-bezier(.3, 1.4, .5, 1); }
@@ -86,10 +86,10 @@
 #recursos .rx-price .tag .rx-line { left: 20px; }
 #recursos .rx-price .tag .t1 { top: 26px; width: 96px; }
 #recursos .rx-price .tag .t2 { top: 46px; width: 54px; background: #e4dbd2; }
-#recursos .rx-card:hover .rx-price .b1 { transform: scaleY(1.12); }
-#recursos .rx-card:hover .rx-price .b2 { transform: scaleY(1.18); transition-delay: .05s; }
-#recursos .rx-card:hover .rx-price .b3 { transform: scaleY(1.1); transition-delay: .1s; }
-#recursos .rx-card:hover .rx-price .tag { transform: translateY(-6px); }
+#recursos .rx-card:is(:hover, .is-playing) .rx-price .b1 { transform: scaleY(1.12); }
+#recursos .rx-card:is(:hover, .is-playing) .rx-price .b2 { transform: scaleY(1.18); transition-delay: .05s; }
+#recursos .rx-card:is(:hover, .is-playing) .rx-price .b3 { transform: scaleY(1.1); transition-delay: .1s; }
+#recursos .rx-card:is(:hover, .is-playing) .rx-price .tag { transform: translateY(-6px); }
 
 /* 4) Pregunta frecuente — chat bubbles; the dots bounce on hover */
 #recursos .rx-chat .back { left: 120px; top: 0; width: 118px; height: 96px; border-radius: 16px; }
@@ -102,9 +102,9 @@
 #recursos .rx-chat .front i { position: static; width: 13px; height: 13px; border-radius: 50%; background: var(--orange); }
 #recursos .rx-chat .glow { left: 10px; top: 40px; width: 150px; height: 150px; }
 @keyframes rx-bounce { 0%, 100% { transform: none; } 40% { transform: translateY(-5px); } }
-#recursos .rx-card:hover .rx-chat .front i { animation: rx-bounce .7s ease-in-out infinite; }
-#recursos .rx-card:hover .rx-chat .front i:nth-child(2) { animation-delay: .12s; }
-#recursos .rx-card:hover .rx-chat .front i:nth-child(3) { animation-delay: .24s; }
+#recursos .rx-card:is(:hover, .is-playing) .rx-chat .front i { animation: rx-bounce .7s ease-in-out infinite; }
+#recursos .rx-card:is(:hover, .is-playing) .rx-chat .front i:nth-child(2) { animation-delay: .12s; }
+#recursos .rx-card:is(:hover, .is-playing) .rx-chat .front i:nth-child(3) { animation-delay: .24s; }
 
 @media (max-width: 380px) { #recursos .rx-stage { transform: scale(.88); transform-origin: right bottom; } }
 @media (prefers-reduced-motion: reduce) {
