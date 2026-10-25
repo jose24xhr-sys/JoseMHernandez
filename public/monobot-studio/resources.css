@@ -29,6 +29,11 @@
   letter-spacing: -.015em; color: #171717; text-wrap: balance; }
 @media (max-width: 700px) { #recursos .rx-card h3 { font-size: 20px !important; } }
 #recursos .rx-card p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.6; max-width: 30ch; }
+/* Card text: the same size as the service cards' text (#servicios, "Transforma la forma en que trabajas"):
+   14px on desktop and tablet, 15px on phones. !important because style.css sets body text sizes with !important. */
+#recursos .rx-card p { font-size: 14px !important; line-height: 1.5 !important; }
+@media (max-width: 1099px) { #recursos .rx-card p { line-height: 1.6 !important; } }
+@media (max-width: 700px) { #recursos .rx-card p { font-size: 15px !important; } }
 
 #recursos .rx-card > a { align-self: flex-start; margin-top: 18px; padding-bottom: 6px; border-bottom: 2px solid var(--orange);
   font-size: 15px; font-weight: 700; color: var(--ink); }
