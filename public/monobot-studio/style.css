@@ -1141,3 +1141,18 @@ main .trust small{font-size:13px!important}
 
 /* Homepage hero title: same size as the section headings ("Transforma la forma en que trabajas", --fs-section). */
 main #top .hero-copy h1{font-size:var(--fs-section)!important;line-height:var(--lh-section)!important;letter-spacing:var(--ls-heading)!important}
+
+/* Homepage hero copy, two-column layouts: centred next to the image and spread out so it fills its column
+   (bigger lede, more air between eyebrow, title, text and buttons, larger buttons). Title size stays --fs-section. */
+@media(min-width:701px){
+  main #top .hero-copy{align-self:center!important}
+  main #top .hero-copy .eyebrow{font-size:13px!important;margin-bottom:0!important}
+  main #top .hero-copy h1{margin:26px 0 0!important;max-width:none!important}
+  main #top .hero-copy .lede{margin:28px 0 0!important;max-width:34em!important;font-size:clamp(18px,calc(.5vw + 13px),21px)!important;line-height:1.6!important}
+  main #top .hero-copy .actions{margin-top:42px!important;gap:16px!important;flex-wrap:wrap!important}
+  main #top .hero-copy .actions .button{padding:18px 28px!important;font-size:clamp(15px,calc(.25vw + 13px),17px)!important;border-radius:11px!important}
+  main #top .hero-copy .note{margin-top:20px!important;font-size:clamp(14px,calc(.2vw + 12px),15px)!important}
+}
+@media(min-width:701px) and (max-width:1179px){
+  main #top .hero-copy .actions .button{padding:16px 18px!important;font-size:15px!important;white-space:nowrap!important}
+}
