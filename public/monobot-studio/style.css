@@ -1138,3 +1138,6 @@ main .trust small{font-size:13px!important}
 @media(max-width:700px){
   #servicios .service-card > .service-visual{margin-bottom:14px!important}
 }
+
+/* Homepage hero title: same size as the section headings ("Transforma la forma en que trabajas", --fs-section). */
+main #top .hero-copy h1{font-size:var(--fs-section)!important;line-height:var(--lh-section)!important;letter-spacing:var(--ls-heading)!important}
