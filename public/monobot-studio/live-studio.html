@@ -591,12 +591,17 @@ h1 em { color: var(--orange); }
 /* embedded in the site's hero (iframe): transparent page, compact chrome so the app itself gets the space */
 html, body { background: transparent !important; background-image: none !important; }
 body { margin: 0; overflow: hidden; }
-.studio { padding: 6px 8px 4px; gap: 10px; }
+.studio { padding: 6px 10px 30px; gap: 10px; }
+/* a tighter shadow that stays inside the frame (no clipped edges around the demo) */
+.app { box-shadow: 0 20px 30px -24px rgba(70, 40, 15, .45), 0 0 0 5px rgba(255,255,255,.35) !important; }
 .studio-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 2px 12px; }
 .studio-top .live { color: var(--orange); }
 .studio-top .demo-note { justify-self: end; font-size: 12.5px; color: var(--ink); font-family: var(--serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .studio-top .ctrl { grid-column: 3; grid-row: 1; justify-self: end; }
 .studio-top .caption { grid-column: 1 / -1; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* only the "Demo en vivo" label above the app: no sentence, caption or pause button (the app gets the space) */
+.studio-top .demo-note, .studio-top .caption, .studio-top .ctrl, .ctrl { display: none !important; }
+.studio { gap: 8px; }
 /* the app's own header tabs switch products, so the tab row under the app is not needed here */
 .ptabs { display: none !important; }
 @media (max-width: 560px) { .studio-top { grid-template-columns: auto 1fr; } .studio-top .demo-note { grid-column: 1 / -1; grid-row: 2; justify-self: start; white-space: normal; } .studio-top .ctrl { grid-column: 2; } }
