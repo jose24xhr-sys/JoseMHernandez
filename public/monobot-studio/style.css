@@ -1160,4 +1160,5 @@ main #top .hero-copy h1{font-size:var(--fs-section)!important;line-height:var(--
 /* Homepage hero: the MonoBot Live Studio demo (live-studio.html) in place of the social card; the iframe reports its height */
 main #top .hero-demo{min-width:0;align-self:center}
 main #top .hero-demo-frame{display:block;width:100%;height:560px;border:0;background:transparent;color-scheme:light}
-@media(min-width:1360px){main #top.hero{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)!important;gap:40px!important}main #top .hero-copy .actions{gap:12px!important}main #top .hero-copy .actions .button{padding:17px 20px!important;font-size:16px!important}}
+/* two-column hero: copy 40%, demo 60% */
+@media(min-width:1001px){main #top.hero{grid-template-columns:minmax(0,2fr) minmax(0,3fr)!important;gap:clamp(28px,3vw,44px)!important}main #top .hero-copy .actions{gap:12px!important}main #top .hero-copy .actions .button{padding:16px 20px!important;font-size:clamp(14px,calc(.3vw + 11px),16px)!important}}
