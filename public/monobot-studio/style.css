@@ -1268,3 +1268,45 @@ html.drawer-open{overflow:hidden}
 .legal p{font-size:16px;line-height:1.7;color:#3d3a36;margin:0 0 16px}
 .legal p strong{color:var(--ink)}
 .legal-back a{color:var(--orange);font-weight:700}
+
+/* ===== Servicios: "Conectar no es lo mismo que operar" — animated without/with-flow demo (ops-flow.js) ===== */
+.ops-explainer{grid-template-columns:minmax(0,.85fr) minmax(0,1.6fr)!important;grid-template-areas:"intro demo" "top demo";row-gap:18px!important}
+.ops-intro{grid-area:intro}.ops-top{grid-area:top}.ops-demo{grid-area:demo}
+@media(max-width:1000px){.ops-explainer{grid-template-columns:1fr!important;grid-template-areas:"intro" "demo" "top"}}
+.ops-demo{display:grid;gap:12px}
+.fd-lane{position:relative;padding:14px 16px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.55)}
+.fd-with{border-color:rgba(255,101,0,.35);background:linear-gradient(180deg,rgba(255,101,0,.05),rgba(255,255,255,.6))}
+.fd-tag{margin:0 0 10px;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.fd-with .fd-tag{color:var(--orange)}
+.fd-steps{list-style:none;margin:0;padding:0;display:grid;gap:10px;position:relative;z-index:1}
+.fd-without .fd-steps{grid-template-columns:repeat(2,minmax(0,1fr)) minmax(0,1.3fr)}
+.fd-with .fd-steps{grid-template-columns:repeat(6,minmax(0,1fr))}
+.fd-step{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0;opacity:.28;transform:translateY(6px);transition:opacity .45s ease,transform .45s cubic-bezier(.2,.8,.3,1.1)}
+.fd-step.on{opacity:1;transform:none}
+.fd-ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#fff;box-shadow:0 0 0 1px var(--line);transition:box-shadow .35s ease,transform .35s ease}
+.fd-step.on .fd-ic{box-shadow:0 0 0 1px rgba(255,101,0,.45),0 6px 14px -8px rgba(255,101,0,.6)}
+.fd-step.now .fd-ic{transform:scale(1.12)}
+.fd-ic svg{width:17px;height:17px}
+.fd-brand{fill:var(--c)}
+.fd-line{fill:none;stroke:var(--ink);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.fd-with .fd-step.on .fd-line{stroke:var(--orange)}
+.fd-step b{font-size:12.5px;color:var(--ink)}
+.fd-step small{font-size:11px;line-height:1.35;color:var(--muted)}
+.fd-end{align-self:center;display:flex;flex-direction:column;gap:2px;padding:8px 12px;border-radius:10px;border:1px dashed rgba(37,37,37,.25);opacity:0;transition:opacity .4s ease}
+.fd-end.on{opacity:1}
+.fd-end span{font-size:12.5px;font-weight:700;color:var(--muted)}
+.fd-end small{font-size:11px;color:var(--muted)}
+/* the rail the work travels along */
+.fd-rail{position:absolute;left:33px;right:calc(100% / 12 + 14px);top:56px;height:2px;border-radius:2px;background:var(--line);z-index:0}
+.fd-rail i{position:absolute;left:0;top:0;bottom:0;width:calc(var(--p,0) * 100%);border-radius:inherit;background:var(--orange);transition:width .8s cubic-bezier(.4,0,.2,1)}
+.fd-rail i:after{content:"";position:absolute;right:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 4px rgba(255,101,0,.18)}
+.fd-sum{margin:12px 0 0;font-size:12.5px;color:var(--muted);opacity:0;transition:opacity .4s ease}
+.fd-sum.on{opacity:1}
+.fd-sum b{color:var(--orange)}
+@media(max-width:700px){
+  .fd-with .fd-steps{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:14px}
+  .fd-without .fd-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fd-end{grid-column:1/-1}
+  .fd-rail{display:none}
+}
+@media(prefers-reduced-motion:reduce){.fd-step,.fd-end,.fd-sum{opacity:1!important;transform:none!important;transition:none}.fd-rail i{width:100%!important;transition:none}}
