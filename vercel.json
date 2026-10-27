@@ -7,6 +7,7 @@
     { "source": "/monobot-studio/portafolio", "destination": "/monobot-studio/portafolio/index.html" },
     { "source": "/monobot-studio/blog", "destination": "/monobot-studio/blog/index.html" },
     { "source": "/monobot-studio/faq", "destination": "/monobot-studio/faq/index.html" },
+    { "source": "/monobot-studio/terminos", "destination": "/monobot-studio/terminos/index.html" },
     { "source": "/monobot-studio/agenda", "destination": "/monobot-studio/agenda/index.html" },
     { "source": "/monobot-studio/agenda-google", "destination": "/monobot-studio/agenda-google/index.html" },
     { "source": "/monobot-studio/agenda-custom", "destination": "/monobot-studio/agenda-custom/index.html" },
