@@ -207,25 +207,29 @@
   const body = drawer.querySelector('[data-drawer-body]');
   let lastFocus = null;
   const details = (p0) => {
-    const p = eff(p0), conns = connectorsFor(p);
+    const p = eff(p0), choices = connectorsFor(p).filter((c) => c.id !== 'telefono');
+    const phones = p.phoneNumbers ? `<ul class="dr-conns dr-included"><li>${CONNECTOR.telefono.ic}<span>${p.phoneNumbers === 1 ? '1 número telefónico' : `${p.phoneNumbers} números telefónicos`} incluido${p.phoneNumbers === 1 ? '' : 's'}</span></li></ul>` : '';
+    const site = PRICING.plans[0].maintenance;
+    const siteLimit = (lead) => `<div class="dr-limit">${line('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')}<div><b>${lead}</b><p>Un cambio es una modificación de texto, imagen o una sección. Cambio extra: ${money.format(site.extraChange)} MXN.</p>${p.oneTime ? `<p>El primer año de mantenimiento (hosting y SSL) está incluido; desde el 2.º año cuesta ${money.format(site.yearly)} MXN al año.</p>` : '<p>Mantenimiento del sitio (hosting y SSL) incluido mientras tengas tu plan.</p>'}</div></div>`;
     const lim = p.limits?.interactions
-      ? { ic: IC_CHAT, main: `${num.format(p.limits.interactions)} interacciones al mes`, def: 'Una interacción es un mensaje de tu cliente respondido por el asistente.',
-        extra: `+${num.format(p.overage.block)} interacciones: ${money.format(p.overage.price)}` }
+      ? { ic: IC_CHAT, main: `Hasta ${num.format(p.limits.interactions)} interacciones al mes`, def: 'Una interacción es un mensaje de tu cliente respondido por el asistente.',
+        extra: `+${num.format(p.overage.block)} interacciones: ${money.format(p.overage.price)} MXN` }
       : p.limits?.calls
-        ? { ic: IC_CALL, main: `${num.format(p.limits.calls)} llamadas al mes`, def: `Una llamada dura hasta ${p.limits.callMaxMinutes} minutos; una más larga cuenta como dos.`,
-          extra: `${money.format(p.overage.price)} por llamada; número adicional, ${money.format(addon.monthly)} al mes` }
+        ? { ic: IC_CALL, main: `Hasta ${num.format(p.limits.calls)} llamadas al mes`, def: `Una llamada dura hasta ${p.limits.callMaxMinutes} minutos; una más larga cuenta como dos.`,
+          extra: `${money.format(p.overage.price)} MXN por llamada; número adicional, ${money.format(addon.monthly)} MXN al mes` }
         : null;
     const flowsBlock = p.opsFlows
-      ? `<p class="dr-lead">Incluye <b>${p.opsFlows} ${p.opsFlows === 1 ? 'flujo' : 'flujos'}</b>${p.opsFlows === 1 ? ' a elegir' : ''}. Por ejemplo:</p><ul class="dr-flows">${FLOWS.map((f) => `<li>${f.ic}<span><b>${f.name}</b>${esc(f.text)}</span></li>`).join('')}</ul>`
+      ? `<p class="dr-lead">Incluye <b>${p.opsFlows === 1 ? '1 flujo' : `hasta ${p.opsFlows} flujos`}</b> a elegir. Por ejemplo:</p><ul class="dr-flows">${FLOWS.map((f) => `<li>${f.ic}<span><b>${f.name}</b>${esc(f.text)}</span></li>`).join('')}</ul>`
       : `<p class="dr-lead">${p.group === 'sitios' ? 'El sitio web no incluye flujos de IA operativa; súmalos con Sitio Web + Chatbot.' : 'Este plan responde y atiende; los flujos de IA operativa empiezan en Profesional.'}</p>`;
     return `<header class="dr-head"><i aria-hidden="true">${p.icon}</i><div><h3 id="drawer-title">${esc(p.name)}</h3><p>${priceMain(p)} <small>${esc(priceUnit(p))}</small></p></div></header>
-      <section><h4>Conectores disponibles</h4>${conns.length
-        ? `<p class="dr-lead">Elige <b>${p.connections}</b> de estos:</p><ul class="dr-conns">${conns.map((c) => `<li>${CONNECTOR[c.id].ic}<span>${esc(CONNECTOR[c.id].name)}</span></li>`).join('')}</ul>`
-        : '<p class="dr-lead">Incluye un botón directo a tu WhatsApp. Para conectar canales y herramientas, elige Sitio Web + Chatbot.</p>'}</section>
+      <section><h4>Conectores disponibles</h4>${phones}${choices.length
+        ? `<p class="dr-lead">${p.connections >= choices.length ? '<b>Conecta todas estas:</b>' : `Elige <b>${p.connections === 1 ? '1' : `hasta ${p.connections}`}</b> de estos:`}</p><ul class="dr-conns">${choices.map((c) => `<li>${CONNECTOR[c.id].ic}<span>${esc(CONNECTOR[c.id].name)}</span></li>`).join('')}</ul>`
+        : p.group === 'voz' ? '<p class="dr-lead">Tu número telefónico es la conexión de este plan. El resumen de cada llamada te llega por WhatsApp o correo; las conexiones con tus herramientas empiezan en Profesional.</p>'
+          : '<p class="dr-lead">Incluye un botón directo a tu WhatsApp. Para conectar canales y herramientas, elige Sitio Web + Chatbot.</p>'}</section>
       <section><h4>Flujos de IA operativa</h4>${flowsBlock}</section>
       <section><h4>Límites y uso extra</h4>${lim
-        ? `<div class="dr-limit">${lim.ic}<div><b>${lim.main}</b><p>${lim.def}</p><p>Uso extra: ${lim.extra}. Te avisamos al llegar al 80% del límite.</p></div></div>`
-        : `<div class="dr-limit">${line('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')}<div><b>Hasta ${p.maintenance.changesPerYear} cambios al año</b><p>Un cambio es una modificación de texto, imagen o una sección. Cambio extra: ${money.format(p.maintenance.extraChange)}.</p><p>Mantenimiento desde el 2.º año: ${money.format(p.maintenance.yearly)} al año (hosting y SSL).</p></div></div>`}</section>
+        ? `<div class="dr-limit">${lim.ic}<div><b>${lim.main}</b><p>${lim.def}</p><p>Uso extra: ${lim.extra}. Te avisamos al llegar al 80% del límite.</p></div></div>${p.includes ? siteLimit(`Sitio web: hasta ${site.changesPerYear} cambios al año`) : ''}`
+        : siteLimit(`Dos rondas de cambios antes de publicar; después, hasta ${site.changesPerYear} cambios al año`)}</section>
       <section><h4>Qué no incluye</h4><ul class="dr-not">${NOT_INCLUDED[p.id].map((t) => `<li>${esc(t)}</li>`).join('')}</ul></section>
       <a class="button dr-cta" href="/monobot-studio/agenda">${esc(COPY[p.id].cta)} <span aria-hidden="true">→</span></a>`;
   };
