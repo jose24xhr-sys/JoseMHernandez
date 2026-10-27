@@ -422,6 +422,9 @@ h1 em { color: var(--orange); }
 .av.av-logo { display: grid; place-items: center; background: #fff; box-shadow: 0 0 0 1px var(--edge), 0 4px 10px -6px rgba(70,40,15,.4); }
 .av.av-logo img { width: 62%; height: auto; display: block; }
 
+/* demo only: no mute / hang-up / speaker controls during the call; after it ends only "Iniciar nueva llamada" shows */
+.c-ctrls > span:not(.redial) { display: none !important; }
+.call:not(.ended) .c-ctrls { display: none; }
 /* ---------- scenes ---------- */
 .scene { position: absolute; inset: 0; padding: 14px; opacity: 0; visibility: hidden; transition: opacity .45s ease, visibility 0s .45s; display: flex; flex-direction: column; }
 .scene.is-on { opacity: 1; visibility: visible; transition: opacity .45s ease; }
