@@ -588,15 +588,18 @@ h1 em { color: var(--orange); }
 }
 </style>
 <style>
-/* embedded in the site's hero (iframe): transparent page, no outer margins */
+/* embedded in the site's hero (iframe): transparent page, compact chrome so the app itself gets the space */
 html, body { background: transparent !important; background-image: none !important; }
 body { margin: 0; overflow: hidden; }
-.studio { padding: 8px 8px 4px; }
-.studio-top { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 12px; }
+.studio { padding: 6px 8px 4px; gap: 10px; }
+.studio-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 2px 12px; }
 .studio-top .live { color: var(--orange); }
-.studio-top .demo-note { justify-self: end; font-size: 12.5px; color: var(--ink); font-family: var(--serif); }
-.studio-top .caption { grid-column: 1 / -1; font-size: 12px; }
-@media (max-width: 520px) { .studio-top { grid-template-columns: 1fr; } .studio-top .demo-note { justify-self: start; } }
+.studio-top .demo-note { justify-self: end; font-size: 12.5px; color: var(--ink); font-family: var(--serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.studio-top .ctrl { grid-column: 3; grid-row: 1; justify-self: end; }
+.studio-top .caption { grid-column: 1 / -1; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* the app's own header tabs switch products, so the tab row under the app is not needed here */
+.ptabs { display: none !important; }
+@media (max-width: 560px) { .studio-top { grid-template-columns: auto 1fr; } .studio-top .demo-note { grid-column: 1 / -1; grid-row: 2; justify-self: start; white-space: normal; } .studio-top .ctrl { grid-column: 2; } }
 </style>
 </head>
 <body>
@@ -806,14 +809,29 @@ body { margin: 0; overflow: hidden; }
   });
 
   // fit the fixed-size app into its column (compact layout on narrow columns)
+  // fit the app to its box: the host page (the site's hero) sends the height it can use, so the demo
+  // scales with both the width and the height of the screen and always fits in the hero; it picks the
+  // wide layout (with side panel) or the compact one, whichever reads better in that space
+  let maxH = 0;
+  addEventListener('message', (e) => {
+    if (e.origin !== location.origin || !e.data || e.data.type !== 'monobot-demo-fit') return;
+    if (Math.abs((e.data.maxHeight || 0) - maxH) > 1) { maxH = e.data.maxHeight || 0; fit(); }
+  });
   function fit() {
     const w = frame.clientWidth;
-    app.classList.toggle('compact', w < 560);
+    const chrome = studio.offsetHeight - frame.offsetHeight;                 // label, product tabs, pause button
+    const hAvail = maxH ? Math.max(200, maxH - chrome) : Infinity;
+    const sWide = Math.min(w / 660, hAvail / 470), sCompact = Math.min(w / 420, hAvail / 500);
+    const wide = maxH ? (sWide >= .66 || sWide >= sCompact) : w >= 560;
+    app.classList.toggle('compact', !wide);
     const dw = app.offsetWidth, dh = app.offsetHeight;
-    scale = w / dw;
+    scale = Math.min(w / dw, hAvail / dh, 1.15);
     app.style.transform = `scale(${scale})`;
+    app.style.left = Math.max(0, (w - dw * scale) / 2) + 'px';
     frame.style.height = dh * scale + 'px';
   }
+  addEventListener('resize', fit);
+  document.querySelector('.studio-top').appendChild(document.getElementById('toggle'));
   new ResizeObserver(fit).observe(frame); fit();
 
   // first visible element matching a selector, and its centre in app coordinates
