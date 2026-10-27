@@ -1156,3 +1156,8 @@ main #top .hero-copy h1{font-size:var(--fs-section)!important;line-height:var(--
 @media(min-width:701px) and (max-width:1179px){
   main #top .hero-copy .actions .button{padding:16px 18px!important;font-size:15px!important;white-space:nowrap!important}
 }
+
+/* Homepage hero: the MonoBot Live Studio demo (live-studio.html) in place of the social card; the iframe reports its height */
+main #top .hero-demo{min-width:0;align-self:center}
+main #top .hero-demo-frame{display:block;width:100%;height:560px;border:0;background:transparent;color-scheme:normal}
+@media(min-width:1360px){main #top.hero{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)!important;gap:40px!important}main #top .hero-copy .actions{gap:12px!important}main #top .hero-copy .actions .button{padding:17px 20px!important;font-size:16px!important}}
