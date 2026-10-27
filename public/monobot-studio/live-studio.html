@@ -425,6 +425,8 @@ h1 em { color: var(--orange); }
 /* demo only: no mute / hang-up / speaker controls during the call; after it ends only "Iniciar nueva llamada" shows */
 .c-ctrls > span:not(.redial) { display: none !important; }
 .call:not(.ended) .c-ctrls { display: none; }
+@keyframes soft-in { from { opacity: .15; filter: blur(1.5px); } to { opacity: 1; filter: none; } }
+.soft { animation: soft-in .45s ease both !important; }
 /* ---------- scenes ---------- */
 .scene { position: absolute; inset: 0; padding: 14px; opacity: 0; visibility: hidden; transition: opacity .45s ease, visibility 0s .45s; display: flex; flex-direction: column; }
 .scene.is-on { opacity: 1; visibility: visible; transition: opacity .45s ease; }
@@ -894,6 +896,8 @@ body { margin: 0; overflow: hidden; }
     persona: { Profesional: 'Buen día, soy Monobot. ¿En qué puedo ayudarle hoy?', Amigable: '¡Hola! 👋 Soy Monobot, ¿en qué te echo la mano?', Directo: 'Monobot. ¿Qué necesitas?' },
     tone: { Profesional: 'Buenas tardes, le habla Monobot. ¿En qué puedo ayudarle?', Amigable: '¡Hola! 😊 Qué gusto saludarte, ¿cómo te ayudo hoy?', Persuasivo: 'Tengo dos espacios esta semana, ¿aseguramos el tuyo?' },
   };
+  // soft fade on text that changed (bubbles, steps, flow labels) when an option is switched
+  const soften = (els) => els.forEach((el) => { el.classList.remove('soft'); void el.offsetWidth; el.classList.add('soft'); });
   function fill() {
     app.querySelectorAll('.preview').forEach((pv) => {
       const kind = pv.dataset.for, opt = pick(`.s-pills[data-group="${kind}"] span.on`) || 'Profesional';
@@ -911,8 +915,8 @@ body { margin: 0; overflow: hidden; }
     // chatbot: what Monobot says and how the bubbles move depend on the personality
     const per = VARIANTS.persona[pick('[data-panel="chat"] .s-pills span.on')] || VARIANTS.persona.Profesional;
     const chat = app.querySelector('[data-scene="chatbot"]');
-    chat.dataset.mode = per.tag;
-    chat.querySelectorAll('.chat-feed .bub').forEach((b, k) => { b.innerHTML = per.b[k]; });
+    if (!chat.classList.contains('is-on')) chat.dataset.mode = per.tag;   // the bubble motion changes on the next run, not mid-conversation
+    chat.querySelectorAll('.chat-feed .bub').forEach((b, k) => { if (b.innerHTML !== per.b[k]) { b.innerHTML = per.b[k]; if (chat.classList.contains('is-on')) soften([b]); } });
     chat.querySelector('.meet b').textContent = per.meet;
     chat.querySelector('.mode-tag').textContent = 'Personalidad · ' + per.tag;
     // voice: the conversation and the voice waves depend on the tone
@@ -921,8 +925,10 @@ body { margin: 0; overflow: hidden; }
     call.dataset.mode = tone.tag;
     const AV = { ai: '<span class="tx-av ai"><svg viewBox="0 0 24 24"><path d="M6 10v4M10 7v10M14 9v6M18 11v2"/></svg></span>',
                  c: '<span class="tx-av"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>' };
+    if (!call.classList.contains('is-on')) {
     call.querySelector('.tx').innerHTML = '<div class="tx-track">' + tone.rows.map(([who, t, txt]) =>
       `<div class="tx-row pending" data-who="${who}">${AV[who]}<span><b>${who === 'ai' ? 'Monobot (IA)' : 'Cliente'}<small>${t}</small></b>${txt}</span></div>`).join('') + '</div>';
+    }
     call.querySelector('#sumTone').textContent = 'tono ' + tone.tag.toLowerCase();
     // "Ver llamada": the whole conversation, compact, under a recording bar
     call.querySelector('#recTx').innerHTML = tone.rows.map(([who, t, txt]) =>
@@ -937,10 +943,11 @@ body { margin: 0; overflow: hidden; }
     // automation: the steps, the flow (apps and labels) and the history depend on the scenario
     const scns = [...app.querySelectorAll('[data-panel="auto"] .scn')];
     const v = VARIANTS.scn[Math.max(0, scns.findIndex((x) => x.classList.contains('on')))];
-    app.querySelectorAll('[data-scene="auto-setup"] .st small').forEach((el, k) => { el.textContent = v.steps[k]; });
+    app.querySelectorAll('[data-scene="auto-setup"] .st small').forEach((el, k) => { if (el.textContent !== v.steps[k]) { el.textContent = v.steps[k]; if (el.closest('.scene.is-on')) soften([el.closest('.st')]); } });
     app.querySelectorAll('[data-scene="auto-flow"] .nd').forEach((nd, k) => {
       const [icon, title, sub] = v.nodes[k];
       if (icon) nd.querySelector('.ic').innerHTML = ICONS[icon];
+      if (nd.querySelector('b').textContent !== title && nd.closest('.scene.is-on')) soften([nd.querySelector('span:nth-child(2)')]);
       nd.querySelector('b').textContent = title; nd.querySelector('small').textContent = sub;
     });
     app.querySelectorAll('[data-scene="auto-flow"] .hr > span:not(.ok)').forEach((el, k) => { el.textContent = v.hist[k]; });
@@ -1071,7 +1078,7 @@ body { margin: 0; overflow: hidden; }
   }
   const go = (id) => { takeOver(); show(SCENES.findIndex((s) => s.id === id)); };
   const on = (sel, fn) => app.querySelectorAll(sel).forEach((el) => el.addEventListener('click', (e) => { e.stopPropagation(); fn(el, e); }));
-  on('.s-pills span, .scn', (el) => { takeOver(); choose(el); show(i, true); });
+  on('.s-pills span, .scn', (el) => { takeOver(); choose(el); });
   on('.s-apps span:not(.more), .tools span:not(.more)', (el) => { takeOver(); el.classList.toggle('on'); el.classList.remove('tap'); void el.offsetWidth; el.classList.add('tap'); });
   on('.s-apps .more, .tools .more', (el) => { takeOver(); const box = el.parentElement, open = box.classList.toggle('expanded'); el.textContent = open ? 'Ver menos' : 'Ver más'; });
   on('[data-start="chat"], .sugg span, .composer .send', () => go('chatbot'));
