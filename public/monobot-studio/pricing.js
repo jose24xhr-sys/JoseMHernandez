@@ -133,6 +133,18 @@
     { name: 'Reportar', text: 'Te envía un reporte semanal de conversaciones y oportunidades',
       ic: line('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>') },
   ];
+  const IC_BOT = line('<rect x="5" y="8" width="14" height="11" rx="3"/><path d="M12 4v4M9.5 13.5h.01M14.5 13.5h.01"/>');
+  const IC_CLOCK = line('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>');
+  const flowSteps = (k, voice) => {
+    const inbound = voice ? [line('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>'), 'Entra una llamada']
+      : [logo('whatsapp'), 'Llega un mensaje'];
+    return {
+      Calificar: [inbound, [IC_BOT, 'Pregunta y califica'], [logo('hubspot'), 'Lo registra en tu CRM'], [logo('gmail'), 'Envía el seguimiento']],
+      Cotizar: [[inbound[0], 'Piden un precio'], [IC_BOT, 'Toma los datos'], [FLOWS[1].ic, 'Arma la cotización'], [logo('gmail'), 'La envía en minutos']],
+      Recordar: [[logo('googlecalendar'), 'Cita para mañana'], [IC_BOT, 'Escribe al cliente'], [logo('whatsapp'), 'El cliente confirma'], [logo('googlecalendar'), 'Actualiza tu agenda']],
+      Reportar: [[IC_CLOCK, 'Cada lunes'], [IC_BOT, 'Revisa la semana'], [FLOWS[3].ic, 'Arma el reporte'], [logo('gmail'), 'Te lo envía']],
+    }[k];
+  };
   const IC_CHAT = line('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>');
   const IC_CALL = CONNECTOR.telefono.ic;
   const LEVEL = { esencial: 0, profesional: 1, escala: 2 };
@@ -219,7 +231,11 @@
           extra: `${money.format(p.overage.price)} MXN por llamada; número adicional, ${money.format(addon.monthly)} MXN al mes` }
         : null;
     const flowsBlock = p.opsFlows
-      ? `<p class="dr-lead">Incluye <b>${p.opsFlows === 1 ? '1 flujo' : `hasta ${p.opsFlows} flujos`}</b> a elegir. Por ejemplo:</p><ul class="dr-flows">${FLOWS.map((f) => `<li>${f.ic}<span><b>${f.name}</b>${esc(f.text)}</span></li>`).join('')}</ul>`
+      ? `<p class="dr-lead">Incluye <b>${p.opsFlows === 1 ? '1 flujo' : `hasta ${p.opsFlows} flujos`}</b> a elegir. Míralo en acción:</p>
+        <div class="dr-player" data-flow-player>
+          <div class="dr-chips" role="tablist" aria-label="Ejemplos de flujos">${FLOWS.map((f, i) => `<button type="button" role="tab" aria-selected="${i === 0}" data-flow="${i}">${f.ic}${f.name}</button>`).join('')}</div>
+          ${FLOWS.map((f, i) => `<div class="dr-run"${i ? ' hidden' : ''} data-run="${i}"><p class="dr-cap">${esc(f.text)}</p><ol class="dr-pipe"><span class="dr-rail" aria-hidden="true"><i></i></span>${flowSteps(f.name, p.group === 'voz').map(([ic, t]) => `<li class="dr-st"><span class="dr-sic">${ic}</span><small>${esc(t)}</small></li>`).join('')}</ol><p class="dr-done">Listo, sin que tú hicieras nada.</p></div>`).join('')}
+        </div>`
       : `<p class="dr-lead">${p.group === 'sitios' ? 'El sitio web no incluye flujos de IA operativa; súmalos con Sitio Web + Chatbot.' : 'Este plan responde y atiende; los flujos de IA operativa empiezan en Profesional.'}</p>`;
     return `<header class="dr-head"><i aria-hidden="true">${p.icon}</i><div><h3 id="drawer-title">${esc(p.name)}</h3><p>${priceMain(p)} <small>${esc(priceUnit(p))}</small></p></div></header>
       <section><h4>Conectores disponibles</h4>${phones}${choices.length
@@ -233,14 +249,38 @@
       <section><h4>Qué no incluye</h4><ul class="dr-not">${NOT_INCLUDED[p.id].map((t) => `<li>${esc(t)}</li>`).join('')}</ul></section>
       <a class="button dr-cta" href="/monobot-studio/agenda">${esc(COPY[p.id].cta)} <span aria-hidden="true">→</span></a>`;
   };
+  let flowTimers = [];
+  const stopFlows = () => { flowTimers.forEach(clearTimeout); flowTimers = []; };
+  const playFlows = () => {
+    const player = body.querySelector('[data-flow-player]'); if (!player) return;
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let cur = 0, auto = true;
+    const show = (i) => {
+      stopFlows(); cur = i;
+      player.querySelectorAll('[data-flow]').forEach((b) => b.setAttribute('aria-selected', String(+b.dataset.flow === i)));
+      player.querySelectorAll('[data-run]').forEach((r) => { r.hidden = +r.dataset.run !== i; });
+      const run = player.querySelector(`[data-run="${i}"]`), steps = [...run.querySelectorAll('.dr-st')], bar = run.querySelector('.dr-rail i'), done = run.querySelector('.dr-done');
+      steps.forEach((s) => s.classList.remove('on', 'now')); done.classList.remove('on'); bar.style.setProperty('--p', 0);
+      if (still) { steps.forEach((s) => s.classList.add('on')); done.classList.add('on'); bar.style.setProperty('--p', 1); return; }
+      steps.forEach((s, k) => flowTimers.push(setTimeout(() => {
+        steps.forEach((x) => x.classList.remove('now')); s.classList.add('on', 'now'); bar.style.setProperty('--p', k / (steps.length - 1));
+      }, 250 + k * 900)));
+      const end = 250 + (steps.length - 1) * 900;
+      flowTimers.push(setTimeout(() => { steps.forEach((x) => x.classList.remove('now')); done.classList.add('on'); }, end + 450));
+      flowTimers.push(setTimeout(() => (auto ? show((cur + 1) % FLOWS.length) : show(cur)), end + 2800));
+    };
+    player.addEventListener('click', (e) => { const b = e.target.closest('[data-flow]'); if (b) { auto = false; show(+b.dataset.flow); } });
+    show(0);
+  };
   const open = (id) => {
     lastFocus = document.activeElement;
-    body.innerHTML = details(byId(id));
+    stopFlows(); body.innerHTML = details(byId(id)); playFlows();
     drawer.hidden = false; requestAnimationFrame(() => drawer.classList.add('is-open'));
     document.documentElement.classList.add('drawer-open');
     drawer.querySelector('[data-drawer-close]').focus();
   };
   const close = () => {
+    stopFlows();
     drawer.classList.remove('is-open'); document.documentElement.classList.remove('drawer-open');
     setTimeout(() => { drawer.hidden = true; }, 260); if (lastFocus) lastFocus.focus();
   };
