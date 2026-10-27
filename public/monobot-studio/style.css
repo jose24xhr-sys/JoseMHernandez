@@ -1311,3 +1311,24 @@ html.drawer-open{overflow:hidden}
 }
 @media(prefers-reduced-motion:reduce){.fd-step,.fd-end,.fd-sum{opacity:1!important;transform:none!important;transition:none}.fd-rail i{width:100%!important;transition:none}}
 .dr-included{margin-bottom:10px!important}.dr-included li{grid-column:1/-1;border-color:rgba(255,101,0,.35)!important;font-weight:600}
+.dr-player{margin-top:10px;padding:12px;border-radius:12px;border:1px solid rgba(255,101,0,.3);background:linear-gradient(180deg,rgba(255,101,0,.05),#fff)}
+.dr-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.dr-chips button{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;font:600 12px/1 inherit;font-family:inherit;color:var(--muted);cursor:pointer;transition:border-color .2s,color .2s,background .2s}
+.dr-chips button svg{width:14px;height:14px}
+.dr-chips button[aria-selected=true]{border-color:var(--orange);color:var(--orange);background:rgba(255,101,0,.06)}
+.dr-chips button[aria-selected=true] .line-ic{stroke:var(--orange)}
+.dr-cap{margin:0 0 12px!important;font-size:13px;color:var(--ink)}
+.dr-pipe{position:relative;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.dr-rail{position:absolute;left:12.5%;right:12.5%;top:17px;height:2px;border-radius:2px;background:var(--line)}
+.dr-rail i{position:absolute;inset:0 auto 0 0;width:calc(var(--p,0)*100%);border-radius:inherit;background:var(--orange);transition:width .7s cubic-bezier(.4,0,.2,1)}
+.dr-st{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;opacity:.3;transform:translateY(5px);transition:opacity .4s ease,transform .4s cubic-bezier(.2,.8,.3,1.1)}
+.dr-st.on{opacity:1;transform:none}
+.dr-sic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:#fff;box-shadow:0 0 0 1px var(--line);transition:box-shadow .3s,transform .3s}
+.dr-sic svg{width:17px;height:17px}
+.dr-st.on .dr-sic{box-shadow:0 0 0 1px rgba(255,101,0,.45),0 6px 14px -8px rgba(255,101,0,.6)}
+.dr-st.on .line-ic{stroke:var(--orange)}
+.dr-st.now .dr-sic{transform:scale(1.14)}
+.dr-st small{font-size:11px;line-height:1.3;color:var(--muted)}
+.dr-st.on small{color:var(--ink)}
+.dr-done{margin:12px 0 0!important;font-size:12px;font-weight:700;color:var(--orange);opacity:0;transition:opacity .4s}
+.dr-done.on{opacity:1}
