@@ -830,9 +830,10 @@ body { margin: 0; overflow: hidden; }
     const wide = maxH ? (sWide >= .66 || sWide >= sCompact) : w >= 560;
     app.classList.toggle('compact', !wide);
     const dw = app.offsetWidth, dh = app.offsetHeight;
-    scale = Math.min(w / dw, hAvail / dh, 1.15);
+    scale = Math.min(w / dw, hAvail / dh, 1.25);
     app.style.transform = `scale(${scale})`;
-    app.style.left = Math.max(0, (w - dw * scale) / 2) + 'px';
+    const left = Math.max(0, (w - dw * scale) / 2); app.style.left = left + 'px';
+    document.querySelector('.studio-top').style.paddingInline = left + 'px';   // the label lines up with the app
     frame.style.height = dh * scale + 'px';
   }
   addEventListener('resize', fit);
