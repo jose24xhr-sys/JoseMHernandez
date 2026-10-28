@@ -352,6 +352,21 @@
     };
     updateHeaderState();
     window.addEventListener("scroll", requestHeaderUpdate, { passive: true });
+
+    // Mobile: the bar slides away while scrolling down and comes back on any scroll up.
+    const mobileHeader = window.matchMedia("(max-width: 1000px)");
+    let lastScrollY = window.scrollY;
+    window.addEventListener("scroll", () => {
+      const y = window.scrollY, delta = y - lastScrollY;
+      if (Math.abs(delta) < 6) return;
+      lastScrollY = y;
+      siteHeaders.forEach((header) => {
+        const menu = header.querySelector(".mobile-menu");
+        const hide = mobileHeader.matches && delta > 0 && y > 120;
+        if (hide && menu?.open) menu.open = false;
+        header.classList.toggle("is-hidden", hide);
+      });
+    }, { passive: true });
     window.addEventListener("resize", requestHeaderUpdate, { passive: true });
   }
 

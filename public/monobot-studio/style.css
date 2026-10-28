@@ -1385,3 +1385,14 @@ html.drawer-open{overflow:hidden}
   .site-header .mobile-menu>div{right:-16px!important;top:52px!important;width:100vw!important;border-radius:0 0 14px 14px!important;border-width:0 0 1px!important}
 }
 .page-hero.page-hero-compact{min-height:0!important;padding-block:56px 40px!important}.page-hero-compact .lede{margin:0 auto!important}@media (max-width:700px){.page-hero.page-hero-compact{padding-block:28px 24px!important}}
+/* Mobile header: the tagline sits in the middle of the bar, between the M and the menu icon;
+   the bar hides while scrolling down and comes back when scrolling up (site.js) */
+@media (max-width:1000px){
+  .site-header{position:relative}
+  .site-header .nav-secondary,.site-header.is-compact .nav-secondary{position:absolute!important;top:0;left:74px;right:64px;height:64px;min-height:0!important;max-height:none!important;padding:0!important;margin:0;border:0!important;display:flex!important;align-items:center;justify-content:center;opacity:1!important;transform:none!important;clip-path:none!important;pointer-events:none;overflow:visible!important}
+  .site-header .nav-secondary p:last-child{font-size:clamp(9.5px,2.9vw,12px)!important;letter-spacing:.02em!important;line-height:1.25;white-space:nowrap!important;text-align:center}
+  .site-header.is-compact{transition:transform .32s cubic-bezier(.4,0,.2,1)}
+  .site-header.is-compact.is-hidden{transform:translateY(-110%)!important}
+}
+@media (max-width:1000px) and (min-width:701px){.site-header .nav-secondary,.site-header.is-compact .nav-secondary{height:70px}}
+@media (max-width:1000px){.site-header .nav-secondary p:first-child{display:none!important}.site-header .nav-secondary p:last-child{padding:0!important;border:0!important}}
