@@ -1397,3 +1397,7 @@ html.drawer-open{overflow:hidden}
 @media (max-width:1000px) and (min-width:701px){.site-header .nav-secondary,.site-header.is-compact .nav-secondary{height:70px}}
 @media (max-width:1000px){.site-header .nav-secondary p:first-child{display:none!important}.site-header .nav-secondary p:last-child{padding:0!important;border:0!important}}
 .page-hero-compact h1{margin:0 0 14px!important}
+/* Mobile: the scrolled header keeps the full dark colour (no see-through glass) */
+@media (max-width:1000px){
+  .site-header.is-compact{background:radial-gradient(circle at 12% 26%,rgba(255,101,0,.18),transparent 19%),radial-gradient(circle at 88% 5%,rgba(255,101,0,.08),transparent 22%),linear-gradient(118deg,#111,#1c1c1c 58%,#121212)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+}
