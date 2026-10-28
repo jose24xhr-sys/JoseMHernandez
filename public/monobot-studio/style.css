@@ -1371,3 +1371,10 @@ html.drawer-open{overflow:hidden}
 }
 .post-entry[open]{scroll-margin-top:120px!important}
 @media (max-width:700px){.post-article .post-flow li{font-size:12.5px!important;padding:10px 12px}}
+/* Mobile header: just the M mark and the three-line menu icon */
+@media (max-width:1000px){
+  .site-header .nav-main>.brand{display:block;width:46px;height:31px;flex:none;background:url(/monobot-studio/brand/monobot-mark.png) center/138% auto no-repeat}
+  .site-header .nav-main>.brand .brand-wordmark-header{display:none!important}
+  .site-header .mobile-menu summary{font-size:0!important;letter-spacing:0!important;gap:0!important;padding:4px 0 4px 10px}
+  .site-header .mobile-menu summary span{font-size:28px!important;margin:0!important}
+}
