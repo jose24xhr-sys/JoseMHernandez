@@ -434,6 +434,17 @@
   // "toggle" doesn't bubble, so listen in the capture phase; this also covers
   // cards injected later from the local editor.
   const blogEntrySelector = ".post-entry, .featured-entry";
+  // Each article has an id (its slug), so /monobot-studio/blog#slug and the links between
+  // articles open the right card.
+  const openFromHash = () => {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    const entry = id && document.getElementById(id);
+    if (entry instanceof HTMLDetailsElement && entry.matches(".post-entry")) {
+      if (entry.open) entry.scrollIntoView({ block: "start" }); else entry.open = true;
+    }
+  };
+  window.addEventListener("hashchange", openFromHash);
+  if (window.location.hash) requestAnimationFrame(openFromHash);
   document.addEventListener("toggle", (event) => {
     const entry = event.target;
     if (!(entry instanceof HTMLDetailsElement) || !entry.matches(blogEntrySelector) || !entry.open) return;
