@@ -1384,3 +1384,4 @@ html.drawer-open{overflow:hidden}
   .site-header.is-compact{left:0!important;transform:none!important}
   .site-header .mobile-menu>div{right:-16px!important;top:52px!important;width:100vw!important;border-radius:0 0 14px 14px!important;border-width:0 0 1px!important}
 }
+.page-hero.page-hero-compact{min-height:0!important;padding-block:56px 40px!important}.page-hero-compact .lede{margin:0 auto!important}@media (max-width:700px){.page-hero.page-hero-compact{padding-block:28px 24px!important}}
