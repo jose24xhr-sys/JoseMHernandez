@@ -1396,3 +1396,4 @@ html.drawer-open{overflow:hidden}
 }
 @media (max-width:1000px) and (min-width:701px){.site-header .nav-secondary,.site-header.is-compact .nav-secondary{height:70px}}
 @media (max-width:1000px){.site-header .nav-secondary p:first-child{display:none!important}.site-header .nav-secondary p:last-child{padding:0!important;border:0!important}}
+.page-hero-compact h1{margin:0 0 14px!important}
