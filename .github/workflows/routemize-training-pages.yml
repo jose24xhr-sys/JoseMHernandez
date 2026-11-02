@@ -33,8 +33,9 @@ jobs:
       - name: Prepare Routemize training site
         shell: bash
         run: |
-          mkdir -p _site/routemize-training
+          mkdir -p _site/training-routemize _site/routemize-training
           cp public/routemize-training/index.html _site/index.html
+          cp public/routemize-training/index.html _site/training-routemize/index.html
           cp public/routemize-training/index.html _site/routemize-training/index.html
           touch _site/.nojekyll
 
